@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { InviteUserDialog } from "@/components/settings/invite-user-dialog";
+import { CreateUserDialog } from "@/components/settings/create-user-dialog";
 import type { ProfileRow } from "@/lib/queries/settings";
 import type { UserRole } from "@/types/database.types";
 
@@ -78,7 +79,8 @@ export function UsersPanel({ profiles }: { profiles: ProfileRow[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <CreateUserDialog />
         <InviteUserDialog />
       </div>
 

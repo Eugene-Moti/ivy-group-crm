@@ -14,17 +14,34 @@ export async function POST(request: Request) {
   const email = typeof body?.email === "string" ? body.email.trim() : "";
   const fullName = typeof body?.fullName === "string" ? body.fullName.trim() : "";
   const role = body?.role === "admin" ? "admin" : "viewer";
+  const password = typeof body?.password === "string" ? body.password : "";
+  const mode = body?.mode === "manual" ? "manual" : "invite";
 
   if (!EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
   }
+  if (mode === "manual" && password.length < 8) {
+    return NextResponse.json(
+      { error: "Password must be at least 8 characters." },
+      { status: 400 }
+    );
+  }
 
-  const { origin } = new URL(request.url);
   const adminClient = createAdminClient();
-  const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-    data: fullName ? { full_name: fullName } : undefined,
-    redirectTo: `${origin}/auth/callback`,
-  });
+  const userData = fullName ? { full_name: fullName } : undefined;
+
+  const { data, error } =
+    mode === "manual"
+      ? await adminClient.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: userData,
+        })
+      : await adminClient.auth.admin.inviteUserByEmail(email, {
+          data: userData,
+          redirectTo: `${new URL(request.url).origin}/auth/callback`,
+        });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
