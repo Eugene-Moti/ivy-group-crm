@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Logo } from "@/components/layout/logo";
 import { ContactFooter } from "@/components/layout/contact-footer";
 import { LoginForm } from "@/components/auth/login-form";
+import { IdleLogoutNotice } from "@/components/auth/idle-logout-notice";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -27,6 +28,7 @@ export function LoginFormPanel() {
       </div>
       <Suspense fallback={null}>
         <LoginForm />
+        <IdleLogoutNotice />
       </Suspense>
       <ContactFooter className="lg:hidden" />
     </motion.div>

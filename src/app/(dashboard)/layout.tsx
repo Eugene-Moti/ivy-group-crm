@@ -5,6 +5,7 @@ import { ProfileProvider } from "@/components/providers/profile-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { RouteProgressBar } from "@/components/layout/route-progress-bar";
+import { IdleSessionGuard } from "@/components/layout/idle-session-guard";
 
 export default async function DashboardLayout({
   children,
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
       <Suspense fallback={null}>
         <RouteProgressBar />
       </Suspense>
+      <IdleSessionGuard />
       <div className="flex h-screen overflow-hidden">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
