@@ -42,24 +42,13 @@ export function SendToAgentMenu({ lead }: { lead: LeadWithRelations }) {
     router.refresh();
   }
 
-  function handleWhatsApp() {
-    if (!agent?.phone) return;
-    const message = buildClientDetailsMessage(lead);
-    window.open(
-      `https://wa.me/${toWhatsAppNumber(agent.phone)}?text=${encodeURIComponent(message)}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
-    logSend("WhatsApp", "whatsapp");
-  }
-
-  function handleEmail() {
-    if (!agent?.email) return;
-    const message = buildClientDetailsMessage(lead);
-    const subject = `Client lead: ${fullName(lead)}`;
-    window.location.href = `mailto:${agent.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
-    logSend("Email", "email");
-  }
+  const message = buildClientDetailsMessage(lead);
+  const whatsappHref = agent.phone
+    ? `https://wa.me/${toWhatsAppNumber(agent.phone)}?text=${encodeURIComponent(message)}`
+    : undefined;
+  const mailtoHref = agent.email
+    ? `mailto:${agent.email}?subject=${encodeURIComponent(`Client lead: ${fullName(lead)}`)}&body=${encodeURIComponent(message)}`
+    : undefined;
 
   return (
     <DropdownMenu>
@@ -70,13 +59,22 @@ export function SendToAgentMenu({ lead }: { lead: LeadWithRelations }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem disabled={!agent.phone} onClick={handleWhatsApp}>
-          <MessageCircle />
-          Send via WhatsApp
+        <DropdownMenuItem asChild disabled={!agent.phone}>
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => logSend("WhatsApp", "whatsapp")}
+          >
+            <MessageCircle />
+            Send via WhatsApp
+          </a>
         </DropdownMenuItem>
-        <DropdownMenuItem disabled={!agent.email} onClick={handleEmail}>
-          <Mail />
-          Send via Email
+        <DropdownMenuItem asChild disabled={!agent.email}>
+          <a href={mailtoHref} onClick={() => logSend("Email", "email")}>
+            <Mail />
+            Send via Email
+          </a>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
