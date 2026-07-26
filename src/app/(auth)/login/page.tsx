@@ -33,9 +33,9 @@ export default function LoginPage() {
           src="/CRM-integration-processes.webp"
           alt=""
           fill
-          className="object-cover opacity-[0.07] dark:opacity-[0.14]"
+          className="object-cover opacity-[0.18] dark:opacity-[0.3]"
         />
-        <div className="absolute inset-0 bg-background/95" />
+        <div className="absolute inset-0 bg-background/75" />
 
         <LoginFormPanel />
       </div>
