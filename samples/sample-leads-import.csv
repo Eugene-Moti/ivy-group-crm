@@ -1,0 +1,6 @@
+First Name,Last Name,Phone,Email,Lead Source,Priority,Pipeline Status,Property Type,Preferred Area,Budget Min,Budget Max,Beds,Next Follow-Up,Assigned Agent,Notes
+Mary,Kamande,+254712000111,mary.kamande@example.com,Website,Hot,New Lead,Apartment,Lavington,9000000,13000000,3,2026-08-05,,Wants a lake view unit
+John,Mwangi,+254712000112,john.mwangi@example.com,TikTok Ad,Warm,Contacted,Townhouse,Runda,20000000,28000000,4,2026-08-10,,First-time buyer referred by a friend
+Alice,Njeri,+254712000113,alice.njeri@example.com,Referral,Cold,Qualified,Bungalow,Nyari,15000000,19000000,4,2026-08-01,,
+,Otieno,+254712000114,bad-email,Website,Hot,New Lead,Apartment,Kilimani,7000000,10000000,2,2026-08-03,,Missing first name on purpose to test validation
+Grace,Wafula,+254712000115,grace.wafula@example.com,Instagram,Warm,Viewing Scheduled,Villa,Karen,30000000,40000000,5,2026-08-07,Someone Unmatched,Agent name won't match any existing profile
