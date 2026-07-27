@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentProfile, isAdmin } from "@/lib/auth";
 import { getAgents, getLeadSources, getPropertyTypes } from "@/lib/queries/leads";
+import { getLeadColumnLabels } from "@/lib/queries/settings";
 import { ImportWizard } from "@/components/import/import-wizard";
 
 export default async function ImportPage() {
@@ -9,10 +10,11 @@ export default async function ImportPage() {
     redirect("/dashboard");
   }
 
-  const [leadSources, propertyTypes, agents] = await Promise.all([
+  const [leadSources, propertyTypes, agents, columnLabels] = await Promise.all([
     getLeadSources(),
     getPropertyTypes(),
     getAgents(),
+    getLeadColumnLabels(),
   ]);
 
   return (
@@ -23,7 +25,12 @@ export default async function ImportPage() {
           Migrate the marketing team&apos;s spreadsheet into the CRM.
         </p>
       </div>
-      <ImportWizard leadSources={leadSources} propertyTypes={propertyTypes} agents={agents} />
+      <ImportWizard
+        leadSources={leadSources}
+        propertyTypes={propertyTypes}
+        agents={agents}
+        columnLabels={columnLabels}
+      />
     </div>
   );
 }

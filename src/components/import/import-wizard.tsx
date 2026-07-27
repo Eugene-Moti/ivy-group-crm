@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { autoMapHeaders, type ImportFieldKey } from "@/lib/import/field-config";
 import type { ParsedSheet } from "@/lib/import/parse-file";
 import type { ImportRowResult } from "@/lib/import/validate-row";
+import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 import { UploadStep } from "@/components/import/upload-step";
 import { MapColumnsStep } from "@/components/import/map-columns-step";
@@ -31,10 +32,12 @@ export function ImportWizard({
   leadSources,
   propertyTypes,
   agents,
+  columnLabels,
 }: {
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   agents: AgentOption[];
+  columnLabels?: LeadColumnLabels;
 }) {
   const [step, setStep] = useState<Step>("upload");
   const [sheet, setSheet] = useState<ParsedSheet | null>(null);
@@ -212,6 +215,7 @@ export function ImportWizard({
         <MapColumnsStep
           headers={sheet.headers}
           mapping={mapping}
+          columnLabels={columnLabels}
           onChange={setMapping}
           onBack={() => setStep("upload")}
           onContinue={() => setStep("preview")}

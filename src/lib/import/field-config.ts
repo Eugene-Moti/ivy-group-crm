@@ -1,4 +1,10 @@
-import { LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
+import {
+  DEFAULT_LEAD_COLUMN_LABELS,
+  LEAD_PRIORITIES,
+  LEAD_STATUSES,
+  type LeadColumnId,
+} from "@/lib/constants";
+import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 export type ImportFieldKey =
   | "first_name"
@@ -41,6 +47,53 @@ export const IMPORT_FIELDS: ImportFieldConfig[] = [
   { key: "assigned_agent", label: "Assigned Agent", required: false, aliases: ["assigned agent", "agent", "assigned to", "owner"] },
   { key: "notes", label: "Notes", required: false, aliases: ["notes", "note", "comments", "remarks"] },
 ];
+
+/**
+ * Most import fields correspond 1:1 to a leads-table column, so if an admin
+ * renamed that column from Settings > Column labels, the import step should
+ * say the same thing. first_name/last_name have no direct match — the leads
+ * table shows them combined as one "Name"-ish column — so they're handled
+ * separately in resolveImportFieldLabel below.
+ */
+const IMPORT_FIELD_TO_COLUMN_ID: Partial<Record<ImportFieldKey, LeadColumnId>> = {
+  phone: "phone",
+  email: "email",
+  lead_source: "source",
+  priority: "priority",
+  status: "status",
+  property_type: "property_type",
+  preferred_area: "area",
+  budget_min: "budget",
+  budget_max: "budget",
+  bedrooms: "bedrooms",
+  next_follow_up_at: "next_follow_up_at",
+  assigned_agent: "agent",
+};
+
+/** The label to show for an import field, and an optional note tying it back to a renamed column. */
+export function resolveImportFieldLabel(
+  field: ImportFieldConfig,
+  columnLabels?: LeadColumnLabels
+): { label: string; note?: string } {
+  if (!columnLabels) return { label: field.label };
+
+  if (field.key === "first_name" || field.key === "last_name") {
+    const nameLabel = columnLabels.name;
+    if (nameLabel !== DEFAULT_LEAD_COLUMN_LABELS.name) {
+      return { label: field.label, note: `Together, shown as "${nameLabel}"` };
+    }
+    return { label: field.label };
+  }
+
+  const columnId = IMPORT_FIELD_TO_COLUMN_ID[field.key];
+  if (!columnId) return { label: field.label };
+
+  const customLabel = columnLabels[columnId];
+  if (!customLabel || customLabel === DEFAULT_LEAD_COLUMN_LABELS[columnId]) {
+    return { label: field.label };
+  }
+  return { label: customLabel };
+}
 
 function normalize(value: string): string {
   return value.trim().toLowerCase().replace(/[_-]/g, " ").replace(/\s+/g, " ");

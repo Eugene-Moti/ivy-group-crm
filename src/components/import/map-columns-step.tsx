@@ -9,19 +9,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IMPORT_FIELDS, type ImportFieldKey } from "@/lib/import/field-config";
+import {
+  IMPORT_FIELDS,
+  resolveImportFieldLabel,
+  type ImportFieldKey,
+} from "@/lib/import/field-config";
+import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 const NONE = "__none__";
 
 export function MapColumnsStep({
   headers,
   mapping,
+  columnLabels,
   onChange,
   onBack,
   onContinue,
 }: {
   headers: string[];
   mapping: Partial<Record<ImportFieldKey, string>>;
+  columnLabels?: LeadColumnLabels;
   onChange: (mapping: Partial<Record<ImportFieldKey, string>>) => void;
   onBack: () => void;
   onContinue: () => void;
@@ -47,11 +54,18 @@ export function MapColumnsStep({
 
       <div className="overflow-hidden rounded-xl border border-border">
         <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2">
-          {IMPORT_FIELDS.map((f) => (
+          {IMPORT_FIELDS.map((f) => {
+            const { label, note } = resolveImportFieldLabel(f, columnLabels);
+            return (
             <div key={f.key} className="flex items-center justify-between gap-3 bg-card p-3">
               <span className="text-sm font-medium">
-                {f.label}
+                {label}
                 {f.required && <span className="ml-1 text-destructive">*</span>}
+                {note && (
+                  <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                    {note}
+                  </span>
+                )}
               </span>
               <Select
                 value={mapping[f.key] ?? NONE}
@@ -70,13 +84,18 @@ export function MapColumnsStep({
                 </SelectContent>
               </Select>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       {missingRequired.length > 0 && (
         <p className="text-sm text-destructive">
-          Map {missingRequired.map((f) => f.label).join(" and ")} to continue.
+          Map{" "}
+          {missingRequired
+            .map((f) => resolveImportFieldLabel(f, columnLabels).label)
+            .join(" and ")}{" "}
+          to continue.
         </p>
       )}
 
