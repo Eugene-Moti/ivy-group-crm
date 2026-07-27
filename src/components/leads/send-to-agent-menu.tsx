@@ -55,7 +55,8 @@ export function SendToAgentMenu({ lead }: { lead: LeadWithRelations }) {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" disabled={isLogging}>
           <Send className="size-4" />
-          Send to {agent.name}
+          <span className="hidden sm:inline">Send to {agent.name}</span>
+          <span className="sm:hidden">Send</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

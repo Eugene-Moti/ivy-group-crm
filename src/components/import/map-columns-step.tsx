@@ -46,7 +46,7 @@ export function MapColumnsStep({
       </p>
 
       <div className="overflow-hidden rounded-xl border border-border">
-        <div className="grid grid-cols-2 gap-px bg-border">
+        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2">
           {IMPORT_FIELDS.map((f) => (
             <div key={f.key} className="flex items-center justify-between gap-3 bg-card p-3">
               <span className="text-sm font-medium">

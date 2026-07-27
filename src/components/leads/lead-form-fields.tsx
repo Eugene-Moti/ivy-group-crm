@@ -44,7 +44,7 @@ export function LeadFormFields({
 }) {
   return (
     <FieldGroup>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="first_name">First name</FieldLabel>
           <FieldContent>
@@ -61,7 +61,7 @@ export function LeadFormFields({
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="phone">Phone</FieldLabel>
           <FieldContent>
@@ -78,7 +78,7 @@ export function LeadFormFields({
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Controller
           control={control}
           name="lead_source_id"
@@ -129,7 +129,7 @@ export function LeadFormFields({
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Controller
           control={control}
           name="priority"
@@ -202,7 +202,7 @@ export function LeadFormFields({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="preferred_area">Preferred area</FieldLabel>
           <FieldContent>
@@ -218,7 +218,7 @@ export function LeadFormFields({
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="budget_min">Budget min (KES)</FieldLabel>
           <FieldContent>
