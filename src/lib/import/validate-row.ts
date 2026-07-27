@@ -1,4 +1,9 @@
-import { PRIORITY_LOOKUP, STATUS_LOOKUP, type ImportFieldKey } from "@/lib/import/field-config";
+import {
+  PRIORITY_LOOKUP,
+  STATUS_LOOKUP,
+  splitFullName,
+  type ImportFieldKey,
+} from "@/lib/import/field-config";
 import type { LeadPriority, LeadStatus } from "@/lib/constants";
 
 export type ImportRowData = {
@@ -64,10 +69,17 @@ export function validateImportRow(
 ): ImportRowResult {
   const errors: string[] = [];
 
-  const first_name = field(row, mapping, "first_name");
-  const last_name = field(row, mapping, "last_name");
-  if (!first_name) errors.push("Missing first name");
-  if (!last_name) errors.push("Missing last name");
+  let first_name = field(row, mapping, "first_name");
+  let last_name = field(row, mapping, "last_name");
+  if (!first_name && !last_name) {
+    const fullNameRaw = field(row, mapping, "full_name");
+    if (fullNameRaw) {
+      const split = splitFullName(fullNameRaw);
+      first_name = split.first_name;
+      last_name = split.last_name;
+    }
+  }
+  if (!first_name) errors.push("Missing name");
 
   const emailRaw = field(row, mapping, "email");
   if (emailRaw && !/^\S+@\S+\.\S+$/.test(emailRaw)) {

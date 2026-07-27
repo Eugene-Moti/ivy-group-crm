@@ -9,6 +9,7 @@ import type { LeadColumnLabels } from "@/lib/queries/settings";
 export type ImportFieldKey =
   | "first_name"
   | "last_name"
+  | "full_name"
   | "phone"
   | "email"
   | "lead_source"
@@ -32,8 +33,14 @@ export type ImportFieldConfig = {
 };
 
 export const IMPORT_FIELDS: ImportFieldConfig[] = [
-  { key: "first_name", label: "First Name", required: true, aliases: ["first name", "firstname", "fname", "first"] },
-  { key: "last_name", label: "Last Name", required: true, aliases: ["last name", "lastname", "lname", "surname", "last"] },
+  { key: "first_name", label: "First Name", required: false, aliases: ["first name", "firstname", "fname", "first"] },
+  { key: "last_name", label: "Last Name", required: false, aliases: ["last name", "lastname", "lname", "surname", "last"] },
+  {
+    key: "full_name",
+    label: "Full Name",
+    required: false,
+    aliases: ["full name", "fullname", "name", "client name", "customer name", "lead name", "contact name"],
+  },
   { key: "phone", label: "Phone", required: false, aliases: ["phone", "phone number", "mobile", "cell", "tel"] },
   { key: "email", label: "Email", required: false, aliases: ["email", "email address", "e-mail"] },
   { key: "lead_source", label: "Lead Source", required: false, aliases: ["lead source", "source", "channel"] },
@@ -93,7 +100,7 @@ export function resolveImportFieldLabel(
 ): { label: string; note?: string } {
   if (!columnLabels) return { label: field.label };
 
-  if (field.key === "first_name" || field.key === "last_name") {
+  if (field.key === "first_name" || field.key === "last_name" || field.key === "full_name") {
     const nameLabel = columnLabels.name;
     if (nameLabel !== DEFAULT_LEAD_COLUMN_LABELS.name) {
       return { label: field.label, note: `Together, shown as "${nameLabel}"` };
@@ -109,6 +116,21 @@ export function resolveImportFieldLabel(
     return { label: field.label };
   }
   return { label: customLabel };
+}
+
+/**
+ * A name is mappable two ways: separate First Name + Last Name columns, or
+ * one combined Full Name column. Either satisfies the requirement.
+ */
+export function isNameMappingComplete(mapping: Partial<Record<ImportFieldKey, string>>): boolean {
+  return !!mapping.full_name || (!!mapping.first_name && !!mapping.last_name);
+}
+
+/** First word is the first name, everything after is the last name. */
+export function splitFullName(raw: string): { first_name: string; last_name: string } {
+  const parts = raw.trim().split(/\s+/);
+  if (parts.length <= 1) return { first_name: parts[0] ?? "", last_name: "" };
+  return { first_name: parts[0], last_name: parts.slice(1).join(" ") };
 }
 
 function normalize(value: string): string {
