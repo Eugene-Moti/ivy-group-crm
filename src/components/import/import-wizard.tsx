@@ -147,6 +147,7 @@ export function ImportWizard({
         budget_min: d.budget_min,
         budget_max: d.budget_max,
         bedrooms: d.bedrooms,
+        last_contact_at: d.last_contact_at,
         next_follow_up_at: d.next_follow_up_at,
         assigned_to: d.assigned_to,
         notes: d.notes,

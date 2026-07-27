@@ -19,6 +19,7 @@ export type ImportFieldKey =
   | "budget_min"
   | "budget_max"
   | "bedrooms"
+  | "last_contact_at"
   | "next_follow_up_at"
   | "assigned_agent"
   | "notes";
@@ -43,6 +44,20 @@ export const IMPORT_FIELDS: ImportFieldConfig[] = [
   { key: "budget_min", label: "Budget Min", required: false, aliases: ["budget min", "min budget", "budget (min)", "minimum budget"] },
   { key: "budget_max", label: "Budget Max", required: false, aliases: ["budget max", "max budget", "budget (max)", "maximum budget"] },
   { key: "bedrooms", label: "Beds", required: false, aliases: ["beds", "bedrooms", "no. of beds", "# beds"] },
+  {
+    key: "last_contact_at",
+    label: "Last Contacted",
+    required: false,
+    aliases: [
+      "last contact",
+      "last contacted",
+      "date contacted",
+      "contact date",
+      "first contact",
+      "first contacted",
+      "date of first contact",
+    ],
+  },
   { key: "next_follow_up_at", label: "Next Follow-Up", required: false, aliases: ["next follow-up", "next follow up", "follow up date", "followup"] },
   { key: "assigned_agent", label: "Assigned Agent", required: false, aliases: ["assigned agent", "agent", "assigned to", "owner"] },
   { key: "notes", label: "Notes", required: false, aliases: ["notes", "note", "comments", "remarks"] },
@@ -66,6 +81,7 @@ const IMPORT_FIELD_TO_COLUMN_ID: Partial<Record<ImportFieldKey, LeadColumnId>> =
   budget_min: "budget",
   budget_max: "budget",
   bedrooms: "bedrooms",
+  last_contact_at: "last_contact_at",
   next_follow_up_at: "next_follow_up_at",
   assigned_agent: "agent",
 };

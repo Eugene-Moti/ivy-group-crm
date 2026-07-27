@@ -14,6 +14,7 @@ export type ImportRowData = {
   budget_min: number | null;
   budget_max: number | null;
   bedrooms: number | null;
+  last_contact_at: string | null;
   next_follow_up_at: string | null;
   assigned_to: string | null;
   notes: string | null;
@@ -103,6 +104,12 @@ export function validateImportRow(
     errors.push(`Unrecognized date "${followUpRaw}"`);
   }
 
+  const lastContactRaw = field(row, mapping, "last_contact_at");
+  const last_contact_at = lastContactRaw ? parseDate(lastContactRaw) : null;
+  if (lastContactRaw && !last_contact_at) {
+    errors.push(`Unrecognized date "${lastContactRaw}"`);
+  }
+
   const lead_source_name = field(row, mapping, "lead_source") || null;
   const isNewSource = !!lead_source_name && !existingSourceNames.has(lead_source_name.toLowerCase());
 
@@ -137,6 +144,7 @@ export function validateImportRow(
       budget_min,
       budget_max,
       bedrooms,
+      last_contact_at,
       next_follow_up_at,
       assigned_to: matchedAgentId ?? null,
       notes: field(row, mapping, "notes") || null,
