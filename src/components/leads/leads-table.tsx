@@ -22,6 +22,7 @@ import {
   Search,
   Send,
   Trash2,
+  UserCog,
   X,
 } from "lucide-react";
 
@@ -53,7 +54,8 @@ import { getLeadColumns } from "@/components/leads/lead-columns";
 import { LeadFormDialog } from "@/components/leads/lead-form-dialog";
 import { DeleteLeadDialog } from "@/components/leads/delete-lead-dialog";
 import { BulkDeleteLeadsDialog } from "@/components/leads/bulk-delete-leads-dialog";
-import { BulkSendToAgentsDialog } from "@/components/leads/bulk-send-to-agents-dialog";
+import { BulkAssignAgentDialog } from "@/components/leads/bulk-assign-agent-dialog";
+import { BulkSendToAgentDialog } from "@/components/leads/bulk-send-to-agent-dialog";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
@@ -103,6 +105,7 @@ export function LeadsTable({
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkSendOpen, setBulkSendOpen] = useState(false);
+  const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
 
   useEffect(() => {
     if (autoOpenCreate) {
@@ -393,9 +396,13 @@ export function LeadsTable({
               <Button variant="ghost" size="sm" onClick={() => setRowSelection({})}>
                 Clear selection
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setBulkAssignOpen(true)}>
+                <UserCog className="size-3.5" />
+                Assign agent
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setBulkSendOpen(true)}>
                 <Send className="size-3.5" />
-                Send to agents
+                Send to agent
               </Button>
               <Button
                 variant="destructive"
@@ -527,10 +534,21 @@ export function LeadsTable({
               router.refresh();
             }}
           />
-          <BulkSendToAgentsDialog
+          <BulkAssignAgentDialog
+            open={bulkAssignOpen}
+            onOpenChange={setBulkAssignOpen}
+            leadIds={selectedLeads.map((lead) => lead.id)}
+            agents={agents}
+            onAssigned={() => {
+              setRowSelection({});
+              router.refresh();
+            }}
+          />
+          <BulkSendToAgentDialog
             open={bulkSendOpen}
             onOpenChange={setBulkSendOpen}
             leads={selectedLeads}
+            agents={agents}
           />
         </>
       )}
