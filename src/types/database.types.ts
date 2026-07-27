@@ -121,6 +121,21 @@ export interface Database {
         };
         Relationships: [];
       };
+      lead_column_labels: {
+        Row: {
+          column_id: string;
+          label: string;
+        };
+        Insert: {
+          column_id: string;
+          label: string;
+        };
+        Update: {
+          column_id?: string;
+          label?: string;
+        };
+        Relationships: [];
+      };
       campaigns: {
         Row: {
           id: string;

@@ -9,6 +9,7 @@ import { useRealtimeLeadsRefresh } from "@/hooks/use-realtime-leads-refresh";
 import { LeadsTable } from "@/components/leads/leads-table";
 import { LeadsKanban } from "@/components/leads/kanban/leads-kanban";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
@@ -18,11 +19,13 @@ export function LeadsDirectory({
   leadSources,
   propertyTypes,
   agents,
+  columnLabels,
 }: {
   leads: LeadWithRelations[];
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   agents: AgentOption[];
+  columnLabels: LeadColumnLabels;
 }) {
   const isAdmin = useIsAdmin();
   const router = useRouter();
@@ -65,6 +68,7 @@ export function LeadsDirectory({
           agents={agents}
           autoOpenCreate={shouldAutoOpenCreate}
           initialStatusFilter={initialStatusFilter}
+          columnLabels={columnLabels}
         />
       ) : (
         <LeadsKanban leads={leads} isAdmin={isAdmin} />

@@ -11,14 +11,18 @@ import { FollowUpAlertBadge } from "@/components/badges/follow-up-alert-badge";
 import { QuickContactActions } from "@/components/leads/quick-contact-actions";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import { getFollowUpAlert } from "@/lib/leads";
+import { DEFAULT_LEAD_COLUMN_LABELS } from "@/lib/constants";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 export function getLeadColumns({
   isAdmin,
+  columnLabels = DEFAULT_LEAD_COLUMN_LABELS,
   onEdit,
   onDelete,
 }: {
   isAdmin: boolean;
+  columnLabels?: LeadColumnLabels;
   onEdit: (lead: LeadWithRelations) => void;
   onDelete: (lead: LeadWithRelations) => void;
 }): ColumnDef<LeadWithRelations>[] {
@@ -56,7 +60,7 @@ export function getLeadColumns({
       : []),
     {
       id: "name",
-      header: "Name",
+      header: columnLabels.name,
       accessorFn: (lead) => fullName(lead),
       cell: ({ row }) => (
         <Link
@@ -70,7 +74,7 @@ export function getLeadColumns({
     },
     {
       id: "phone",
-      header: "Phone",
+      header: columnLabels.phone,
       accessorKey: "phone",
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
@@ -83,7 +87,7 @@ export function getLeadColumns({
     },
     {
       id: "email",
-      header: "Email",
+      header: columnLabels.email,
       accessorKey: "email",
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
@@ -98,34 +102,34 @@ export function getLeadColumns({
     },
     {
       id: "source",
-      header: "Source",
+      header: columnLabels.source,
       accessorFn: (lead) => lead.lead_source?.name ?? "—",
     },
     {
       id: "priority",
-      header: "Priority",
+      header: columnLabels.priority,
       accessorKey: "priority",
       cell: ({ row }) => <PriorityBadge priority={row.original.priority} />,
     },
     {
       id: "status",
-      header: "Status",
+      header: columnLabels.status,
       accessorKey: "status",
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       id: "property_type",
-      header: "Property type",
+      header: columnLabels.property_type,
       accessorFn: (lead) => lead.property_type?.name ?? "—",
     },
     {
       id: "area",
-      header: "Area",
+      header: columnLabels.area,
       accessorFn: (lead) => lead.preferred_area ?? "—",
     },
     {
       id: "budget",
-      header: "Budget",
+      header: columnLabels.budget,
       accessorFn: (lead) => lead.budget_max ?? lead.budget_min ?? 0,
       cell: ({ row }) => (
         <span className="whitespace-nowrap">
@@ -135,18 +139,18 @@ export function getLeadColumns({
     },
     {
       id: "bedrooms",
-      header: "Beds",
+      header: columnLabels.bedrooms,
       accessorFn: (lead) => lead.bedrooms ?? "—",
     },
     {
       id: "last_contact_at",
-      header: "Last contact",
+      header: columnLabels.last_contact_at,
       accessorKey: "last_contact_at",
       cell: ({ row }) => formatDate(row.original.last_contact_at),
     },
     {
       id: "next_follow_up_at",
-      header: "Next follow-up",
+      header: columnLabels.next_follow_up_at,
       accessorKey: "next_follow_up_at",
       cell: ({ row }) => {
         const alert = getFollowUpAlert(
@@ -165,12 +169,12 @@ export function getLeadColumns({
     },
     {
       id: "agent",
-      header: "Assigned agent",
+      header: columnLabels.agent,
       accessorFn: (lead) => lead.assigned_agent?.name ?? "Unassigned",
     },
     {
       id: "created_at",
-      header: "Created",
+      header: columnLabels.created_at,
       accessorKey: "created_at",
       cell: ({ row }) => formatDate(row.original.created_at),
     },

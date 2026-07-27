@@ -57,9 +57,10 @@ import { BulkDeleteLeadsDialog } from "@/components/leads/bulk-delete-leads-dial
 import { BulkAssignAgentDialog } from "@/components/leads/bulk-assign-agent-dialog";
 import { BulkSendToAgentDialog } from "@/components/leads/bulk-send-to-agent-dialog";
 import { ExportButtons } from "@/components/shared/export-buttons";
-import { LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
+import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
@@ -73,6 +74,7 @@ export function LeadsTable({
   agents,
   autoOpenCreate,
   initialStatusFilter,
+  columnLabels = DEFAULT_LEAD_COLUMN_LABELS,
 }: {
   leads: LeadWithRelations[];
   leadSources: LeadOption[];
@@ -80,6 +82,7 @@ export function LeadsTable({
   agents: AgentOption[];
   autoOpenCreate?: boolean;
   initialStatusFilter?: string;
+  columnLabels?: LeadColumnLabels;
 }) {
   const router = useRouter();
   const isAdmin = useIsAdmin();
@@ -195,13 +198,14 @@ export function LeadsTable({
     () =>
       getLeadColumns({
         isAdmin,
+        columnLabels,
         onEdit: (lead) => {
           setEditingLead(lead);
           setFormOpen(true);
         },
         onDelete: (lead) => setDeletingLead(lead),
       }),
-    [isAdmin]
+    [isAdmin, columnLabels]
   );
 
   const table = useReactTable({
@@ -252,9 +256,9 @@ export function LeadsTable({
                     checked={col.getIsVisible()}
                     onCheckedChange={(v) => col.toggleVisibility(!!v)}
                     onSelect={(e) => e.preventDefault()}
-                    className="capitalize"
                   >
-                    {col.id.replace(/_/g, " ")}
+                    {columnLabels[col.id as keyof LeadColumnLabels] ??
+                      col.id.replace(/_/g, " ")}
                   </DropdownMenuCheckboxItem>
                 ))}
             </DropdownMenuContent>

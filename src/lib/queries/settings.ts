@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { DEFAULT_LEAD_COLUMN_LABELS, type LeadColumnId } from "@/lib/constants";
 import type { Database } from "@/types/database.types";
 
 export type CampaignRow = Database["public"]["Tables"]["campaigns"]["Row"];
@@ -29,4 +30,21 @@ export async function getAllProfiles(): Promise<ProfileRow[]> {
 
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+export type LeadColumnLabels = Record<LeadColumnId, string>;
+
+export async function getLeadColumnLabels(): Promise<LeadColumnLabels> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("lead_column_labels").select("*");
+
+  if (error) throw new Error(error.message);
+
+  const labels = { ...DEFAULT_LEAD_COLUMN_LABELS } as LeadColumnLabels;
+  for (const row of data ?? []) {
+    if (row.column_id in labels) {
+      labels[row.column_id as LeadColumnId] = row.label;
+    }
+  }
+  return labels;
 }

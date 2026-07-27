@@ -52,3 +52,28 @@ export const PRIORITY_COLORS: Record<LeadPriority, string> = {
   Warm: "#F2C14E",
   Cold: "#4A90C2",
 };
+
+/**
+ * Default leads-table column header labels, keyed by column id. Admins can
+ * override these from Settings (lead_column_labels table); a column id
+ * missing from the database falls back to its default here, so adding a new
+ * column never requires a migration just to seed a label for it.
+ */
+export const DEFAULT_LEAD_COLUMN_LABELS = {
+  name: "Name",
+  phone: "Phone",
+  email: "Email",
+  source: "Source",
+  priority: "Priority",
+  status: "Status",
+  property_type: "Property type",
+  area: "Area",
+  budget: "Budget",
+  bedrooms: "Beds",
+  last_contact_at: "Last contact",
+  next_follow_up_at: "Next follow-up",
+  agent: "Assigned agent",
+  created_at: "Created",
+} as const;
+
+export type LeadColumnId = keyof typeof DEFAULT_LEAD_COLUMN_LABELS;

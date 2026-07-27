@@ -60,7 +60,10 @@ these in order:
    adds the `sales_agents` table (name, phone, email) and repoints `leads.assigned_to` to
    reference it instead of `profiles` — sales managers are contacts the admin maintains, not
    CRM users.
-6. [`supabase/seed.sql`](supabase/seed.sql) —
+6. [`supabase/migrations/20260730000000_lead_column_labels.sql`](supabase/migrations/20260730000000_lead_column_labels.sql) —
+   adds the `lead_column_labels` table so admins can rename the leads table's column headers
+   from Settings without touching the underlying field names.
+7. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

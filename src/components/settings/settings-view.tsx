@@ -6,7 +6,8 @@ import { PropertyTypesPanel } from "@/components/settings/property-types-panel";
 import { SalesAgentsPanel } from "@/components/settings/sales-agents-panel";
 import { CampaignsPanel } from "@/components/settings/campaigns-panel";
 import { UsersPanel } from "@/components/settings/users-panel";
-import type { CampaignWithSource, ProfileRow } from "@/lib/queries/settings";
+import { ColumnLabelsPanel } from "@/components/settings/column-labels-panel";
+import type { CampaignWithSource, LeadColumnLabels, ProfileRow } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
 type SalesAgent = { id: string; name: string; phone: string | null; email: string | null };
@@ -17,12 +18,14 @@ export function SettingsView({
   salesAgents,
   campaigns,
   profiles,
+  columnLabels,
 }: {
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   salesAgents: SalesAgent[];
   campaigns: CampaignWithSource[];
   profiles: ProfileRow[];
+  columnLabels: LeadColumnLabels;
 }) {
   return (
     <div className="space-y-4">
@@ -41,6 +44,7 @@ export function SettingsView({
           <TabsTrigger value="sales-agents">Sales agents</TabsTrigger>
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
           <TabsTrigger value="users">Users &amp; roles</TabsTrigger>
+          <TabsTrigger value="columns">Column labels</TabsTrigger>
         </TabsList>
         <TabsContent value="sources" className="pt-4">
           <LeadSourcesPanel leadSources={leadSources} />
@@ -56,6 +60,9 @@ export function SettingsView({
         </TabsContent>
         <TabsContent value="users" className="pt-4">
           <UsersPanel profiles={profiles} />
+        </TabsContent>
+        <TabsContent value="columns" className="pt-4">
+          <ColumnLabelsPanel columnLabels={columnLabels} />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,13 +1,15 @@
 import { Suspense } from "react";
 import { getAgents, getLeads, getLeadSources, getPropertyTypes } from "@/lib/queries/leads";
+import { getLeadColumnLabels } from "@/lib/queries/settings";
 import { LeadsDirectory } from "@/components/leads/leads-directory";
 
 export default async function LeadsPage() {
-  const [leads, leadSources, propertyTypes, agents] = await Promise.all([
+  const [leads, leadSources, propertyTypes, agents, columnLabels] = await Promise.all([
     getLeads(),
     getLeadSources(),
     getPropertyTypes(),
     getAgents(),
+    getLeadColumnLabels(),
   ]);
 
   return (
@@ -26,6 +28,7 @@ export default async function LeadsPage() {
           leadSources={leadSources}
           propertyTypes={propertyTypes}
           agents={agents}
+          columnLabels={columnLabels}
         />
       </Suspense>
     </div>
