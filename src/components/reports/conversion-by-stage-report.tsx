@@ -5,13 +5,16 @@ import { ExportButtons } from "@/components/shared/export-buttons";
 import { StatusBadge } from "@/components/badges/status-badge";
 import { STATUS_COLORS } from "@/lib/constants";
 import { computeConversionByStage } from "@/lib/report-metrics";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export function ConversionByStageReport({ leads }: { leads: LeadWithRelations[] }) {
+  const statusLabels = useStatusLabels();
   const rows = computeConversionByStage(leads).map((r) => ({
     ...r,
     percentLabel: `${r.percentOfTotal.toFixed(1)}%`,
   }));
+  const exportRows = rows.map((r) => ({ ...r, status: statusLabels[r.status] }));
 
   return (
     <div className="space-y-4">
@@ -20,7 +23,7 @@ export function ConversionByStageReport({ leads }: { leads: LeadWithRelations[] 
           Where every lead currently sits in the pipeline.
         </p>
         <ExportButtons
-          data={rows}
+          data={exportRows}
           columns={[
             { key: "status", label: "Stage" },
             { key: "count", label: "Leads" },

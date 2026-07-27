@@ -77,3 +77,21 @@ export const DEFAULT_LEAD_COLUMN_LABELS = {
 } as const;
 
 export type LeadColumnId = keyof typeof DEFAULT_LEAD_COLUMN_LABELS;
+
+/**
+ * Default display labels for each pipeline stage. Admins can rename these
+ * from Settings (status_labels table) — the stage itself (Kanban column
+ * identity, filtering, colors, "closed deal" logic) always stays keyed by
+ * the fixed LeadStatus value; only what's shown on screen changes.
+ */
+export const DEFAULT_STATUS_LABELS: Record<LeadStatus, string> = {
+  "New Lead": "New Lead",
+  Contacted: "Contacted",
+  Qualified: "Qualified",
+  "Viewing Scheduled": "Viewing Scheduled",
+  Negotiating: "Negotiating",
+  "Offer Made": "Offer Made",
+  "Closed - Won": "Closed - Won",
+  "Closed - Lost": "Closed - Lost",
+  "On Hold": "On Hold",
+};

@@ -136,6 +136,21 @@ export interface Database {
         };
         Relationships: [];
       };
+      status_labels: {
+        Row: {
+          status: LeadStatus;
+          label: string;
+        };
+        Insert: {
+          status: LeadStatus;
+          label: string;
+        };
+        Update: {
+          status?: LeadStatus;
+          label?: string;
+        };
+        Relationships: [];
+      };
       campaigns: {
         Row: {
           id: string;

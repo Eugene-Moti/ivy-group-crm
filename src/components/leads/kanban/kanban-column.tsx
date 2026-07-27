@@ -4,6 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import { hexToRgba } from "@/lib/color";
 import { STATUS_COLORS, type LeadStatus } from "@/lib/constants";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
@@ -17,6 +18,7 @@ export function KanbanColumn({
   isAdmin: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
+  const labels = useStatusLabels();
   const color = STATUS_COLORS[status];
 
   return (
@@ -31,7 +33,7 @@ export function KanbanColumn({
         className="flex items-center justify-between gap-2 rounded-t-xl border-b border-border px-3 py-2.5"
         style={{ borderTop: `2px solid ${color}` }}
       >
-        <span className="text-sm font-medium">{status}</span>
+        <span className="text-sm font-medium">{labels[status]}</span>
         <span
           className="rounded-full px-2 py-0.5 text-xs font-medium"
           style={{ backgroundColor: hexToRgba(color, 0.15), color }}

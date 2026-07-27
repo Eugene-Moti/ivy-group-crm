@@ -7,6 +7,7 @@ import { SalesAgentsPanel } from "@/components/settings/sales-agents-panel";
 import { CampaignsPanel } from "@/components/settings/campaigns-panel";
 import { UsersPanel } from "@/components/settings/users-panel";
 import { ColumnLabelsPanel } from "@/components/settings/column-labels-panel";
+import { StatusLabelsPanel } from "@/components/settings/status-labels-panel";
 import type { CampaignWithSource, LeadColumnLabels, ProfileRow } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
@@ -45,6 +46,7 @@ export function SettingsView({
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
           <TabsTrigger value="users">Users &amp; roles</TabsTrigger>
           <TabsTrigger value="columns">Column labels</TabsTrigger>
+          <TabsTrigger value="statuses">Status labels</TabsTrigger>
         </TabsList>
         <TabsContent value="sources" className="pt-4">
           <LeadSourcesPanel leadSources={leadSources} />
@@ -63,6 +65,9 @@ export function SettingsView({
         </TabsContent>
         <TabsContent value="columns" className="pt-4">
           <ColumnLabelsPanel columnLabels={columnLabels} />
+        </TabsContent>
+        <TabsContent value="statuses" className="pt-4">
+          <StatusLabelsPanel />
         </TabsContent>
       </Tabs>
     </div>

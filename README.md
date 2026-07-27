@@ -63,7 +63,10 @@ these in order:
 6. [`supabase/migrations/20260730000000_lead_column_labels.sql`](supabase/migrations/20260730000000_lead_column_labels.sql) —
    adds the `lead_column_labels` table so admins can rename the leads table's column headers
    from Settings without touching the underlying field names.
-7. [`supabase/seed.sql`](supabase/seed.sql) —
+7. [`supabase/migrations/20260731000000_status_labels.sql`](supabase/migrations/20260731000000_status_labels.sql) —
+   adds the `status_labels` table so admins can rename what each pipeline stage is called
+   (Kanban, badges, filters, reports) without touching the underlying `lead_status` enum.
+8. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

@@ -5,6 +5,7 @@ import {
   type UseFormRegister,
 } from "react-hook-form";
 import { LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadFormValues } from "@/lib/validations/lead";
 
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,8 @@ export function LeadFormFields({
   propertyTypes: LeadOption[];
   agents: AgentOption[];
 }) {
+  const statusLabels = useStatusLabels();
+
   return (
     <FieldGroup>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -167,7 +170,7 @@ export function LeadFormFields({
                   <SelectContent>
                     {LEAD_STATUSES.map((s) => (
                       <SelectItem key={s} value={s}>
-                        {s}
+                        {statusLabels[s]}
                       </SelectItem>
                     ))}
                   </SelectContent>

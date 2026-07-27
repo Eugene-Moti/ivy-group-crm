@@ -11,15 +11,18 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STATUS_COLORS } from "@/lib/constants";
+import { STATUS_COLORS, type LeadStatus } from "@/lib/constants";
 import { CHART_GRID, CHART_INK, chartTooltipStyle } from "@/components/dashboard/chart-theme";
 import { EmptyChartState } from "@/components/dashboard/empty-chart-state";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 
 export function PipelineByStatusChart({
   data,
 }: {
   data: { status: string; count: number }[];
 }) {
+  const statusLabels = useStatusLabels();
+  const formatStatus = (value: string) => statusLabels[value as LeadStatus] ?? value;
   const hasData = data.some((d) => d.count > 0);
 
   return (
@@ -40,10 +43,12 @@ export function PipelineByStatusChart({
                 dataKey="status"
                 width={110}
                 tick={{ fill: CHART_INK, fontSize: 11 }}
+                tickFormatter={formatStatus}
               />
               <Tooltip
                 cursor={{ fill: "var(--accent)" }}
                 contentStyle={chartTooltipStyle}
+                labelFormatter={(label) => formatStatus(String(label))}
               />
               <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={18}>
                 {data.map((entry) => (

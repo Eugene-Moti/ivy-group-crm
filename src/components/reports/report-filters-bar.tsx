@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
 import { ALL, EMPTY_REPORT_FILTERS, type ReportFilters } from "@/lib/report-metrics";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
@@ -31,6 +32,8 @@ export function ReportFiltersBar({
   agents: AgentOption[];
   areas: string[];
 }) {
+  const statusLabels = useStatusLabels();
+
   function set<K extends keyof ReportFilters>(key: K, value: ReportFilters[K]) {
     onChange({ ...filters, [key]: value });
   }
@@ -49,7 +52,7 @@ export function ReportFiltersBar({
           <SelectItem value={ALL}>All statuses</SelectItem>
           {LEAD_STATUSES.map((s) => (
             <SelectItem key={s} value={s}>
-              {s}
+              {statusLabels[s]}
             </SelectItem>
           ))}
         </SelectContent>

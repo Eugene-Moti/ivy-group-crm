@@ -10,6 +10,7 @@ import { SaveQueryDialog } from "@/components/reports/save-query-dialog";
 import { SavedQueriesMenu } from "@/components/reports/saved-queries-menu";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import { applyReportFilters, EMPTY_REPORT_FILTERS, type ReportFilters } from "@/lib/report-metrics";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { SavedQueryRow } from "@/lib/queries/saved-queries";
 
@@ -30,6 +31,7 @@ export function QueryBuilder({
   savedQueries: SavedQueryRow[];
 }) {
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_REPORT_FILTERS);
+  const statusLabels = useStatusLabels();
 
   const areas = useMemo(
     () =>
@@ -47,7 +49,7 @@ export function QueryBuilder({
         name: fullName(lead),
         phone: lead.phone ?? "",
         email: lead.email ?? "",
-        status: lead.status,
+        status: statusLabels[lead.status],
         priority: lead.priority,
         source: lead.lead_source?.name ?? "",
         area: lead.preferred_area ?? "",
@@ -55,7 +57,7 @@ export function QueryBuilder({
         agent: lead.assigned_agent?.name ?? "Unassigned",
         created: formatDate(lead.created_at),
       })),
-    [results]
+    [results, statusLabels]
   );
 
   return (

@@ -51,6 +51,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useIsAdmin } from "@/components/providers/profile-provider";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import { getLeadColumns } from "@/components/leads/lead-columns";
 import { LeadFormDialog } from "@/components/leads/lead-form-dialog";
 import { DeleteLeadDialog } from "@/components/leads/delete-lead-dialog";
@@ -88,6 +89,7 @@ export function LeadsTable({
 }) {
   const router = useRouter();
   const isAdmin = useIsAdmin();
+  const statusLabels = useStatusLabels();
 
   const [globalSearch, setGlobalSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter ?? ALL);
@@ -186,7 +188,7 @@ export function LeadsTable({
         name: fullName(lead),
         phone: lead.phone ?? "",
         email: lead.email ?? "",
-        status: lead.status,
+        status: statusLabels[lead.status],
         priority: lead.priority,
         source: lead.lead_source?.name ?? "",
         area: lead.preferred_area ?? "",
@@ -194,7 +196,7 @@ export function LeadsTable({
         agent: lead.assigned_agent?.name ?? "Unassigned",
         created: formatDate(lead.created_at),
       })),
-    [filteredLeads]
+    [filteredLeads, statusLabels]
   );
 
   const columns = useMemo(
@@ -309,7 +311,7 @@ export function LeadsTable({
               <SelectItem value={ALL}>All statuses</SelectItem>
               {LEAD_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {s}
+                  {statusLabels[s]}
                 </SelectItem>
               ))}
             </SelectContent>
