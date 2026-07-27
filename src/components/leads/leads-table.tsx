@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   type ColumnFiltersState,
+  type RowSelectionState,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -12,7 +13,17 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, Columns3, Plus, Search, X } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  Columns3,
+  Plus,
+  Search,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +52,8 @@ import { useIsAdmin } from "@/components/providers/profile-provider";
 import { getLeadColumns } from "@/components/leads/lead-columns";
 import { LeadFormDialog } from "@/components/leads/lead-form-dialog";
 import { DeleteLeadDialog } from "@/components/leads/delete-lead-dialog";
+import { BulkDeleteLeadsDialog } from "@/components/leads/bulk-delete-leads-dialog";
+import { BulkSendToAgentsDialog } from "@/components/leads/bulk-send-to-agents-dialog";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
@@ -87,6 +100,9 @@ export function LeadsTable({
   const [formOpen, setFormOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<LeadWithRelations | undefined>();
   const [deletingLead, setDeletingLead] = useState<LeadWithRelations | null>(null);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkSendOpen, setBulkSendOpen] = useState(false);
 
   useEffect(() => {
     if (autoOpenCreate) {
@@ -188,14 +204,19 @@ export function LeadsTable({
   const table = useReactTable({
     data: filteredLeads,
     columns,
-    state: { sorting, columnVisibility, columnFilters },
+    state: { sorting, columnVisibility, columnFilters, rowSelection },
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: isAdmin,
+    getRowId: (lead) => lead.id,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: { pagination: { pageSize: 10 } },
   });
+
+  const selectedLeads = table.getSelectedRowModel().rows.map((row) => row.original);
 
   return (
     <div className="space-y-4">
@@ -362,6 +383,31 @@ export function LeadsTable({
             </Button>
           )}
         </div>
+
+        {isAdmin && selectedLeads.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2">
+            <span className="text-sm font-medium">
+              {selectedLeads.length} selected
+            </span>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setRowSelection({})}>
+                Clear selection
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setBulkSendOpen(true)}>
+                <Send className="size-3.5" />
+                Send to agents
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setBulkDeleteOpen(true)}
+              >
+                <Trash2 className="size-3.5" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border">
@@ -471,6 +517,20 @@ export function LeadsTable({
             onOpenChange={(open) => !open && setDeletingLead(null)}
             lead={deletingLead}
             onDeleted={() => router.refresh()}
+          />
+          <BulkDeleteLeadsDialog
+            open={bulkDeleteOpen}
+            onOpenChange={setBulkDeleteOpen}
+            leadIds={selectedLeads.map((lead) => lead.id)}
+            onDeleted={() => {
+              setRowSelection({});
+              router.refresh();
+            }}
+          />
+          <BulkSendToAgentsDialog
+            open={bulkSendOpen}
+            onOpenChange={setBulkSendOpen}
+            leads={selectedLeads}
           />
         </>
       )}

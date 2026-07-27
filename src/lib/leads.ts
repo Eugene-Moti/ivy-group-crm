@@ -51,3 +51,27 @@ export function buildClientDetailsMessage(lead: LeadWithRelations): string {
 
   return [...lines, "", "— Sent from the Ivy Group CRM"].join("\n");
 }
+
+/** Plain-text summary of multiple leads for relaying a batch to one sales agent. */
+export function buildBulkClientDetailsMessage(leads: LeadWithRelations[]): string {
+  const entries = leads.map((lead, i) => {
+    const lines = [
+      `${i + 1}. ${fullName(lead)}`,
+      lead.phone && `   Phone: ${lead.phone}`,
+      lead.email && `   Email: ${lead.email}`,
+      lead.preferred_area && `   Area: ${lead.preferred_area}`,
+      (lead.budget_min != null || lead.budget_max != null) &&
+        `   Budget: ${formatBudgetRange(lead.budget_min, lead.budget_max)}`,
+      `   Priority: ${lead.priority}`,
+    ].filter((line): line is string => Boolean(line));
+    return lines.join("\n");
+  });
+
+  return [
+    `${leads.length} client leads:`,
+    "",
+    ...entries,
+    "",
+    "— Sent from the Ivy Group CRM",
+  ].join("\n");
+}

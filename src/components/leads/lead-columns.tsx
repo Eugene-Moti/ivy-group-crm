@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PriorityBadge } from "@/components/badges/priority-badge";
 import { StatusBadge } from "@/components/badges/status-badge";
 import { FollowUpAlertBadge } from "@/components/badges/follow-up-alert-badge";
@@ -22,6 +23,37 @@ export function getLeadColumns({
   onDelete: (lead: LeadWithRelations) => void;
 }): ColumnDef<LeadWithRelations>[] {
   const columns: ColumnDef<LeadWithRelations>[] = [
+    ...(isAdmin
+      ? [
+          {
+            id: "select",
+            header: ({ table }) => (
+              <Checkbox
+                checked={
+                  table.getIsAllPageRowsSelected()
+                    ? true
+                    : table.getIsSomePageRowsSelected()
+                      ? "indeterminate"
+                      : false
+                }
+                onCheckedChange={(v) => table.toggleAllPageRowsSelected(!!v)}
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Select all rows on this page"
+              />
+            ),
+            cell: ({ row }) => (
+              <Checkbox
+                checked={row.getIsSelected()}
+                onCheckedChange={(v) => row.toggleSelected(!!v)}
+                onClick={(e) => e.stopPropagation()}
+                aria-label="Select row"
+              />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+          } satisfies ColumnDef<LeadWithRelations>,
+        ]
+      : []),
     {
       id: "name",
       header: "Name",
