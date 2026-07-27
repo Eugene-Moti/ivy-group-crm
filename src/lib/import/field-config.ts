@@ -98,6 +98,13 @@ export function resolveImportFieldLabel(
   field: ImportFieldConfig,
   columnLabels?: LeadColumnLabels
 ): { label: string; note?: string } {
+  if (field.key === "last_contact_at") {
+    return {
+      label: field.label,
+      note: "Also used as this lead's \"created\" date, so it won't count as new this week.",
+    };
+  }
+
   if (!columnLabels) return { label: field.label };
 
   if (field.key === "first_name" || field.key === "last_name" || field.key === "full_name") {

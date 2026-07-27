@@ -147,6 +147,12 @@ export function ImportWizard({
         budget_min: d.budget_min,
         budget_max: d.budget_max,
         bedrooms: d.bedrooms,
+        // Historical imports carry their own "since" date via Last Contacted —
+        // use it as created_at too, so freshness metrics (New this week, the
+        // dashboard trend charts) reflect when the lead actually originated
+        // rather than the moment it was imported. Leads with no last-contact
+        // date fall back to the normal now() default.
+        created_at: d.last_contact_at ?? undefined,
         last_contact_at: d.last_contact_at,
         next_follow_up_at: d.next_follow_up_at,
         assigned_to: d.assigned_to,
