@@ -21,6 +21,19 @@ import { KanbanColumn } from "@/components/leads/kanban/kanban-column";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
+/** Nearest ancestor (up to `boundary`) that can still scroll vertically. */
+function findVerticalScrollable(el: HTMLElement, boundary: HTMLElement): HTMLElement | null {
+  let node: HTMLElement | null = el;
+  while (node && node !== boundary) {
+    const canScrollY =
+      /(auto|scroll)/.test(getComputedStyle(node).overflowY) &&
+      node.scrollHeight > node.clientHeight;
+    if (canScrollY) return node;
+    node = node.parentElement;
+  }
+  return null;
+}
+
 export function LeadsKanban({
   leads,
   isAdmin,
@@ -54,15 +67,29 @@ export function LeadsKanban({
    * Lets a plain mouse wheel scroll the board sideways. Browsers only scroll
    * an overflow-x container natively from horizontal input (trackpad swipe,
    * shift+wheel) — a vertical wheel gesture does nothing to it by default.
-   * This only fires once an individual column's own vertical scroll has
-   * nothing left to consume (native wheel bubbling), so scrolling a tall
-   * column's card list still works normally.
+   * Wheel events bubble regardless of what the browser scrolls, so we only
+   * redirect to horizontal once the column under the cursor has no vertical
+   * room left in that direction — otherwise its own card list scrolls
+   * normally, same as if this handler weren't here.
    */
   function handleWheel(event: React.WheelEvent<HTMLDivElement>) {
-    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
-      event.currentTarget.scrollLeft += event.deltaY;
-      event.preventDefault();
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+
+    const scrollable = findVerticalScrollable(
+      event.target as HTMLElement,
+      event.currentTarget
+    );
+    if (scrollable) {
+      const atTop = scrollable.scrollTop <= 0;
+      const atBottom =
+        scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
+      if ((event.deltaY < 0 && !atTop) || (event.deltaY > 0 && !atBottom)) {
+        return;
+      }
     }
+
+    event.currentTarget.scrollLeft += event.deltaY;
+    event.preventDefault();
   }
 
   function handleDragStart(event: DragStartEvent) {
