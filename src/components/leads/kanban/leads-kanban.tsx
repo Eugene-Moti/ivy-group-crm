@@ -50,6 +50,21 @@ export function LeadsKanban({
 
   const activeLead = activeId ? leads.find((l) => l.id === activeId) : undefined;
 
+  /**
+   * Lets a plain mouse wheel scroll the board sideways. Browsers only scroll
+   * an overflow-x container natively from horizontal input (trackpad swipe,
+   * shift+wheel) — a vertical wheel gesture does nothing to it by default.
+   * This only fires once an individual column's own vertical scroll has
+   * nothing left to consume (native wheel bubbling), so scrolling a tall
+   * column's card list still works normally.
+   */
+  function handleWheel(event: React.WheelEvent<HTMLDivElement>) {
+    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+      event.currentTarget.scrollLeft += event.deltaY;
+      event.preventDefault();
+    }
+  }
+
   function handleDragStart(event: DragStartEvent) {
     setActiveId(String(event.active.id));
   }
@@ -96,7 +111,7 @@ export function LeadsKanban({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      <div className="flex gap-3 overflow-x-auto pb-4" onWheel={handleWheel}>
         {LEAD_STATUSES.map((status) => (
           <KanbanColumn
             key={status}

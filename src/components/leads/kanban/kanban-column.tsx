@@ -39,7 +39,10 @@ export function KanbanColumn({
           {leads.length}
         </span>
       </div>
-      <div className="flex-1 space-y-2 overflow-y-auto p-2" style={{ minHeight: 120 }}>
+      <div
+        className="max-h-[70vh] flex-1 space-y-2 overflow-y-auto p-2"
+        style={{ minHeight: 120 }}
+      >
         {leads.map((lead) => (
           <KanbanCard key={lead.id} lead={lead} isAdmin={isAdmin} />
         ))}
