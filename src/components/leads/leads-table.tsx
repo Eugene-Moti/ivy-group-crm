@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   type ColumnFiltersState,
+  type PaginationState,
   type RowSelectionState,
   type SortingState,
   type VisibilityState,
@@ -69,6 +70,7 @@ type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 
 const ALL = "all";
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export function LeadsTable({
   leads,
@@ -105,6 +107,10 @@ export function LeadsTable({
   ]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters] = useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<LeadWithRelations | undefined>();
@@ -216,16 +222,16 @@ export function LeadsTable({
   const table = useReactTable({
     data: filteredLeads,
     columns,
-    state: { sorting, columnVisibility, columnFilters, rowSelection },
+    state: { sorting, columnVisibility, columnFilters, rowSelection, pagination },
     onSortingChange: setSorting,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onPaginationChange: setPagination,
     enableRowSelection: isAdmin,
     getRowId: (lead) => lead.id,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 10 } },
   });
 
   const selectedLeads = table.getSelectedRowModel().rows.map((row) => row.original);
@@ -493,10 +499,32 @@ export function LeadsTable({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          {filteredLeads.length} lead{filteredLeads.length === 1 ? "" : "s"}
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-3">
+          <span>
+            {filteredLeads.length} lead{filteredLeads.length === 1 ? "" : "s"}
+          </span>
+          <div className="flex items-center gap-2">
+            <span>Rows per page</span>
+            <Select
+              value={String(pagination.pageSize)}
+              onValueChange={(v) =>
+                setPagination({ pageIndex: 0, pageSize: Number(v) })
+              }
+            >
+              <SelectTrigger size="sm" className="w-18">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
