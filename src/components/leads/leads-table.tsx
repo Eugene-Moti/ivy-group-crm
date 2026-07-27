@@ -18,6 +18,7 @@ import {
   ArrowUp,
   ArrowUpDown,
   Columns3,
+  Flame,
   Plus,
   Search,
   Send,
@@ -56,6 +57,7 @@ import { DeleteLeadDialog } from "@/components/leads/delete-lead-dialog";
 import { BulkDeleteLeadsDialog } from "@/components/leads/bulk-delete-leads-dialog";
 import { BulkAssignAgentDialog } from "@/components/leads/bulk-assign-agent-dialog";
 import { BulkSendToAgentDialog } from "@/components/leads/bulk-send-to-agent-dialog";
+import { BulkChangePriorityDialog } from "@/components/leads/bulk-change-priority-dialog";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
@@ -109,6 +111,7 @@ export function LeadsTable({
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkSendOpen, setBulkSendOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
+  const [bulkPriorityOpen, setBulkPriorityOpen] = useState(false);
 
   useEffect(() => {
     if (autoOpenCreate) {
@@ -404,6 +407,10 @@ export function LeadsTable({
                 <UserCog className="size-3.5" />
                 Assign agent
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setBulkPriorityOpen(true)}>
+                <Flame className="size-3.5" />
+                Change priority
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setBulkSendOpen(true)}>
                 <Send className="size-3.5" />
                 Send to agent
@@ -553,6 +560,15 @@ export function LeadsTable({
             onOpenChange={setBulkSendOpen}
             leads={selectedLeads}
             agents={agents}
+          />
+          <BulkChangePriorityDialog
+            open={bulkPriorityOpen}
+            onOpenChange={setBulkPriorityOpen}
+            leadIds={selectedLeads.map((lead) => lead.id)}
+            onChanged={() => {
+              setRowSelection({});
+              router.refresh();
+            }}
           />
         </>
       )}
