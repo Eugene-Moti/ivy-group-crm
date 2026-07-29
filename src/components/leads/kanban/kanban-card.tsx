@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useDraggable } from "@dnd-kit/core";
 import { MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { PriorityBadge } from "@/components/badges/priority-badge";
 import { FollowUpAlertBadge } from "@/components/badges/follow-up-alert-badge";
 import { QuickContactActions } from "@/components/leads/quick-contact-actions";
@@ -46,7 +47,14 @@ export function KanbanCard({
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm font-medium">{fullName(lead)}</span>
-        <PriorityBadge priority={lead.priority} />
+        <div className="flex shrink-0 items-center gap-1.5">
+          {lead.lead_type === "Real Estate Agent" && (
+            <Badge variant="outline" className="border-gold/40 text-gold">
+              Agent
+            </Badge>
+          )}
+          <PriorityBadge priority={lead.priority} />
+        </div>
       </div>
 
       {lead.preferred_area && (

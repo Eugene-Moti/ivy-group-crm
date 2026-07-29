@@ -4,8 +4,9 @@ import {
   type FieldErrors,
   type UseFormRegister,
 } from "react-hook-form";
-import { LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
+import { LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES } from "@/lib/constants";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import { fullName } from "@/lib/format";
 import type { LeadFormValues } from "@/lib/validations/lead";
 
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import {
 import {
   Field,
   FieldContent,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -27,6 +29,7 @@ import {
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
+type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
 export function LeadFormFields({
   register,
@@ -35,6 +38,8 @@ export function LeadFormFields({
   leadSources,
   propertyTypes,
   agents,
+  agentLeads,
+  currentLeadId,
 }: {
   register: UseFormRegister<LeadFormValues>;
   control: Control<LeadFormValues>;
@@ -42,11 +47,67 @@ export function LeadFormFields({
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   agents: AgentOption[];
+  agentLeads: AgentLeadOption[];
+  currentLeadId?: string;
 }) {
   const statusLabels = useStatusLabels();
+  const referrableAgentLeads = agentLeads.filter((a) => a.id !== currentLeadId);
 
   return (
     <FieldGroup>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Controller
+          control={control}
+          name="lead_type"
+          render={({ field }) => (
+            <Field>
+              <FieldLabel>Lead type</FieldLabel>
+              <FieldContent>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEAD_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FieldContent>
+            </Field>
+          )}
+        />
+        <Controller
+          control={control}
+          name="referred_by_lead_id"
+          render={({ field }) => (
+            <Field>
+              <FieldLabel>Referred by agent</FieldLabel>
+              <FieldContent>
+                <Select value={field.value ?? "none"} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Not set" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Not set</SelectItem>
+                    {referrableAgentLeads.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {fullName(a)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  Optional — only if a specific referring agent is known.
+                </FieldDescription>
+              </FieldContent>
+            </Field>
+          )}
+        />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="first_name">First name</FieldLabel>

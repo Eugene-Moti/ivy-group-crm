@@ -61,13 +61,14 @@ import { BulkAssignAgentDialog } from "@/components/leads/bulk-assign-agent-dial
 import { BulkSendToAgentDialog } from "@/components/leads/bulk-send-to-agent-dialog";
 import { BulkChangePriorityDialog } from "@/components/leads/bulk-change-priority-dialog";
 import { ExportButtons } from "@/components/shared/export-buttons";
-import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
+import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
+type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
 const ALL = "all";
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
@@ -77,6 +78,7 @@ export function LeadsTable({
   leadSources,
   propertyTypes,
   agents,
+  agentLeads,
   autoOpenCreate,
   initialStatusFilter,
   columnLabels = DEFAULT_LEAD_COLUMN_LABELS,
@@ -85,6 +87,7 @@ export function LeadsTable({
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   agents: AgentOption[];
+  agentLeads: AgentLeadOption[];
   autoOpenCreate?: boolean;
   initialStatusFilter?: string;
   columnLabels?: LeadColumnLabels;
@@ -98,6 +101,7 @@ export function LeadsTable({
   const [sourceFilter, setSourceFilter] = useState(ALL);
   const [priorityFilter, setPriorityFilter] = useState(ALL);
   const [agentFilter, setAgentFilter] = useState(ALL);
+  const [leadTypeFilter, setLeadTypeFilter] = useState(ALL);
   const [areaFilter, setAreaFilter] = useState("");
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
@@ -142,6 +146,7 @@ export function LeadsTable({
       sourceFilter !== ALL ||
       priorityFilter !== ALL ||
       agentFilter !== ALL ||
+      leadTypeFilter !== ALL ||
       (areaFilter && areaFilter !== ALL) ||
       budgetMin ||
       budgetMax
@@ -153,6 +158,7 @@ export function LeadsTable({
     setSourceFilter(ALL);
     setPriorityFilter(ALL);
     setAgentFilter(ALL);
+    setLeadTypeFilter(ALL);
     setAreaFilter(ALL);
     setBudgetMin("");
     setBudgetMax("");
@@ -181,17 +187,19 @@ export function LeadsTable({
       if (priorityFilter !== ALL && lead.priority !== priorityFilter) return false;
       if (sourceFilter !== ALL && lead.lead_source_id !== sourceFilter) return false;
       if (agentFilter !== ALL && lead.assigned_to !== agentFilter) return false;
+      if (leadTypeFilter !== ALL && lead.lead_type !== leadTypeFilter) return false;
       if (areaFilter && areaFilter !== ALL && lead.preferred_area !== areaFilter) return false;
       if (min != null && (lead.budget_max ?? lead.budget_min ?? 0) < min) return false;
       if (max != null && (lead.budget_min ?? lead.budget_max ?? 0) > max) return false;
       return true;
     });
-  }, [leads, globalSearch, statusFilter, priorityFilter, sourceFilter, agentFilter, areaFilter, budgetMin, budgetMax]);
+  }, [leads, globalSearch, statusFilter, priorityFilter, sourceFilter, agentFilter, leadTypeFilter, areaFilter, budgetMin, budgetMax]);
 
   const exportRows = useMemo(
     () =>
       filteredLeads.map((lead) => ({
         name: fullName(lead),
+        leadType: lead.lead_type,
         phone: lead.phone ?? "",
         email: lead.email ?? "",
         status: statusLabels[lead.status],
@@ -279,6 +287,7 @@ export function LeadsTable({
             data={exportRows}
             columns={[
               { key: "name", label: "Name" },
+              { key: "leadType", label: "Lead type" },
               { key: "phone", label: "Phone" },
               { key: "email", label: "Email" },
               { key: "status", label: "Status" },
@@ -360,6 +369,20 @@ export function LeadsTable({
               {agents.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
                   {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={leadTypeFilter} onValueChange={setLeadTypeFilter}>
+            <SelectTrigger size="sm" className="w-36">
+              <SelectValue placeholder="Lead type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All lead types</SelectItem>
+              {LEAD_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -558,6 +581,7 @@ export function LeadsTable({
             leadSources={leadSources}
             propertyTypes={propertyTypes}
             agents={agents}
+            agentLeads={agentLeads}
             onSaved={() => router.refresh()}
           />
           <DeleteLeadDialog

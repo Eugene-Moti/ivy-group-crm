@@ -66,7 +66,12 @@ these in order:
 7. [`supabase/migrations/20260731000000_status_labels.sql`](supabase/migrations/20260731000000_status_labels.sql) —
    adds the `status_labels` table so admins can rename what each pipeline stage is called
    (Kanban, badges, filters, reports) without touching the underlying `lead_status` enum.
-8. [`supabase/seed.sql`](supabase/seed.sql) —
+8. [`supabase/migrations/20260801000000_lead_type_and_referrals.sql`](supabase/migrations/20260801000000_lead_type_and_referrals.sql) —
+   adds `leads.lead_type` ("Direct Client" / "Real Estate Agent") and an optional
+   `leads.referred_by_lead_id` self-reference, so agent contacts stay in the same pipeline
+   as buyer leads while being distinguishable and, when known, linkable to the clients
+   they've referred.
+9. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

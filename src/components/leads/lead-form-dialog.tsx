@@ -24,6 +24,7 @@ import { LeadFormFields } from "@/components/leads/lead-form-fields";
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
+type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
 export function LeadFormDialog({
   open,
@@ -32,6 +33,7 @@ export function LeadFormDialog({
   leadSources,
   propertyTypes,
   agents,
+  agentLeads,
   onSaved,
 }: {
   open: boolean;
@@ -40,6 +42,7 @@ export function LeadFormDialog({
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   agents: AgentOption[];
+  agentLeads: AgentLeadOption[];
   onSaved: () => void;
 }) {
   const isEdit = !!lead;
@@ -99,6 +102,8 @@ export function LeadFormDialog({
             leadSources={leadSources}
             propertyTypes={propertyTypes}
             agents={agents}
+            agentLeads={agentLeads}
+            currentLeadId={lead?.id}
           />
 
           <DialogFooter className="mt-6">

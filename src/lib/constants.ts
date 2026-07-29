@@ -15,6 +15,15 @@ export type LeadStatus = (typeof LEAD_STATUSES)[number];
 export const LEAD_PRIORITIES = ["Hot", "Warm", "Cold"] as const;
 export type LeadPriority = (typeof LEAD_PRIORITIES)[number];
 
+/**
+ * Most leads are direct buyers, but some inbound contacts turn out to be
+ * real estate agents bringing their own clients. They're still leads —
+ * same pipeline, same stages, can still close — just tagged so the team can
+ * tell them apart and filter to just one kind.
+ */
+export const LEAD_TYPES = ["Direct Client", "Real Estate Agent"] as const;
+export type LeadType = (typeof LEAD_TYPES)[number];
+
 export const ACTIVITY_TYPES = [
   "note",
   "call",
@@ -61,6 +70,7 @@ export const PRIORITY_COLORS: Record<LeadPriority, string> = {
  */
 export const DEFAULT_LEAD_COLUMN_LABELS = {
   name: "Name",
+  lead_type: "Lead type",
   phone: "Phone",
   email: "Email",
   source: "Source",

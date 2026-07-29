@@ -13,18 +13,21 @@ import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
+type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
 export function LeadsDirectory({
   leads,
   leadSources,
   propertyTypes,
   agents,
+  agentLeads,
   columnLabels,
 }: {
   leads: LeadWithRelations[];
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   agents: AgentOption[];
+  agentLeads: AgentLeadOption[];
   columnLabels: LeadColumnLabels;
 }) {
   const isAdmin = useIsAdmin();
@@ -66,6 +69,7 @@ export function LeadsDirectory({
           leadSources={leadSources}
           propertyTypes={propertyTypes}
           agents={agents}
+          agentLeads={agentLeads}
           autoOpenCreate={shouldAutoOpenCreate}
           initialStatusFilter={initialStatusFilter}
           columnLabels={columnLabels}

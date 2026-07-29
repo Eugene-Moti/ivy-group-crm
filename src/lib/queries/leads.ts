@@ -9,10 +9,11 @@ export type LeadWithRelations = LeadRow & {
   lead_source: { id: string; name: string } | null;
   property_type: { id: string; name: string } | null;
   assigned_agent: { id: string; name: string; phone: string | null; email: string | null } | null;
+  referred_by: { id: string; first_name: string; last_name: string } | null;
 };
 
 const LEAD_SELECT =
-  "*, lead_source:lead_sources(id, name), property_type:property_types(id, name), assigned_agent:sales_agents!leads_assigned_to_fkey(id, name, phone, email)";
+  "*, lead_source:lead_sources(id, name), property_type:property_types(id, name), assigned_agent:sales_agents!leads_assigned_to_fkey(id, name, phone, email), referred_by:leads!leads_referred_by_lead_id_fkey(id, first_name, last_name)";
 
 /**
  * Phone/email are for admins only — viewers get everything else about a
@@ -90,4 +91,30 @@ export async function getAgents() {
 
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+/** Leads tagged as "Real Estate Agent" — for the "Referred by" picker on other leads. */
+export async function getAgentLeads() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("leads")
+    .select("id, first_name, last_name")
+    .eq("lead_type", "Real Estate Agent")
+    .order("first_name");
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+/** Buyer leads that name this agent lead as their referrer. */
+export async function getReferredLeads(agentLeadId: string): Promise<LeadWithRelations[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("leads")
+    .select(LEAD_SELECT)
+    .eq("referred_by_lead_id", agentLeadId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return maskForViewer((data ?? []) as unknown as LeadWithRelations[]);
 }

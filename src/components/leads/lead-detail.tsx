@@ -5,6 +5,7 @@ import { useIsAdmin } from "@/components/providers/profile-provider";
 import { LeadDetailHeader } from "@/components/leads/lead-detail-header";
 import { LeadProfileView } from "@/components/leads/lead-profile-view";
 import { LeadProfileEditor } from "@/components/leads/lead-profile-editor";
+import { ReferredLeadsList } from "@/components/leads/referred-leads-list";
 import { AddActivityForm } from "@/components/leads/add-activity-form";
 import { ActivityTimeline } from "@/components/leads/activity-timeline";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -12,6 +13,7 @@ import type { ActivityWithAuthor } from "@/lib/queries/activities";
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
+type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
 export function LeadDetail({
   lead,
@@ -19,12 +21,16 @@ export function LeadDetail({
   leadSources,
   propertyTypes,
   agents,
+  agentLeads,
+  referredLeads,
 }: {
   lead: LeadWithRelations;
   activities: ActivityWithAuthor[];
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   agents: AgentOption[];
+  agentLeads: AgentLeadOption[];
+  referredLeads: LeadWithRelations[];
 }) {
   const isAdmin = useIsAdmin();
   const [isEditing, setIsEditing] = useState(false);
@@ -46,10 +52,16 @@ export function LeadDetail({
               leadSources={leadSources}
               propertyTypes={propertyTypes}
               agents={agents}
+              agentLeads={agentLeads}
               onDone={() => setIsEditing(false)}
             />
           ) : (
             <LeadProfileView lead={lead} isAdmin={isAdmin} />
+          )}
+          {lead.lead_type === "Real Estate Agent" && (
+            <div className="mt-4">
+              <ReferredLeadsList leads={referredLeads} />
+            </div>
           )}
         </div>
 

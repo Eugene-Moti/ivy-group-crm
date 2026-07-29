@@ -14,7 +14,7 @@ export function leadFormDefaults(
   lead: LeadWithRelations | undefined
 ): Partial<LeadFormValues> {
   if (!lead) {
-    return { priority: "Warm", status: "New Lead" };
+    return { priority: "Warm", status: "New Lead", lead_type: "Direct Client" };
   }
   return {
     first_name: lead.first_name,
@@ -24,6 +24,8 @@ export function leadFormDefaults(
     lead_source_id: lead.lead_source_id ?? undefined,
     priority: lead.priority,
     status: lead.status,
+    lead_type: lead.lead_type,
+    referred_by_lead_id: lead.referred_by_lead_id ?? undefined,
     property_type_id: lead.property_type_id ?? undefined,
     preferred_area: lead.preferred_area ?? undefined,
     budget_min: lead.budget_min != null ? String(lead.budget_min) : undefined,
@@ -49,6 +51,8 @@ export function buildLeadPayload(values: LeadFormValues): LeadInsertOrUpdate {
     lead_source_id: noneToNull(values.lead_source_id),
     priority: values.priority,
     status: values.status,
+    lead_type: values.lead_type,
+    referred_by_lead_id: noneToNull(values.referred_by_lead_id),
     property_type_id: noneToNull(values.property_type_id),
     preferred_area: blankToNull(values.preferred_area),
     budget_min: numberOrNull(values.budget_min),

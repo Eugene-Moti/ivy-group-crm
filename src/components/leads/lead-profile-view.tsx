@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatBudgetRange, formatDate } from "@/lib/format";
+import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import { RescheduleFollowUpPopover } from "@/components/leads/reschedule-follow-up-popover";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
@@ -22,6 +23,20 @@ export function LeadProfileView({
   return (
     <Card>
       <CardContent className="divide-y divide-border">
+        <Row label="Lead type" value={lead.lead_type} />
+        {lead.referred_by && (
+          <Row
+            label="Referred by"
+            value={
+              <Link
+                href={`/leads/${lead.referred_by.id}`}
+                className="hover:text-gold hover:underline"
+              >
+                {fullName(lead.referred_by)}
+              </Link>
+            }
+          />
+        )}
         <Row label="Source" value={lead.lead_source?.name ?? "—"} />
         <Row label="Property type" value={lead.property_type?.name ?? "—"} />
         <Row label="Preferred area" value={lead.preferred_area ?? "—"} />

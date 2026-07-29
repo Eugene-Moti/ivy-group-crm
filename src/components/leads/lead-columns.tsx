@@ -5,6 +5,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { PriorityBadge } from "@/components/badges/priority-badge";
 import { StatusBadge } from "@/components/badges/status-badge";
 import { FollowUpAlertBadge } from "@/components/badges/follow-up-alert-badge";
@@ -71,6 +72,19 @@ export function getLeadColumns({
           {fullName(row.original)}
         </Link>
       ),
+    },
+    {
+      id: "lead_type",
+      header: columnLabels.lead_type,
+      accessorKey: "lead_type",
+      cell: ({ row }) =>
+        row.original.lead_type === "Real Estate Agent" ? (
+          <Badge variant="outline" className="border-gold/40 text-gold">
+            Agent
+          </Badge>
+        ) : (
+          <span className="text-sm text-muted-foreground">Direct client</span>
+        ),
     },
     {
       id: "phone",

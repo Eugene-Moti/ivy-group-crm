@@ -30,6 +30,7 @@ export type ActivityType =
   | "whatsapp"
   | "viewing"
   | "status_change";
+export type LeadType = "Direct Client" | "Real Estate Agent";
 
 export interface Database {
   public: {
@@ -203,6 +204,8 @@ export interface Database {
           next_follow_up_at: string | null;
           assigned_to: string | null;
           notes: string | null;
+          lead_type: LeadType;
+          referred_by_lead_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -225,6 +228,8 @@ export interface Database {
           next_follow_up_at?: string | null;
           assigned_to?: string | null;
           notes?: string | null;
+          lead_type?: LeadType;
+          referred_by_lead_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -247,6 +252,8 @@ export interface Database {
           next_follow_up_at?: string | null;
           assigned_to?: string | null;
           notes?: string | null;
+          lead_type?: LeadType;
+          referred_by_lead_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -277,6 +284,13 @@ export interface Database {
             columns: ["assigned_to"];
             isOneToOne: false;
             referencedRelation: "sales_agents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leads_referred_by_lead_id_fkey";
+            columns: ["referred_by_lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
             referencedColumns: ["id"];
           },
         ];

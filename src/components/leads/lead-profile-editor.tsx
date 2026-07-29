@@ -17,18 +17,21 @@ import { LeadFormFields } from "@/components/leads/lead-form-fields";
 
 type LeadOption = { id: string; name: string };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
+type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
 export function LeadProfileEditor({
   lead,
   leadSources,
   propertyTypes,
   agents,
+  agentLeads,
   onDone,
 }: {
   lead: LeadWithRelations;
   leadSources: LeadOption[];
   propertyTypes: LeadOption[];
   agents: AgentOption[];
+  agentLeads: AgentLeadOption[];
   onDone: () => void;
 }) {
   const router = useRouter();
@@ -70,6 +73,8 @@ export function LeadProfileEditor({
             leadSources={leadSources}
             propertyTypes={propertyTypes}
             agents={agents}
+            agentLeads={agentLeads}
+            currentLeadId={lead.id}
           />
         </CardContent>
         <CardFooter className="justify-end gap-2">
