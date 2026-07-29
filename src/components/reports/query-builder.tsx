@@ -93,7 +93,7 @@ export function QueryBuilder({
             { key: "area", label: "Area" },
             { key: "budget", label: "Budget" },
             { key: "agent", label: "Sales manager" },
-            { key: "created", label: "Created" },
+            { key: "created", label: "Date of inquiry" },
           ]}
           filename="ivy-group-query-results"
           title="Query Results"
@@ -111,7 +111,7 @@ export function QueryBuilder({
               <TableHead>Area</TableHead>
               <TableHead>Budget</TableHead>
               <TableHead>Sales manager</TableHead>
-              <TableHead>Created</TableHead>
+              <TableHead>Date of inquiry</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

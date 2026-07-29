@@ -296,7 +296,7 @@ export function LeadsTable({
               { key: "area", label: "Area" },
               { key: "budget", label: "Budget" },
               { key: "agent", label: "Sales manager" },
-              { key: "created", label: "Created" },
+              { key: "created", label: "Date of inquiry" },
             ]}
             filename="ivy-group-leads"
             title="Leads"

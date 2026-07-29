@@ -83,7 +83,7 @@ export const DEFAULT_LEAD_COLUMN_LABELS = {
   last_contact_at: "Last contact",
   next_follow_up_at: "Next follow-up",
   agent: "Sales manager",
-  created_at: "Created",
+  created_at: "Date of inquiry",
 } as const;
 
 export type LeadColumnId = keyof typeof DEFAULT_LEAD_COLUMN_LABELS;
