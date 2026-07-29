@@ -33,7 +33,7 @@ export const FOLLOW_UP_ALERT_COLORS: Record<FollowUpAlert, string> = {
   None: "#7A8B84",
 };
 
-/** Plain-text client summary for relaying a lead to its assigned sales agent. */
+/** Plain-text client summary for relaying a lead to its assigned sales manager. */
 export function buildClientDetailsMessage(lead: LeadWithRelations): string {
   const lines = [
     `New client lead: ${fullName(lead)}`,
@@ -52,7 +52,7 @@ export function buildClientDetailsMessage(lead: LeadWithRelations): string {
   return [...lines, "", "— Sent from the Ivy Group CRM"].join("\n");
 }
 
-/** Plain-text summary of multiple leads for relaying a batch to one sales agent. */
+/** Plain-text summary of multiple leads for relaying a batch to one sales manager. */
 export function buildBulkClientDetailsMessage(leads: LeadWithRelations[]): string {
   const entries = leads.map((lead, i) => {
     const lines = [

@@ -56,11 +56,11 @@ export function BulkAssignAgentDialog({
     setIsSubmitting(false);
 
     if (error) {
-      toast.error("Failed to assign agent", { description: error.message });
+      toast.error("Failed to assign sales manager", { description: error.message });
       return;
     }
 
-    const agentName = agents.find((a) => a.id === agentId)?.name ?? "the agent";
+    const agentName = agents.find((a) => a.id === agentId)?.name ?? "the sales manager";
     toast.success(`Assigned ${count} lead${count === 1 ? "" : "s"} to ${agentName}`);
     handleOpenChange(false);
     onAssigned();
@@ -71,17 +71,17 @@ export function BulkAssignAgentDialog({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>
-            Assign {count} lead{count === 1 ? "" : "s"} to an agent
+            Assign {count} lead{count === 1 ? "" : "s"} to a sales manager
           </DialogTitle>
           <DialogDescription>
-            This replaces the currently assigned agent, if any, on every selected
-            lead.
+            This replaces the currently assigned sales manager, if any, on every
+            selected lead.
           </DialogDescription>
         </DialogHeader>
 
         <Select value={agentId} onValueChange={setAgentId}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose an agent" />
+            <SelectValue placeholder="Choose a sales manager" />
           </SelectTrigger>
           <SelectContent>
             {agents.map((agent) => (

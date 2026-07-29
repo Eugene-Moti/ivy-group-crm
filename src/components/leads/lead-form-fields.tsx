@@ -172,7 +172,7 @@ export function LeadFormFields({
           name="assigned_to"
           render={({ field }) => (
             <Field>
-              <FieldLabel>Assigned agent</FieldLabel>
+              <FieldLabel>Sales manager</FieldLabel>
               <FieldContent>
                 <Select value={field.value ?? "none"} onValueChange={field.onChange}>
                   <SelectTrigger className="w-full">

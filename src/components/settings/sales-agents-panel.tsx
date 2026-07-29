@@ -45,11 +45,11 @@ export function SalesAgentsPanel({ salesAgents }: { salesAgents: SalesAgent[] })
     setIsSubmitting(false);
 
     if (error) {
-      toast.error("Failed to add sales agent", { description: error.message });
+      toast.error("Failed to add sales manager", { description: error.message });
       return;
     }
 
-    toast.success("Sales agent added");
+    toast.success("Sales manager added");
     setName("");
     setPhone("");
     setEmail("");
@@ -64,11 +64,11 @@ export function SalesAgentsPanel({ salesAgents }: { salesAgents: SalesAgent[] })
     setIsDeleting(false);
 
     if (error) {
-      toast.error("Failed to delete sales agent", { description: error.message });
+      toast.error("Failed to delete sales manager", { description: error.message });
       return;
     }
 
-    toast.success("Sales agent deleted");
+    toast.success("Sales manager deleted");
     setDeleting(null);
     router.refresh();
   }
@@ -111,7 +111,7 @@ export function SalesAgentsPanel({ salesAgents }: { salesAgents: SalesAgent[] })
         <CardContent className="divide-y divide-border p-0">
           {salesAgents.length === 0 && (
             <p className="p-6 text-center text-sm text-muted-foreground">
-              No sales agents yet.
+              No sales managers yet.
             </p>
           )}
           {salesAgents.map((agent) => (
@@ -138,7 +138,7 @@ export function SalesAgentsPanel({ salesAgents }: { salesAgents: SalesAgent[] })
       <AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete sales agent?</AlertDialogTitle>
+            <AlertDialogTitle>Delete sales manager?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleting &&
                 `"${deleting.name}" will be removed. Leads assigned to them become unassigned rather than deleted.`}

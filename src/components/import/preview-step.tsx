@@ -92,8 +92,8 @@ export function PreviewStep({
       )}
       {unmatchedAgentCount > 0 && (
         <p className="text-sm text-muted-foreground">
-          {unmatchedAgentCount} row{unmatchedAgentCount === 1 ? "" : "s"} reference an
-          agent name we couldn&apos;t match — those leads will import unassigned.
+          {unmatchedAgentCount} row{unmatchedAgentCount === 1 ? "" : "s"} reference a
+          sales manager name we couldn&apos;t match — those leads will import unassigned.
         </p>
       )}
 

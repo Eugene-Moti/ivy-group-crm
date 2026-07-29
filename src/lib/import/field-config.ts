@@ -66,7 +66,7 @@ export const IMPORT_FIELDS: ImportFieldConfig[] = [
     ],
   },
   { key: "next_follow_up_at", label: "Next Follow-Up", required: false, aliases: ["next follow-up", "next follow up", "follow up date", "followup"] },
-  { key: "assigned_agent", label: "Assigned Agent", required: false, aliases: ["assigned agent", "agent", "assigned to", "owner"] },
+  { key: "assigned_agent", label: "Sales Manager", required: false, aliases: ["assigned agent", "agent", "assigned to", "owner", "sales manager", "manager"] },
   { key: "notes", label: "Notes", required: false, aliases: ["notes", "note", "comments", "remarks"] },
 ];
 

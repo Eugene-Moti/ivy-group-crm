@@ -7,6 +7,11 @@ import type { ActivityWithAuthor } from "@/lib/queries/activities";
 import type { LeadEvidenceWithAuthor } from "@/lib/queries/evidence";
 
 const MARGIN = 14;
+
+/** Attributes an entry to the company, not just an individual — this document is meant to stand as an official record. */
+function attribution(name: string | null | undefined): string {
+  return name ? `Marketing Team — ${name}` : "—";
+}
 const PAGE_WIDTH = 210;
 
 function ensureSpace(doc: jsPDF, y: number, needed: number): number {
@@ -107,7 +112,7 @@ export async function generateClientOwnershipReport({
       ["Property type", lead.property_type?.name ?? "—"],
       ["Preferred area", lead.preferred_area ?? "—"],
       ["Budget", formatBudgetRange(lead.budget_min, lead.budget_max)],
-      ["Assigned agent", lead.assigned_agent?.name ?? "Unassigned"],
+      ["Sales manager", lead.assigned_agent?.name ?? "Unassigned"],
       ["Referred by", lead.referred_by ? fullName(lead.referred_by) : "—"],
       ["In system since", formatDate(lead.created_at)],
       ["Last contact", formatDate(lead.last_contact_at)],
@@ -137,7 +142,7 @@ export async function generateClientOwnershipReport({
         formatDateTime(a.created_at),
         ACTIVITY_TYPE_META[a.type].label,
         a.body ?? "—",
-        a.author?.full_name ?? "—",
+        attribution(a.author?.full_name),
       ]),
       styles: { fontSize: 8 },
       headStyles: { fillColor: [22, 56, 42] },
@@ -174,6 +179,11 @@ export async function generateClientOwnershipReport({
     doc.setFontSize(9);
     doc.setTextColor(20);
     doc.text(formatDate(item.occurred_at), MARGIN, y);
+    doc.setFontSize(8);
+    doc.setTextColor(120);
+    doc.text(attribution(item.author?.full_name), PAGE_WIDTH - MARGIN, y, {
+      align: "right",
+    });
     y += 5;
 
     if (item.note) {

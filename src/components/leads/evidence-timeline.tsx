@@ -78,7 +78,7 @@ export function EvidenceTimeline({
                       {formatDate(item.occurred_at)}
                     </span>
                     {item.author?.full_name && (
-                      <span>logged by {item.author.full_name}</span>
+                      <span>logged by Marketing Team — {item.author.full_name}</span>
                     )}
                   </div>
                   {item.note && (

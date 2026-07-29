@@ -295,7 +295,7 @@ export function LeadsTable({
               { key: "source", label: "Source" },
               { key: "area", label: "Area" },
               { key: "budget", label: "Budget" },
-              { key: "agent", label: "Agent" },
+              { key: "agent", label: "Sales manager" },
               { key: "created", label: "Created" },
             ]}
             filename="ivy-group-leads"
@@ -362,10 +362,10 @@ export function LeadsTable({
 
           <Select value={agentFilter} onValueChange={setAgentFilter}>
             <SelectTrigger size="sm" className="w-36">
-              <SelectValue placeholder="Agent" />
+              <SelectValue placeholder="Sales manager" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>All agents</SelectItem>
+              <SelectItem value={ALL}>All sales managers</SelectItem>
               {agents.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
                   {a.name}
@@ -436,7 +436,7 @@ export function LeadsTable({
               </Button>
               <Button variant="outline" size="sm" onClick={() => setBulkAssignOpen(true)}>
                 <UserCog className="size-3.5" />
-                Assign agent
+                Assign manager
               </Button>
               <Button variant="outline" size="sm" onClick={() => setBulkPriorityOpen(true)}>
                 <Flame className="size-3.5" />
@@ -444,7 +444,7 @@ export function LeadsTable({
               </Button>
               <Button variant="outline" size="sm" onClick={() => setBulkSendOpen(true)}>
                 <Send className="size-3.5" />
-                Send to agent
+                Send to manager
               </Button>
               <Button
                 variant="destructive"

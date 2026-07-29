@@ -46,7 +46,7 @@ export function ReportsView({
           <TabsTrigger value="builder">Query builder</TabsTrigger>
           <TabsTrigger value="source">Source performance</TabsTrigger>
           <TabsTrigger value="conversion">Conversion by stage</TabsTrigger>
-          <TabsTrigger value="agent">Agent performance</TabsTrigger>
+          <TabsTrigger value="agent">Sales manager performance</TabsTrigger>
           <TabsTrigger value="follow-ups">Follow-up status</TabsTrigger>
         </TabsList>
 

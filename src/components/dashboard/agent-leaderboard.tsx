@@ -12,7 +12,7 @@ export function AgentLeaderboard({
     <Card className="rounded-2xl">
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          Agent leaderboard
+          Sales manager leaderboard
         </CardTitle>
       </CardHeader>
       <CardContent className="h-72 overflow-y-auto">
@@ -41,7 +41,7 @@ export function AgentLeaderboard({
             ))}
           </ol>
         ) : (
-          <EmptyChartState message="No leads assigned to agents yet." />
+          <EmptyChartState message="No leads assigned to sales managers yet." />
         )}
       </CardContent>
     </Card>

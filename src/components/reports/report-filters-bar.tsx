@@ -88,10 +88,10 @@ export function ReportFiltersBar({
 
       <Select value={filters.agent} onValueChange={(v) => set("agent", v)}>
         <SelectTrigger size="sm" className="w-36">
-          <SelectValue placeholder="Agent" />
+          <SelectValue placeholder="Sales manager" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>All agents</SelectItem>
+          <SelectItem value={ALL}>All sales managers</SelectItem>
           {agents.map((a) => (
             <SelectItem key={a.id} value={a.id}>
               {a.name}

@@ -15,25 +15,25 @@ export function AgentPerformanceReport({ leads }: { leads: LeadWithRelations[] }
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Leads and win rate per assigned agent.
+          Leads and win rate per assigned sales manager.
         </p>
         <ExportButtons
           data={rows}
           columns={[
-            { key: "agent", label: "Agent" },
+            { key: "agent", label: "Sales manager" },
             { key: "total", label: "Total leads" },
             { key: "won", label: "Deals won" },
             { key: "winRateLabel", label: "Win rate" },
           ]}
           filename="ivy-group-agent-performance"
-          title="Agent Performance"
+          title="Sales Manager Performance"
         />
       </div>
       <div className="overflow-x-auto rounded-xl border border-border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Agent</TableHead>
+              <TableHead>Sales manager</TableHead>
               <TableHead>Total leads</TableHead>
               <TableHead>Deals won</TableHead>
               <TableHead>Win rate</TableHead>

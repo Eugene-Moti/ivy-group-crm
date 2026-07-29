@@ -90,7 +90,7 @@ export function BulkSendToAgentDialog({
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>
-            Send {leads.length} lead{leads.length === 1 ? "" : "s"} to an agent
+            Send {leads.length} lead{leads.length === 1 ? "" : "s"} to a sales manager
           </DialogTitle>
           <DialogDescription>
             Choose who should receive these client details — this doesn&apos;t
@@ -100,7 +100,7 @@ export function BulkSendToAgentDialog({
 
         <Select value={agentId} onValueChange={(v) => { setAgentId(v); setSentVia(null); }}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose an agent" />
+            <SelectValue placeholder="Choose a sales manager" />
           </SelectTrigger>
           <SelectContent>
             {agents.map((a) => (
@@ -117,7 +117,7 @@ export function BulkSendToAgentDialog({
             <p>
               {mismatched.length} of the selected leads{" "}
               {mismatched.length === 1 ? "is" : "are"} currently assigned to a{" "}
-              <strong>different</strong> agent — you&apos;re about to send{" "}
+              <strong>different</strong> sales manager — you&apos;re about to send{" "}
               {mismatched.length === 1 ? "it" : "them"} to {agent.name} instead:{" "}
               {mismatched.map((lead) => fullName(lead)).join(", ")}.
             </p>

@@ -46,7 +46,7 @@ export function LeadProfileView({
         />
         <Row label="Bedrooms" value={lead.bedrooms ?? "—"} />
         <Row
-          label="Assigned agent"
+          label="Sales manager"
           value={lead.assigned_agent?.name ?? "Unassigned"}
         />
         <Row label="Last contact" value={formatDate(lead.last_contact_at)} />

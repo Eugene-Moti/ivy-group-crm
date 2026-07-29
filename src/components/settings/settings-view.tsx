@@ -33,7 +33,7 @@ export function SettingsView({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground">
-          Manage lead sources, property types, sales agents, campaigns, and
+          Manage lead sources, property types, sales managers, campaigns, and
           user roles.
         </p>
       </div>
@@ -42,7 +42,7 @@ export function SettingsView({
         <TabsList>
           <TabsTrigger value="sources">Lead sources</TabsTrigger>
           <TabsTrigger value="property-types">Property types</TabsTrigger>
-          <TabsTrigger value="sales-agents">Sales agents</TabsTrigger>
+          <TabsTrigger value="sales-agents">Sales managers</TabsTrigger>
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
           <TabsTrigger value="users">Users &amp; roles</TabsTrigger>
           <TabsTrigger value="columns">Column labels</TabsTrigger>

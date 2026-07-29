@@ -39,11 +39,11 @@ export function FollowUpStatusReport({ leads }: { leads: LeadWithRelations[] }) 
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">By assigned agent</p>
+        <p className="text-sm font-medium">By assigned sales manager</p>
         <ExportButtons
           data={rows}
           columns={[
-            { key: "agent", label: "Agent" },
+            { key: "agent", label: "Sales manager" },
             { key: "Overdue", label: "Overdue" },
             { key: "Due Soon", label: "Due soon" },
             { key: "On Track", label: "On track" },
@@ -59,7 +59,7 @@ export function FollowUpStatusReport({ leads }: { leads: LeadWithRelations[] }) 
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Agent</TableHead>
+              <TableHead>Sales manager</TableHead>
               <TableHead>Overdue</TableHead>
               <TableHead>Due soon</TableHead>
               <TableHead>On track</TableHead>

@@ -82,7 +82,7 @@ export const DEFAULT_LEAD_COLUMN_LABELS = {
   bedrooms: "Beds",
   last_contact_at: "Last contact",
   next_follow_up_at: "Next follow-up",
-  agent: "Assigned agent",
+  agent: "Sales manager",
   created_at: "Created",
 } as const;
 
