@@ -12,16 +12,23 @@ import { StatusBadge } from "@/components/badges/status-badge";
 import { QuickContactActions } from "@/components/leads/quick-contact-actions";
 import { DeleteLeadDialog } from "@/components/leads/delete-lead-dialog";
 import { SendToAgentMenu } from "@/components/leads/send-to-agent-menu";
+import { GenerateOwnershipReportButton } from "@/components/leads/generate-ownership-report-button";
 import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { ActivityWithAuthor } from "@/lib/queries/activities";
+import type { LeadEvidenceWithAuthor } from "@/lib/queries/evidence";
 
 export function LeadDetailHeader({
   lead,
+  activities,
+  evidence,
   isAdmin,
   isEditing,
   onToggleEdit,
 }: {
   lead: LeadWithRelations;
+  activities: ActivityWithAuthor[];
+  evidence: LeadEvidenceWithAuthor[];
   isAdmin: boolean;
   isEditing: boolean;
   onToggleEdit: () => void;
@@ -61,6 +68,11 @@ export function LeadDetailHeader({
           {isAdmin && (
             <>
               <SendToAgentMenu lead={lead} />
+              <GenerateOwnershipReportButton
+                lead={lead}
+                activities={activities}
+                evidence={evidence}
+              />
               <Button variant="outline" size="sm" onClick={onToggleEdit}>
                 {isEditing ? <X className="size-4" /> : <Pencil className="size-4" />}
                 {isEditing ? "Cancel" : "Edit"}

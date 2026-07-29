@@ -71,7 +71,11 @@ these in order:
    `leads.referred_by_lead_id` self-reference, so agent contacts stay in the same pipeline
    as buyer leads while being distinguishable and, when known, linkable to the clients
    they've referred.
-9. [`supabase/seed.sql`](supabase/seed.sql) —
+9. [`supabase/migrations/20260802000000_lead_evidence.sql`](supabase/migrations/20260802000000_lead_evidence.sql) —
+   adds the `lead_evidence` table (dated notes/screenshots per lead, for proving contact
+   if ownership is ever disputed) and a private `lead-evidence` Storage bucket with its
+   RLS policies for the actual file bytes.
+10. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
