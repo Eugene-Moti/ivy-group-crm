@@ -1,6 +1,8 @@
 "use client";
 
-import { FileSpreadsheet, FileText, Sheet } from "lucide-react";
+import { useState } from "react";
+import { FileSpreadsheet, FileText, Loader2, Sheet } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { exportToCSV, exportToExcel, exportToPDF, type ExportColumn } from "@/lib/export";
 
@@ -19,7 +21,21 @@ export function ExportButtons<T>({
   title: string;
   formats?: ExportFormat[];
 }) {
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const disabled = data.length === 0;
+
+  async function handlePDF() {
+    setIsGeneratingPdf(true);
+    try {
+      await exportToPDF(data, columns, filename, title);
+    } catch (err) {
+      toast.error("Failed to generate PDF", {
+        description: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -49,10 +65,10 @@ export function ExportButtons<T>({
         <Button
           variant="outline"
           size="sm"
-          disabled={disabled}
-          onClick={() => exportToPDF(data, columns, filename, title)}
+          disabled={disabled || isGeneratingPdf}
+          onClick={handlePDF}
         >
-          <Sheet className="size-4" />
+          {isGeneratingPdf ? <Loader2 className="animate-spin" /> : <Sheet className="size-4" />}
           PDF
         </Button>
       )}

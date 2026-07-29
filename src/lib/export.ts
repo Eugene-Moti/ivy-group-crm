@@ -2,6 +2,12 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  drawBrandHeader,
+  drawWatermarkOnAllPages,
+  loadIvyBrandAssets,
+  IVY_BRAND,
+} from "@/lib/pdf-branding";
 
 export type ExportColumn<T> = {
   key: keyof T;
@@ -37,26 +43,36 @@ export function exportToExcel<T>(data: T[], columns: ExportColumn<T>[], filename
   XLSX.writeFile(workbook, `${filename}.xlsx`);
 }
 
-export function exportToPDF<T>(
+export async function exportToPDF<T>(
   data: T[],
   columns: ExportColumn<T>[],
   filename: string,
   title: string
 ) {
+  const { logo, icon } = await loadIvyBrandAssets();
+  const margin = 14;
   const doc = new jsPDF({ orientation: columns.length > 5 ? "landscape" : "portrait" });
-  doc.setFontSize(14);
-  doc.text(title, 14, 16);
-  doc.setFontSize(9);
-  doc.setTextColor(120);
-  doc.text(new Date().toLocaleString(), 14, 22);
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  const startY = drawBrandHeader(
+    doc,
+    logo,
+    title,
+    new Date().toLocaleString(),
+    pageWidth,
+    margin
+  );
 
   autoTable(doc, {
-    startY: 28,
+    startY,
     head: [columns.map((c) => c.label)],
     body: data.map((row) => columns.map((c) => String(row[c.key] ?? ""))),
     styles: { fontSize: 8 },
-    headStyles: { fillColor: [22, 56, 42] },
+    headStyles: { fillColor: IVY_BRAND.ivy800 },
+    margin: { left: margin, right: margin },
   });
+
+  drawWatermarkOnAllPages(doc, icon);
 
   doc.save(`${filename}.pdf`);
 }

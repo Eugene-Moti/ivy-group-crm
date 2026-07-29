@@ -2,6 +2,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { ACTIVITY_TYPE_META } from "@/lib/activity";
 import { formatBudgetRange, formatDate, formatDateTime, fullName } from "@/lib/format";
+import {
+  drawBrandHeader,
+  drawWatermarkOnAllPages,
+  loadIvyBrandAssets,
+  IVY_BRAND,
+} from "@/lib/pdf-branding";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivityWithAuthor } from "@/lib/queries/activities";
 import type { LeadEvidenceWithAuthor } from "@/lib/queries/evidence";
@@ -77,30 +83,29 @@ export async function generateClientOwnershipReport({
   statusLabel: string;
   generatedByName: string | null;
 }) {
+  const { logo, icon } = await loadIvyBrandAssets();
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const name = fullName(lead);
   const contentWidth = PAGE_WIDTH - MARGIN * 2;
 
-  doc.setFontSize(16);
-  doc.setTextColor(15, 42, 29);
-  doc.text("Ivy Group CRM — Client Ownership Record", MARGIN, 18);
-
-  doc.setFontSize(9);
-  doc.setTextColor(120);
-  doc.text(
+  let y = drawBrandHeader(
+    doc,
+    logo,
+    "Client Ownership Record",
     `Generated ${formatDateTime(new Date().toISOString())}${
       generatedByName ? ` by ${generatedByName}` : ""
     }`,
-    MARGIN,
-    24
+    PAGE_WIDTH,
+    MARGIN
   );
 
   doc.setFontSize(14);
-  doc.setTextColor(20);
-  doc.text(name, MARGIN, 34);
+  doc.setTextColor(...IVY_BRAND.ink);
+  doc.text(name, MARGIN, y);
+  y += 5;
 
   autoTable(doc, {
-    startY: 39,
+    startY: y,
     head: [["Field", "Detail"]],
     body: [
       ["Lead type", lead.lead_type],
@@ -118,15 +123,15 @@ export async function generateClientOwnershipReport({
       ["Last contact", formatDate(lead.last_contact_at)],
     ],
     styles: { fontSize: 9 },
-    headStyles: { fillColor: [22, 56, 42] },
+    headStyles: { fillColor: IVY_BRAND.ivy800 },
     margin: { left: MARGIN, right: MARGIN },
   });
 
-  let y = lastAutoTableY(doc) + 10;
+  y = lastAutoTableY(doc) + 10;
 
   y = ensureSpace(doc, y, 14);
   doc.setFontSize(12);
-  doc.setTextColor(20);
+  doc.setTextColor(...IVY_BRAND.ink);
   doc.text("Communication & status history", MARGIN, y);
   y += 2;
 
@@ -145,7 +150,7 @@ export async function generateClientOwnershipReport({
         attribution(a.author?.full_name),
       ]),
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [22, 56, 42] },
+      headStyles: { fillColor: IVY_BRAND.ivy800 },
       columnStyles: { 2: { cellWidth: 80 } },
       margin: { left: MARGIN, right: MARGIN },
     });
@@ -159,7 +164,7 @@ export async function generateClientOwnershipReport({
 
   y = ensureSpace(doc, y, 14);
   doc.setFontSize(12);
-  doc.setTextColor(20);
+  doc.setTextColor(...IVY_BRAND.ink);
   doc.text("Evidence of contact", MARGIN, y);
   y += 8;
 
@@ -227,6 +232,8 @@ export async function generateClientOwnershipReport({
     doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
     y += 6;
   }
+
+  drawWatermarkOnAllPages(doc, icon);
 
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
