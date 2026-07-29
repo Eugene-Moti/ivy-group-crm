@@ -14,12 +14,21 @@ import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
-function todayLocal() {
-  const d = new Date();
+function dateOnly(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function EvidenceUploadForm({ leadId }: { leadId: string }) {
+function todayLocal() {
+  return dateOnly(new Date());
+}
+
+export function EvidenceUploadForm({
+  leadId,
+  leadCreatedAt,
+}: {
+  leadId: string;
+  leadCreatedAt: string;
+}) {
   const router = useRouter();
   const profile = useProfile();
   const [occurredAt, setOccurredAt] = useState(todayLocal());
@@ -73,7 +82,23 @@ export function EvidenceUploadForm({ leadId }: { leadId: string }) {
       return;
     }
 
-    toast.success("Evidence saved");
+    // This evidence proves contact happened earlier than the lead's recorded
+    // inquiry date — since client details are otherwise entered in real time,
+    // that date should move back to match the earliest documented proof.
+    let backdated = false;
+    if (occurredAt < dateOnly(new Date(leadCreatedAt))) {
+      const { error: backdateError } = await supabase
+        .from("leads")
+        .update({ created_at: new Date(occurredAt).toISOString() })
+        .eq("id", leadId);
+      backdated = !backdateError;
+    }
+
+    toast.success(
+      backdated
+        ? `Evidence saved — inquiry date moved back to ${occurredAt}`
+        : "Evidence saved"
+    );
     setNote("");
     setFile(null);
     setOccurredAt(todayLocal());

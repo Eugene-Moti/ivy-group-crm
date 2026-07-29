@@ -24,6 +24,7 @@ export function LeadProfileView({
     <Card>
       <CardContent className="divide-y divide-border">
         <Row label="Lead type" value={lead.lead_type} />
+        <Row label="Date of inquiry" value={formatDate(lead.created_at)} />
         {lead.referred_by && (
           <Row
             label="Referred by"

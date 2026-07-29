@@ -14,7 +14,12 @@ export function leadFormDefaults(
   lead: LeadWithRelations | undefined
 ): Partial<LeadFormValues> {
   if (!lead) {
-    return { priority: "Warm", status: "New Lead", lead_type: "Direct Client" };
+    return {
+      priority: "Warm",
+      status: "New Lead",
+      lead_type: "Direct Client",
+      created_at: format(new Date(), "yyyy-MM-dd"),
+    };
   }
   return {
     first_name: lead.first_name,
@@ -31,6 +36,7 @@ export function leadFormDefaults(
     budget_min: lead.budget_min != null ? String(lead.budget_min) : undefined,
     budget_max: lead.budget_max != null ? String(lead.budget_max) : undefined,
     bedrooms: lead.bedrooms != null ? String(lead.bedrooms) : undefined,
+    created_at: format(new Date(lead.created_at), "yyyy-MM-dd"),
     next_follow_up_at: toDatetimeLocal(lead.next_follow_up_at),
     assigned_to: lead.assigned_to ?? undefined,
     notes: lead.notes ?? undefined,
@@ -58,6 +64,7 @@ export function buildLeadPayload(values: LeadFormValues): LeadInsertOrUpdate {
     budget_min: numberOrNull(values.budget_min),
     budget_max: numberOrNull(values.budget_max),
     bedrooms: numberOrNull(values.bedrooms),
+    created_at: values.created_at ? new Date(values.created_at).toISOString() : undefined,
     next_follow_up_at: values.next_follow_up_at
       ? new Date(values.next_follow_up_at).toISOString()
       : null,

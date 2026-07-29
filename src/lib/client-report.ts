@@ -119,7 +119,7 @@ export async function generateClientOwnershipReport({
       ["Budget", formatBudgetRange(lead.budget_min, lead.budget_max)],
       ["Sales manager", lead.assigned_agent?.name ?? "Unassigned"],
       ["Referred by", lead.referred_by ? fullName(lead.referred_by) : "—"],
-      ["In system since", formatDate(lead.created_at)],
+      ["Date of inquiry", formatDate(lead.created_at)],
       ["Last contact", formatDate(lead.last_contact_at)],
     ],
     styles: { fontSize: 9 },

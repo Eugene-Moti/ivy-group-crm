@@ -91,7 +91,9 @@ export function LeadDetail({
             this client — useful if ownership of the lead is ever disputed.
           </p>
         </div>
-        {isAdmin && <EvidenceUploadForm leadId={lead.id} />}
+        {isAdmin && (
+          <EvidenceUploadForm leadId={lead.id} leadCreatedAt={lead.created_at} />
+        )}
         <EvidenceTimeline evidence={evidence} isAdmin={isAdmin} />
       </div>
     </div>

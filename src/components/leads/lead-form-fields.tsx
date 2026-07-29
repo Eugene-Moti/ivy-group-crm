@@ -52,6 +52,7 @@ export function LeadFormFields({
 }) {
   const statusLabels = useStatusLabels();
   const referrableAgentLeads = agentLeads.filter((a) => a.id !== currentLeadId);
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <FieldGroup>
@@ -107,6 +108,17 @@ export function LeadFormFields({
           )}
         />
       </div>
+
+      <Field>
+        <FieldLabel htmlFor="created_at">Date of inquiry</FieldLabel>
+        <FieldContent>
+          <Input id="created_at" type="date" max={today} {...register("created_at")} />
+          <FieldDescription>
+            When this client first inquired — defaults to today, but backdate it for
+            leads that started before they were entered into the system.
+          </FieldDescription>
+        </FieldContent>
+      </Field>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
