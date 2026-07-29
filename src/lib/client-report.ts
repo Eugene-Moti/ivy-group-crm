@@ -132,12 +132,12 @@ export async function generateClientOwnershipReport({
   y = ensureSpace(doc, y, 14);
   doc.setFontSize(12);
   doc.setTextColor(...IVY_BRAND.ink);
-  doc.text("Communication & status history", MARGIN, y);
+  doc.text("Communication history", MARGIN, y);
   y += 2;
 
-  const sortedActivities = [...activities].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
+  const sortedActivities = activities
+    .filter((a) => a.type !== "status_change")
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
   if (sortedActivities.length > 0) {
     autoTable(doc, {
@@ -158,7 +158,7 @@ export async function generateClientOwnershipReport({
   } else {
     doc.setFontSize(9);
     doc.setTextColor(120);
-    doc.text("No activity logged.", MARGIN, y + 6);
+    doc.text("No communication logged.", MARGIN, y + 6);
     y += 14;
   }
 
