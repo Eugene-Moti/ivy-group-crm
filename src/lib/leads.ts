@@ -4,7 +4,7 @@ import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export type FollowUpAlert = "Overdue" | "Due Soon" | "On Track" | "None";
 
-const CLOSED_STATUSES: LeadStatus[] = ["Closed - Won", "Closed - Lost"];
+export const CLOSED_STATUSES: LeadStatus[] = ["Closed - Won", "Closed - Lost"];
 
 const DUE_SOON_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 

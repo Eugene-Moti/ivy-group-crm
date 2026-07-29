@@ -1,4 +1,5 @@
 import { LEAD_STATUSES } from "@/lib/constants";
+import { CLOSED_STATUSES, getFollowUpAlert } from "@/lib/leads";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export type ReportFilters = {
@@ -84,6 +85,50 @@ export function computeConversionByStage(leads: LeadWithRelations[]) {
       percentOfTotal: total > 0 ? (count / total) * 100 : 0,
     };
   });
+}
+
+export type FollowUpBucket = "Overdue" | "Due Soon" | "On Track" | "Not scheduled";
+const FOLLOW_UP_BUCKETS: FollowUpBucket[] = ["Overdue", "Due Soon", "On Track", "Not scheduled"];
+
+/**
+ * Follow-up load across open leads only — closed deals don't need a next
+ * step, so they're excluded from both the totals and the per-agent
+ * breakdown rather than padding out a "Not scheduled" bucket that isn't
+ * actionable.
+ */
+export function computeFollowUpSummary(leads: LeadWithRelations[]) {
+  const open = leads.filter((l) => !CLOSED_STATUSES.includes(l.status));
+
+  const emptyCounts = (): Record<FollowUpBucket, number> => ({
+    Overdue: 0,
+    "Due Soon": 0,
+    "On Track": 0,
+    "Not scheduled": 0,
+  });
+
+  const totals = emptyCounts();
+  const byAgent = new Map<string, Record<FollowUpBucket, number>>();
+
+  for (const lead of open) {
+    const alert = getFollowUpAlert(lead.next_follow_up_at, lead.status);
+    const bucket: FollowUpBucket = alert === "None" ? "Not scheduled" : alert;
+    totals[bucket] += 1;
+
+    const agentName = lead.assigned_agent?.name ?? "Unassigned";
+    const entry = byAgent.get(agentName) ?? emptyCounts();
+    entry[bucket] += 1;
+    byAgent.set(agentName, entry);
+  }
+
+  const rows = [...byAgent.entries()]
+    .map(([agent, counts]) => ({
+      agent,
+      ...counts,
+      total: FOLLOW_UP_BUCKETS.reduce((sum, b) => sum + counts[b], 0),
+    }))
+    .sort((a, b) => b.Overdue - a.Overdue || b.total - a.total);
+
+  return { totals, openCount: open.length, rows };
 }
 
 export function computeAgentPerformance(leads: LeadWithRelations[]) {
