@@ -1,13 +1,19 @@
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
 import {
   Controller,
   type Control,
   type FieldErrors,
   type UseFormRegister,
   type UseFormSetValue,
+  type UseFormWatch,
 } from "react-hook-form";
 import { LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES } from "@/lib/constants";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import { fullName } from "@/lib/format";
+import { createClient } from "@/lib/supabase/client";
+import { findMatchingLeads, type LeadIdentity } from "@/lib/duplicate-leads";
 import type { LeadFormValues } from "@/lib/validations/lead";
 
 import { Input } from "@/components/ui/input";
@@ -44,6 +50,7 @@ export function LeadFormFields({
   campaigns,
   currentLeadId,
   setValue,
+  watch,
 }: {
   register: UseFormRegister<LeadFormValues>;
   control: Control<LeadFormValues>;
@@ -55,10 +62,36 @@ export function LeadFormFields({
   campaigns: LeadOption[];
   currentLeadId?: string;
   setValue: UseFormSetValue<LeadFormValues>;
+  watch: UseFormWatch<LeadFormValues>;
 }) {
   const statusLabels = useStatusLabels();
   const referrableAgentLeads = agentLeads.filter((a) => a.id !== currentLeadId);
   const today = new Date().toISOString().slice(0, 10);
+
+  const [allLeadIdentities, setAllLeadIdentities] = useState<LeadIdentity[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("leads")
+        .select(
+          "id, first_name, last_name, phone, email, status, assigned_agent:sales_agents!leads_assigned_to_fkey(name)"
+        );
+      if (!cancelled) setAllLeadIdentities((data ?? []) as unknown as LeadIdentity[]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const watchedPhone = watch("phone");
+  const watchedEmail = watch("email");
+  const duplicateMatches = findMatchingLeads(
+    { phone: watchedPhone, email: watchedEmail },
+    allLeadIdentities,
+    currentLeadId
+  );
 
   return (
     <FieldGroup>
@@ -159,6 +192,40 @@ export function LeadFormFields({
           </FieldContent>
         </Field>
       </div>
+
+      {duplicateMatches.length > 0 && (
+        <div className="flex gap-2 rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-gold" />
+          <div className="space-y-1">
+            <p className="font-medium">
+              Possible duplicate — matching{" "}
+              {duplicateMatches[0].matchedOn.length === 2
+                ? "phone and email"
+                : duplicateMatches[0].matchedOn[0]}{" "}
+              found on {duplicateMatches.length === 1 ? "another lead" : `${duplicateMatches.length} other leads`}:
+            </p>
+            <ul className="space-y-0.5">
+              {duplicateMatches.map((m) => (
+                <li key={m.lead.id}>
+                  <Link
+                    href={`/leads/${m.lead.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-gold hover:underline"
+                  >
+                    {fullName(m.lead)}
+                  </Link>{" "}
+                  — {m.lead.status}
+                  {m.lead.assigned_agent && ` · ${m.lead.assigned_agent.name}`}
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-muted-foreground">
+              You can still save — this is just a heads-up in case it&apos;s the same client.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Controller

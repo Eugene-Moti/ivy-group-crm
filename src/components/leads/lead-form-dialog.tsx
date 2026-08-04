@@ -59,6 +59,7 @@ export function LeadFormDialog({
     control,
     reset,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<LeadFormValues>({
     resolver: zodResolver(leadFormSchema),
@@ -117,6 +118,7 @@ export function LeadFormDialog({
             campaigns={campaigns}
             currentLeadId={lead?.id}
             setValue={setValue}
+            watch={watch}
           />
 
           <DialogFooter className="mt-6">

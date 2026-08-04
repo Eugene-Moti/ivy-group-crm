@@ -47,6 +47,7 @@ export function LeadProfileEditor({
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<LeadFormValues>({
     resolver: zodResolver(leadFormSchema),
@@ -86,6 +87,7 @@ export function LeadProfileEditor({
             campaigns={campaigns}
             currentLeadId={lead.id}
             setValue={setValue}
+            watch={watch}
           />
         </CardContent>
         <CardFooter className="justify-end gap-2">
