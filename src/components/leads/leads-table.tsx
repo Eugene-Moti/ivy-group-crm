@@ -19,7 +19,9 @@ import {
   ArrowUp,
   ArrowUpDown,
   Columns3,
+  FileDown,
   Flame,
+  Loader2,
   Plus,
   Search,
   Send,
@@ -27,6 +29,7 @@ import {
   UserCog,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,7 +54,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useIsAdmin } from "@/components/providers/profile-provider";
+import { useIsAdmin, useProfile } from "@/components/providers/profile-provider";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import { getLeadColumns } from "@/components/leads/lead-columns";
 import { LeadFormDialog } from "@/components/leads/lead-form-dialog";
@@ -64,8 +67,11 @@ import { ExportButtons } from "@/components/shared/export-buttons";
 import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES, type LeadStatus } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import { composeReportTitle } from "@/lib/report-metrics";
+import { createClient } from "@/lib/supabase/client";
+import { generateBulkLeadsReport } from "@/lib/bulk-leads-report";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { LeadColumnLabels } from "@/lib/queries/settings";
+import type { ActivityWithAuthor } from "@/lib/queries/activities";
 
 type LeadOption = { id: string; name: string };
 type ProjectOption = { id: string; name: string; location: string | null };
@@ -98,7 +104,9 @@ export function LeadsTable({
 }) {
   const router = useRouter();
   const isAdmin = useIsAdmin();
+  const profile = useProfile();
   const statusLabels = useStatusLabels();
+  const [isGeneratingBulkReport, setIsGeneratingBulkReport] = useState(false);
 
   const [globalSearch, setGlobalSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter ?? ALL);
@@ -262,6 +270,49 @@ export function LeadsTable({
   });
 
   const selectedLeads = table.getSelectedRowModel().rows.map((row) => row.original);
+
+  async function handleGenerateBulkReport() {
+    setIsGeneratingBulkReport(true);
+    try {
+      const supabase = createClient();
+      const ids = selectedLeads.map((l) => l.id);
+      const { data, error } = await supabase
+        .from("activities")
+        .select("*, author:profiles!activities_created_by_fkey(id, full_name)")
+        .in("lead_id", ids)
+        .order("created_at", { ascending: false });
+
+      if (error) throw new Error(error.message);
+
+      const activitiesByLeadId = new Map<string, ActivityWithAuthor[]>();
+      for (const activity of (data ?? []) as unknown as ActivityWithAuthor[]) {
+        const arr = activitiesByLeadId.get(activity.lead_id) ?? [];
+        arr.push(activity);
+        activitiesByLeadId.set(activity.lead_id, arr);
+      }
+
+      const managerIds = new Set(selectedLeads.map((l) => l.assigned_to));
+      const sharedManagerName =
+        managerIds.size === 1 ? selectedLeads[0].assigned_agent?.name : undefined;
+
+      const reportTitle = sharedManagerName
+        ? `${sharedManagerName}'s Leads — Detailed Report`
+        : "Selected Leads — Detailed Report";
+
+      await generateBulkLeadsReport({
+        reportTitle,
+        leads: selectedLeads,
+        activitiesByLeadId,
+        generatedByName: profile?.full_name ?? null,
+      });
+    } catch (err) {
+      toast.error("Failed to generate report", {
+        description: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setIsGeneratingBulkReport(false);
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -464,6 +515,19 @@ export function LeadsTable({
               <Button variant="outline" size="sm" onClick={() => setBulkSendOpen(true)}>
                 <Send className="size-3.5" />
                 Send to manager
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateBulkReport}
+                disabled={isGeneratingBulkReport}
+              >
+                {isGeneratingBulkReport ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <FileDown className="size-3.5" />
+                )}
+                Generate report
               </Button>
               <Button
                 variant="destructive"

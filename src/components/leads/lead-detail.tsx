@@ -6,6 +6,7 @@ import { LeadDetailHeader } from "@/components/leads/lead-detail-header";
 import { LeadProfileView } from "@/components/leads/lead-profile-view";
 import { LeadProfileEditor } from "@/components/leads/lead-profile-editor";
 import { ReferredLeadsList } from "@/components/leads/referred-leads-list";
+import { GenerateReferralReportButton } from "@/components/leads/generate-referral-report-button";
 import { AddActivityForm } from "@/components/leads/add-activity-form";
 import { ActivityTimeline } from "@/components/leads/activity-timeline";
 import { EvidenceUploadForm } from "@/components/leads/evidence-upload-form";
@@ -70,7 +71,12 @@ export function LeadDetail({
             <LeadProfileView lead={lead} isAdmin={isAdmin} />
           )}
           {lead.lead_type === "Real Estate Agent" && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
+              {isAdmin && referredLeads.length > 0 && (
+                <div className="flex justify-end">
+                  <GenerateReferralReportButton agentLead={lead} referredLeads={referredLeads} />
+                </div>
+              )}
               <ReferredLeadsList leads={referredLeads} />
             </div>
           )}
@@ -81,7 +87,7 @@ export function LeadDetail({
             Communication timeline
           </h2>
           {isAdmin && <AddActivityForm leadId={lead.id} />}
-          <ActivityTimeline activities={activities} />
+          <ActivityTimeline activities={activities} isAdmin={isAdmin} />
         </div>
       </div>
 

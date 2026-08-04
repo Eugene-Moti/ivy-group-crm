@@ -7,7 +7,12 @@ const STALE_OPEN_DAYS = 30;
 const HOT_UNCONTACTED_DAYS = 7;
 const MIN_VOLUME_FOR_RATE_COMPARISON = 5;
 
-export type ActivitySummary = { lead_id: string; type: ActivityType; created_at: string };
+export type ActivitySummary = {
+  lead_id: string;
+  type: ActivityType;
+  created_at: string;
+  body: string | null;
+};
 export type EvidenceLeadId = { lead_id: string };
 
 export type FullAnalysisInsight = {

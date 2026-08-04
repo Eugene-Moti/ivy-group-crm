@@ -9,6 +9,7 @@ import { AgentPerformanceReport } from "@/components/reports/agent-performance-r
 import { FollowUpStatusReport } from "@/components/reports/follow-up-status-report";
 import { ReferrerPerformanceReport } from "@/components/reports/referrer-performance-report";
 import { PipelineVelocityReport } from "@/components/reports/pipeline-velocity-report";
+import { ConversionTimelineReport } from "@/components/reports/conversion-timeline-report";
 import { FullAnalysisReport } from "@/components/reports/full-analysis-report";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { SavedQueryRow } from "@/lib/queries/saved-queries";
@@ -26,6 +27,7 @@ const VALID_TABS = [
   "follow-ups",
   "referrers",
   "velocity",
+  "conversion-timeline",
   "full-analysis",
 ];
 
@@ -68,6 +70,7 @@ export function ReportsView({
           <TabsTrigger value="follow-ups">Follow-up status</TabsTrigger>
           <TabsTrigger value="referrers">Referrers</TabsTrigger>
           <TabsTrigger value="velocity">Pipeline velocity</TabsTrigger>
+          <TabsTrigger value="conversion-timeline">Conversion timeline</TabsTrigger>
           <TabsTrigger value="full-analysis">Full analysis</TabsTrigger>
         </TabsList>
 
@@ -97,6 +100,9 @@ export function ReportsView({
         </TabsContent>
         <TabsContent value="velocity" className="pt-4">
           <PipelineVelocityReport leads={leads} activitySummaries={activitySummaries} />
+        </TabsContent>
+        <TabsContent value="conversion-timeline" className="pt-4">
+          <ConversionTimelineReport leads={leads} activitySummaries={activitySummaries} />
         </TabsContent>
         <TabsContent value="full-analysis" className="pt-4">
           <FullAnalysisReport
