@@ -87,7 +87,7 @@ export function LeadDetail({
             Communication timeline
           </h2>
           {isAdmin && <AddActivityForm leadId={lead.id} />}
-          <ActivityTimeline activities={activities} isAdmin={isAdmin} />
+          <ActivityTimeline activities={activities} />
         </div>
       </div>
 
