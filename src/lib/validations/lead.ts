@@ -18,6 +18,7 @@ export const leadFormSchema = z
         "Enter a valid email address."
       ),
     lead_source_id: z.string().optional(),
+    campaign_id: z.string().optional(),
     priority: z.enum(LEAD_PRIORITIES),
     status: z.enum(LEAD_STATUSES),
     lead_type: z.enum(LEAD_TYPES),

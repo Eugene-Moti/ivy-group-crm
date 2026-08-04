@@ -41,6 +41,7 @@ export function LeadFormFields({
   propertyTypes,
   agents,
   agentLeads,
+  campaigns,
   currentLeadId,
   setValue,
 }: {
@@ -51,6 +52,7 @@ export function LeadFormFields({
   propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
+  campaigns: LeadOption[];
   currentLeadId?: string;
   setValue: UseFormSetValue<LeadFormValues>;
 }) {
@@ -208,6 +210,34 @@ export function LeadFormFields({
           )}
         />
       </div>
+
+      <Controller
+        control={control}
+        name="campaign_id"
+        render={({ field }) => (
+          <Field>
+            <FieldLabel>Campaign</FieldLabel>
+            <FieldContent>
+              <Select value={field.value ?? "none"} onValueChange={field.onChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="None" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {campaigns.map((campaign) => (
+                    <SelectItem key={campaign.id} value={campaign.id}>
+                      {campaign.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldDescription>
+                Optional — which marketing campaign brought this lead in.
+              </FieldDescription>
+            </FieldContent>
+          </Field>
+        )}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Controller

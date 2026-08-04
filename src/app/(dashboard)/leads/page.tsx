@@ -6,11 +6,11 @@ import {
   getLeadSources,
   getPropertyTypes,
 } from "@/lib/queries/leads";
-import { getLeadColumnLabels } from "@/lib/queries/settings";
+import { getCampaigns, getLeadColumnLabels } from "@/lib/queries/settings";
 import { LeadsDirectory } from "@/components/leads/leads-directory";
 
 export default async function LeadsPage() {
-  const [leads, leadSources, propertyTypes, agents, agentLeads, columnLabels] =
+  const [leads, leadSources, propertyTypes, agents, agentLeads, columnLabels, campaigns] =
     await Promise.all([
       getLeads(),
       getLeadSources(),
@@ -18,6 +18,7 @@ export default async function LeadsPage() {
       getAgents(),
       getAgentLeads(),
       getLeadColumnLabels(),
+      getCampaigns(),
     ]);
 
   return (
@@ -37,6 +38,7 @@ export default async function LeadsPage() {
           propertyTypes={propertyTypes}
           agents={agents}
           agentLeads={agentLeads}
+          campaigns={campaigns}
           columnLabels={columnLabels}
         />
       </Suspense>

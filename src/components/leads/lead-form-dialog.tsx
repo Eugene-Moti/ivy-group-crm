@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { leadFormSchema, type LeadFormValues } from "@/lib/validations/lead";
 import { buildLeadPayload, leadFormDefaults } from "@/lib/leads-form";
+import { logStatusChange } from "@/lib/activity-log";
+import { useProfile } from "@/components/providers/profile-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,7 @@ export function LeadFormDialog({
   propertyTypes,
   agents,
   agentLeads,
+  campaigns,
   onSaved,
 }: {
   open: boolean;
@@ -44,9 +47,11 @@ export function LeadFormDialog({
   propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
+  campaigns: LeadOption[];
   onSaved: () => void;
 }) {
   const isEdit = !!lead;
+  const profile = useProfile();
 
   const {
     register,
@@ -79,6 +84,10 @@ export function LeadFormDialog({
       return;
     }
 
+    if (isEdit) {
+      await logStatusChange(supabase, lead.id, lead.status, values.status, profile?.id ?? null);
+    }
+
     toast.success(isEdit ? "Lead updated" : "Lead created");
     onOpenChange(false);
     onSaved();
@@ -105,6 +114,7 @@ export function LeadFormDialog({
             propertyTypes={propertyTypes}
             agents={agents}
             agentLeads={agentLeads}
+            campaigns={campaigns}
             currentLeadId={lead?.id}
             setValue={setValue}
           />

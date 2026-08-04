@@ -81,6 +81,7 @@ export function LeadsTable({
   propertyTypes,
   agents,
   agentLeads,
+  campaigns,
   autoOpenCreate,
   initialStatusFilter,
   columnLabels = DEFAULT_LEAD_COLUMN_LABELS,
@@ -90,6 +91,7 @@ export function LeadsTable({
   propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
+  campaigns: LeadOption[];
   autoOpenCreate?: boolean;
   initialStatusFilter?: string;
   columnLabels?: LeadColumnLabels;
@@ -599,6 +601,7 @@ export function LeadsTable({
             propertyTypes={propertyTypes}
             agents={agents}
             agentLeads={agentLeads}
+            campaigns={campaigns}
             onSaved={() => router.refresh()}
           />
           <DeleteLeadDialog

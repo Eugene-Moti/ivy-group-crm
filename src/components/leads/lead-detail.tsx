@@ -26,6 +26,7 @@ export function LeadDetail({
   propertyTypes,
   agents,
   agentLeads,
+  campaigns,
   referredLeads,
   evidence,
 }: {
@@ -35,6 +36,7 @@ export function LeadDetail({
   propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
+  campaigns: LeadOption[];
   referredLeads: LeadWithRelations[];
   evidence: LeadEvidenceWithAuthor[];
 }) {
@@ -61,6 +63,7 @@ export function LeadDetail({
               propertyTypes={propertyTypes}
               agents={agents}
               agentLeads={agentLeads}
+              campaigns={campaigns}
               onDone={() => setIsEditing(false)}
             />
           ) : (

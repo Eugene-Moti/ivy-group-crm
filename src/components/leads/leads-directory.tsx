@@ -22,6 +22,7 @@ export function LeadsDirectory({
   propertyTypes,
   agents,
   agentLeads,
+  campaigns,
   columnLabels,
 }: {
   leads: LeadWithRelations[];
@@ -29,6 +30,7 @@ export function LeadsDirectory({
   propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
+  campaigns: LeadOption[];
   columnLabels: LeadColumnLabels;
 }) {
   const isAdmin = useIsAdmin();
@@ -71,6 +73,7 @@ export function LeadsDirectory({
           propertyTypes={propertyTypes}
           agents={agents}
           agentLeads={agentLeads}
+          campaigns={campaigns}
           autoOpenCreate={shouldAutoOpenCreate}
           initialStatusFilter={initialStatusFilter}
           columnLabels={columnLabels}

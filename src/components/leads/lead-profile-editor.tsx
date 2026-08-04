@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { leadFormSchema, type LeadFormValues } from "@/lib/validations/lead";
 import { buildLeadPayload, leadFormDefaults } from "@/lib/leads-form";
+import { logStatusChange } from "@/lib/activity-log";
+import { useProfile } from "@/components/providers/profile-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ export function LeadProfileEditor({
   propertyTypes,
   agents,
   agentLeads,
+  campaigns,
   onDone,
 }: {
   lead: LeadWithRelations;
@@ -33,9 +36,11 @@ export function LeadProfileEditor({
   propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
+  campaigns: LeadOption[];
   onDone: () => void;
 }) {
   const router = useRouter();
+  const profile = useProfile();
 
   const {
     register,
@@ -59,6 +64,8 @@ export function LeadProfileEditor({
       return;
     }
 
+    await logStatusChange(supabase, lead.id, lead.status, values.status, profile?.id ?? null);
+
     toast.success("Lead updated");
     onDone();
     router.refresh();
@@ -76,6 +83,7 @@ export function LeadProfileEditor({
             propertyTypes={propertyTypes}
             agents={agents}
             agentLeads={agentLeads}
+            campaigns={campaigns}
             currentLeadId={lead.id}
             setValue={setValue}
           />

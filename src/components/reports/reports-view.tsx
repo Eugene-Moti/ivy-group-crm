@@ -7,6 +7,8 @@ import { SourcePerformanceReport } from "@/components/reports/source-performance
 import { ConversionByStageReport } from "@/components/reports/conversion-by-stage-report";
 import { AgentPerformanceReport } from "@/components/reports/agent-performance-report";
 import { FollowUpStatusReport } from "@/components/reports/follow-up-status-report";
+import { ReferrerPerformanceReport } from "@/components/reports/referrer-performance-report";
+import { PipelineVelocityReport } from "@/components/reports/pipeline-velocity-report";
 import { FullAnalysisReport } from "@/components/reports/full-analysis-report";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { SavedQueryRow } from "@/lib/queries/saved-queries";
@@ -16,7 +18,16 @@ type LeadOption = { id: string; name: string };
 type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 
-const VALID_TABS = ["builder", "source", "conversion", "agent", "follow-ups", "full-analysis"];
+const VALID_TABS = [
+  "builder",
+  "source",
+  "conversion",
+  "agent",
+  "follow-ups",
+  "referrers",
+  "velocity",
+  "full-analysis",
+];
 
 export function ReportsView({
   leads,
@@ -55,6 +66,8 @@ export function ReportsView({
           <TabsTrigger value="conversion">Conversion by stage</TabsTrigger>
           <TabsTrigger value="agent">Sales manager performance</TabsTrigger>
           <TabsTrigger value="follow-ups">Follow-up status</TabsTrigger>
+          <TabsTrigger value="referrers">Referrers</TabsTrigger>
+          <TabsTrigger value="velocity">Pipeline velocity</TabsTrigger>
           <TabsTrigger value="full-analysis">Full analysis</TabsTrigger>
         </TabsList>
 
@@ -78,6 +91,12 @@ export function ReportsView({
         </TabsContent>
         <TabsContent value="follow-ups" className="pt-4">
           <FollowUpStatusReport leads={leads} />
+        </TabsContent>
+        <TabsContent value="referrers" className="pt-4">
+          <ReferrerPerformanceReport leads={leads} />
+        </TabsContent>
+        <TabsContent value="velocity" className="pt-4">
+          <PipelineVelocityReport leads={leads} activitySummaries={activitySummaries} />
         </TabsContent>
         <TabsContent value="full-analysis" className="pt-4">
           <FullAnalysisReport

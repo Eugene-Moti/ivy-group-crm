@@ -9,6 +9,7 @@ import {
 } from "@/lib/queries/leads";
 import { getActivities } from "@/lib/queries/activities";
 import { getLeadEvidence } from "@/lib/queries/evidence";
+import { getCampaigns } from "@/lib/queries/settings";
 import { LeadDetail } from "@/components/leads/lead-detail";
 
 export default async function LeadDetailPage({
@@ -18,7 +19,7 @@ export default async function LeadDetailPage({
 }) {
   const { id } = await params;
 
-  const [lead, activities, leadSources, propertyTypes, agents, agentLeads, evidence] =
+  const [lead, activities, leadSources, propertyTypes, agents, agentLeads, evidence, campaigns] =
     await Promise.all([
       getLead(id),
       getActivities(id),
@@ -27,6 +28,7 @@ export default async function LeadDetailPage({
       getAgents(),
       getAgentLeads(),
       getLeadEvidence(id),
+      getCampaigns(),
     ]);
 
   if (!lead) notFound();
@@ -42,6 +44,7 @@ export default async function LeadDetailPage({
       propertyTypes={propertyTypes}
       agents={agents}
       agentLeads={agentLeads}
+      campaigns={campaigns}
       referredLeads={referredLeads}
       evidence={evidence}
     />
