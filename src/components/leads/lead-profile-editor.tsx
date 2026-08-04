@@ -16,6 +16,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { LeadFormFields } from "@/components/leads/lead-form-fields";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
@@ -29,7 +30,7 @@ export function LeadProfileEditor({
 }: {
   lead: LeadWithRelations;
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
   onDone: () => void;
@@ -40,6 +41,7 @@ export function LeadProfileEditor({
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LeadFormValues>({
     resolver: zodResolver(leadFormSchema),
@@ -75,6 +77,7 @@ export function LeadProfileEditor({
             agents={agents}
             agentLeads={agentLeads}
             currentLeadId={lead.id}
+            setValue={setValue}
           />
         </CardContent>
         <CardFooter className="justify-end gap-2">

@@ -15,6 +15,7 @@ import { ALL, EMPTY_REPORT_FILTERS, type ReportFilters } from "@/lib/report-metr
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 
 export function ReportFiltersBar({
@@ -28,7 +29,7 @@ export function ReportFiltersBar({
   filters: ReportFilters;
   onChange: (filters: ReportFilters) => void;
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   areas: string[];
 }) {
@@ -102,10 +103,10 @@ export function ReportFiltersBar({
 
       <Select value={filters.propertyTypeId} onValueChange={(v) => set("propertyTypeId", v)}>
         <SelectTrigger size="sm" className="w-36">
-          <SelectValue placeholder="Property type" />
+          <SelectValue placeholder="Project" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>All property types</SelectItem>
+          <SelectItem value={ALL}>All projects</SelectItem>
           {propertyTypes.map((p) => (
             <SelectItem key={p.id} value={p.id}>
               {p.name}
@@ -116,10 +117,10 @@ export function ReportFiltersBar({
 
       <Select value={filters.area} onValueChange={(v) => set("area", v)}>
         <SelectTrigger size="sm" className="w-32">
-          <SelectValue placeholder="Area" />
+          <SelectValue placeholder="Location" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value={ALL}>All areas</SelectItem>
+          <SelectItem value={ALL}>All locations</SelectItem>
           {areas.map((a) => (
             <SelectItem key={a} value={a}>
               {a}

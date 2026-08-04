@@ -120,7 +120,7 @@ export function ImportWizard({
 
       if (error) {
         setIsImporting(false);
-        toast.error("Failed to create new property types", { description: error.message });
+        toast.error("Failed to create new projects", { description: error.message });
         return;
       }
       for (const row of created ?? []) {

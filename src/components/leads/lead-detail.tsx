@@ -15,6 +15,7 @@ import type { ActivityWithAuthor } from "@/lib/queries/activities";
 import type { LeadEvidenceWithAuthor } from "@/lib/queries/evidence";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
@@ -31,7 +32,7 @@ export function LeadDetail({
   lead: LeadWithRelations;
   activities: ActivityWithAuthor[];
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
   referredLeads: LeadWithRelations[];

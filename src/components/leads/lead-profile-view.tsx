@@ -39,8 +39,8 @@ export function LeadProfileView({
           />
         )}
         <Row label="Source" value={lead.lead_source?.name ?? "—"} />
-        <Row label="Property type" value={lead.property_type?.name ?? "—"} />
-        <Row label="Preferred area" value={lead.preferred_area ?? "—"} />
+        <Row label="Project" value={lead.property_type?.name ?? "—"} />
+        <Row label="Location" value={lead.preferred_area ?? "—"} />
         <Row
           label="Budget"
           value={formatBudgetRange(lead.budget_min, lead.budget_max)}

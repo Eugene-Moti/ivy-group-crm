@@ -3,6 +3,7 @@ import {
   type Control,
   type FieldErrors,
   type UseFormRegister,
+  type UseFormSetValue,
 } from "react-hook-form";
 import { LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES } from "@/lib/constants";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/field";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
@@ -40,15 +42,17 @@ export function LeadFormFields({
   agents,
   agentLeads,
   currentLeadId,
+  setValue,
 }: {
   register: UseFormRegister<LeadFormValues>;
   control: Control<LeadFormValues>;
   errors: FieldErrors<LeadFormValues>;
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
   currentLeadId?: string;
+  setValue: UseFormSetValue<LeadFormValues>;
 }) {
   const statusLabels = useStatusLabels();
   const referrableAgentLeads = agentLeads.filter((a) => a.id !== currentLeadId);
@@ -257,9 +261,18 @@ export function LeadFormFields({
           name="property_type_id"
           render={({ field }) => (
             <Field>
-              <FieldLabel>Property type</FieldLabel>
+              <FieldLabel>Project</FieldLabel>
               <FieldContent>
-                <Select value={field.value ?? "none"} onValueChange={field.onChange}>
+                <Select
+                  value={field.value ?? "none"}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    const project = propertyTypes.find((p) => p.id === value);
+                    if (project?.location) {
+                      setValue("preferred_area", project.location, { shouldDirty: true });
+                    }
+                  }}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
@@ -268,6 +281,7 @@ export function LeadFormFields({
                     {propertyTypes.map((p) => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.name}
+                        {p.location ? ` — ${p.location}` : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -280,9 +294,13 @@ export function LeadFormFields({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor="preferred_area">Preferred area</FieldLabel>
+          <FieldLabel htmlFor="preferred_area">Location</FieldLabel>
           <FieldContent>
             <Input id="preferred_area" {...register("preferred_area")} />
+            <FieldDescription>
+              Auto-fills when a project is selected — edit freely if the client&apos;s
+              preferred location differs.
+            </FieldDescription>
           </FieldContent>
         </Field>
         <Field>

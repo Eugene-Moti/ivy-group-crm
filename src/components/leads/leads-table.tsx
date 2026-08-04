@@ -61,12 +61,14 @@ import { BulkAssignAgentDialog } from "@/components/leads/bulk-assign-agent-dial
 import { BulkSendToAgentDialog } from "@/components/leads/bulk-send-to-agent-dialog";
 import { BulkChangePriorityDialog } from "@/components/leads/bulk-change-priority-dialog";
 import { ExportButtons } from "@/components/shared/export-buttons";
-import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES } from "@/lib/constants";
+import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES, type LeadStatus } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
+import { composeReportTitle } from "@/lib/report-metrics";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
@@ -85,7 +87,7 @@ export function LeadsTable({
 }: {
   leads: LeadWithRelations[];
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
   autoOpenCreate?: boolean;
@@ -195,6 +197,21 @@ export function LeadsTable({
     });
   }, [leads, globalSearch, statusFilter, priorityFilter, sourceFilter, agentFilter, leadTypeFilter, areaFilter, budgetMin, budgetMax]);
 
+  const exportTitle = useMemo(
+    () =>
+      composeReportTitle({
+        agentName: agentFilter !== ALL ? agents.find((a) => a.id === agentFilter)?.name : undefined,
+        descriptors: [
+          statusFilter !== ALL ? statusLabels[statusFilter as LeadStatus] : undefined,
+          priorityFilter !== ALL ? priorityFilter : undefined,
+          sourceFilter !== ALL ? leadSources.find((s) => s.id === sourceFilter)?.name : undefined,
+          leadTypeFilter !== ALL ? leadTypeFilter : undefined,
+          areaFilter && areaFilter !== ALL ? areaFilter : undefined,
+        ],
+      }),
+    [agentFilter, agents, statusFilter, statusLabels, priorityFilter, sourceFilter, leadSources, leadTypeFilter, areaFilter]
+  );
+
   const exportRows = useMemo(
     () =>
       filteredLeads.map((lead) => ({
@@ -251,7 +268,7 @@ export function LeadsTable({
           <div className="relative min-w-56 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search name, phone, email, area…"
+              placeholder="Search name, phone, email, location…"
               value={globalSearch}
               onChange={(e) => setGlobalSearch(e.target.value)}
               className="pl-8"
@@ -293,13 +310,13 @@ export function LeadsTable({
               { key: "status", label: "Status" },
               { key: "priority", label: "Priority" },
               { key: "source", label: "Source" },
-              { key: "area", label: "Area" },
+              { key: "area", label: "Location" },
               { key: "budget", label: "Budget" },
               { key: "agent", label: "Sales manager" },
               { key: "created", label: "Date of inquiry" },
             ]}
             filename="ivy-group-leads"
-            title="Leads"
+            title={exportTitle}
             formats={["csv", "excel"]}
           />
 
@@ -390,10 +407,10 @@ export function LeadsTable({
 
           <Select value={areaFilter || ALL} onValueChange={setAreaFilter}>
             <SelectTrigger size="sm" className="w-32">
-              <SelectValue placeholder="Area" />
+              <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>All areas</SelectItem>
+              <SelectItem value={ALL}>All locations</SelectItem>
               {areas.map((a) => (
                 <SelectItem key={a} value={a}>
                   {a}

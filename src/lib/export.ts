@@ -3,10 +3,11 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
+  drawBrandFooter,
   drawBrandHeader,
   drawWatermarkOnAllPages,
   loadIvyBrandAssets,
-  IVY_BRAND,
+  IVY_TABLE_HEAD_STYLES,
 } from "@/lib/pdf-branding";
 
 export type ExportColumn<T> = {
@@ -68,11 +69,12 @@ export async function exportToPDF<T>(
     head: [columns.map((c) => c.label)],
     body: data.map((row) => columns.map((c) => String(row[c.key] ?? ""))),
     styles: { fontSize: 8 },
-    headStyles: { fillColor: IVY_BRAND.ivy800 },
+    headStyles: IVY_TABLE_HEAD_STYLES,
     margin: { left: margin, right: margin },
   });
 
   drawWatermarkOnAllPages(doc, icon);
+  drawBrandFooter(doc, margin);
 
   doc.save(`${filename}.pdf`);
 }

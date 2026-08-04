@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeadSourcesPanel } from "@/components/settings/lead-sources-panel";
-import { PropertyTypesPanel } from "@/components/settings/property-types-panel";
+import { ProjectsPanel } from "@/components/settings/projects-panel";
 import { SalesAgentsPanel } from "@/components/settings/sales-agents-panel";
 import { CampaignsPanel } from "@/components/settings/campaigns-panel";
 import { UsersPanel } from "@/components/settings/users-panel";
@@ -11,6 +11,7 @@ import { StatusLabelsPanel } from "@/components/settings/status-labels-panel";
 import type { CampaignWithSource, LeadColumnLabels, ProfileRow } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type SalesAgent = { id: string; name: string; phone: string | null; email: string | null };
 
 export function SettingsView({
@@ -22,7 +23,7 @@ export function SettingsView({
   columnLabels,
 }: {
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   salesAgents: SalesAgent[];
   campaigns: CampaignWithSource[];
   profiles: ProfileRow[];
@@ -33,7 +34,7 @@ export function SettingsView({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground">
-          Manage lead sources, property types, sales managers, campaigns, and
+          Manage lead sources, projects, sales managers, campaigns, and
           user roles.
         </p>
       </div>
@@ -41,7 +42,7 @@ export function SettingsView({
       <Tabs defaultValue="sources">
         <TabsList>
           <TabsTrigger value="sources">Lead sources</TabsTrigger>
-          <TabsTrigger value="property-types">Property types</TabsTrigger>
+          <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="sales-agents">Sales managers</TabsTrigger>
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
           <TabsTrigger value="users">Users &amp; roles</TabsTrigger>
@@ -51,8 +52,8 @@ export function SettingsView({
         <TabsContent value="sources" className="pt-4">
           <LeadSourcesPanel leadSources={leadSources} />
         </TabsContent>
-        <TabsContent value="property-types" className="pt-4">
-          <PropertyTypesPanel propertyTypes={propertyTypes} />
+        <TabsContent value="projects" className="pt-4">
+          <ProjectsPanel projects={propertyTypes} />
         </TabsContent>
         <TabsContent value="sales-agents" className="pt-4">
           <SalesAgentsPanel salesAgents={salesAgents} />

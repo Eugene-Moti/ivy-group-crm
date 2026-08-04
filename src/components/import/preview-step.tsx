@@ -75,7 +75,7 @@ export function PreviewStep({
         <SummaryStat label="Ready to import" value={valid.length} accent="gold" />
         <SummaryStat label="Will be skipped" value={invalid.length} accent="destructive" />
         <SummaryStat
-          label="New sources / types"
+          label="New sources / projects"
           value={newSourceNames.length + newPropertyTypeNames.length}
         />
       </div>
@@ -87,7 +87,7 @@ export function PreviewStep({
       )}
       {newPropertyTypeNames.length > 0 && (
         <p className="text-sm text-muted-foreground">
-          New property types will be created: {newPropertyTypeNames.join(", ")}
+          New projects will be created: {newPropertyTypeNames.join(", ")}
         </p>
       )}
       {unmatchedAgentCount > 0 && (
@@ -126,7 +126,7 @@ export function PreviewStep({
                     ? r.errors.join("; ")
                     : [
                         r.isNewSource && "new source",
-                        r.isNewPropertyType && "new property type",
+                        r.isNewPropertyType && "new project",
                         r.agentUnmatched && "agent unmatched",
                       ]
                         .filter(Boolean)

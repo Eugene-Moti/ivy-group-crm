@@ -7,13 +7,16 @@ import { SourcePerformanceReport } from "@/components/reports/source-performance
 import { ConversionByStageReport } from "@/components/reports/conversion-by-stage-report";
 import { AgentPerformanceReport } from "@/components/reports/agent-performance-report";
 import { FollowUpStatusReport } from "@/components/reports/follow-up-status-report";
+import { FullAnalysisReport } from "@/components/reports/full-analysis-report";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { SavedQueryRow } from "@/lib/queries/saved-queries";
+import type { ActivitySummary, EvidenceLeadId } from "@/lib/full-analysis";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 
-const VALID_TABS = ["builder", "source", "conversion", "agent", "follow-ups"];
+const VALID_TABS = ["builder", "source", "conversion", "agent", "follow-ups", "full-analysis"];
 
 export function ReportsView({
   leads,
@@ -21,12 +24,16 @@ export function ReportsView({
   propertyTypes,
   agents,
   savedQueries,
+  activitySummaries,
+  evidenceLeadIds,
 }: {
   leads: LeadWithRelations[];
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   savedQueries: SavedQueryRow[];
+  activitySummaries: ActivitySummary[];
+  evidenceLeadIds: EvidenceLeadId[];
 }) {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
@@ -48,6 +55,7 @@ export function ReportsView({
           <TabsTrigger value="conversion">Conversion by stage</TabsTrigger>
           <TabsTrigger value="agent">Sales manager performance</TabsTrigger>
           <TabsTrigger value="follow-ups">Follow-up status</TabsTrigger>
+          <TabsTrigger value="full-analysis">Full analysis</TabsTrigger>
         </TabsList>
 
         <TabsContent value="builder" className="pt-4">
@@ -70,6 +78,13 @@ export function ReportsView({
         </TabsContent>
         <TabsContent value="follow-ups" className="pt-4">
           <FollowUpStatusReport leads={leads} />
+        </TabsContent>
+        <TabsContent value="full-analysis" className="pt-4">
+          <FullAnalysisReport
+            leads={leads}
+            activitySummaries={activitySummaries}
+            evidenceLeadIds={evidenceLeadIds}
+          />
         </TabsContent>
       </Tabs>
     </div>

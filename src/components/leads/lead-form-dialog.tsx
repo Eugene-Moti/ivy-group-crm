@@ -23,6 +23,7 @@ import {
 import { LeadFormFields } from "@/components/leads/lead-form-fields";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
@@ -40,7 +41,7 @@ export function LeadFormDialog({
   onOpenChange: (open: boolean) => void;
   lead?: LeadWithRelations;
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
   onSaved: () => void;
@@ -52,6 +53,7 @@ export function LeadFormDialog({
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LeadFormValues>({
     resolver: zodResolver(leadFormSchema),
@@ -104,6 +106,7 @@ export function LeadFormDialog({
             agents={agents}
             agentLeads={agentLeads}
             currentLeadId={lead?.id}
+            setValue={setValue}
           />
 
           <DialogFooter className="mt-6">

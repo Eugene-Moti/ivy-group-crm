@@ -39,3 +39,14 @@ export async function getActivities(leadId: string): Promise<ActivityWithAuthor[
   if (error) throw new Error(error.message);
   return (data ?? []) as unknown as ActivityWithAuthor[];
 }
+
+/** Lead id + type for every logged activity — lightweight, for report-wide coverage insights rather than per-lead detail. */
+export async function getAllActivitySummaries(): Promise<
+  Pick<ActivityRow, "lead_id" | "type" | "created_at">[]
+> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("activities").select("lead_id, type, created_at");
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}

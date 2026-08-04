@@ -9,12 +9,20 @@ import { ExportButtons } from "@/components/shared/export-buttons";
 import { SaveQueryDialog } from "@/components/reports/save-query-dialog";
 import { SavedQueriesMenu } from "@/components/reports/saved-queries-menu";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
-import { applyReportFilters, EMPTY_REPORT_FILTERS, type ReportFilters } from "@/lib/report-metrics";
+import {
+  ALL,
+  applyReportFilters,
+  composeReportTitle,
+  EMPTY_REPORT_FILTERS,
+  type ReportFilters,
+} from "@/lib/report-metrics";
+import type { LeadStatus } from "@/lib/constants";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { SavedQueryRow } from "@/lib/queries/saved-queries";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 
 export function QueryBuilder({
@@ -26,7 +34,7 @@ export function QueryBuilder({
 }: {
   leads: LeadWithRelations[];
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   savedQueries: SavedQueryRow[];
 }) {
@@ -42,6 +50,29 @@ export function QueryBuilder({
   );
 
   const results = useMemo(() => applyReportFilters(leads, filters), [leads, filters]);
+
+  const exportTitle = useMemo(
+    () =>
+      composeReportTitle({
+        agentName:
+          filters.agent !== ALL
+            ? agents.find((a) => a.id === filters.agent)?.name
+            : undefined,
+        descriptors: [
+          filters.status !== ALL ? statusLabels[filters.status as LeadStatus] : undefined,
+          filters.priority !== ALL ? filters.priority : undefined,
+          filters.source !== ALL
+            ? leadSources.find((s) => s.id === filters.source)?.name
+            : undefined,
+          filters.propertyTypeId !== ALL
+            ? propertyTypes.find((p) => p.id === filters.propertyTypeId)?.name
+            : undefined,
+          filters.area !== ALL ? filters.area : undefined,
+        ],
+        baseName: "Query Results",
+      }),
+    [filters, agents, statusLabels, leadSources, propertyTypes]
+  );
 
   const exportRows = useMemo(
     () =>
@@ -90,13 +121,13 @@ export function QueryBuilder({
             { key: "status", label: "Status" },
             { key: "priority", label: "Priority" },
             { key: "source", label: "Source" },
-            { key: "area", label: "Area" },
+            { key: "area", label: "Location" },
             { key: "budget", label: "Budget" },
             { key: "agent", label: "Sales manager" },
             { key: "created", label: "Date of inquiry" },
           ]}
           filename="ivy-group-query-results"
-          title="Query Results"
+          title={exportTitle}
         />
       </div>
 
@@ -108,7 +139,7 @@ export function QueryBuilder({
               <TableHead>Status</TableHead>
               <TableHead>Priority</TableHead>
               <TableHead>Source</TableHead>
-              <TableHead>Area</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Budget</TableHead>
               <TableHead>Sales manager</TableHead>
               <TableHead>Date of inquiry</TableHead>

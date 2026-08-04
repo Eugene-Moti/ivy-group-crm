@@ -12,6 +12,7 @@ import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
+type ProjectOption = { id: string; name: string; location: string | null };
 type AgentOption = { id: string; name: string; phone: string | null; email: string | null };
 type AgentLeadOption = { id: string; first_name: string; last_name: string };
 
@@ -25,7 +26,7 @@ export function LeadsDirectory({
 }: {
   leads: LeadWithRelations[];
   leadSources: LeadOption[];
-  propertyTypes: LeadOption[];
+  propertyTypes: ProjectOption[];
   agents: AgentOption[];
   agentLeads: AgentLeadOption[];
   columnLabels: LeadColumnLabels;

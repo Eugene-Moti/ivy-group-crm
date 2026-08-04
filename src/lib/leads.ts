@@ -39,8 +39,8 @@ export function buildClientDetailsMessage(lead: LeadWithRelations): string {
     `New client lead: ${fullName(lead)}`,
     lead.phone && `Phone: ${lead.phone}`,
     lead.email && `Email: ${lead.email}`,
-    lead.preferred_area && `Area: ${lead.preferred_area}`,
-    lead.property_type?.name && `Property type: ${lead.property_type.name}`,
+    lead.preferred_area && `Location: ${lead.preferred_area}`,
+    lead.property_type?.name && `Project: ${lead.property_type.name}`,
     (lead.budget_min != null || lead.budget_max != null) &&
       `Budget: ${formatBudgetRange(lead.budget_min, lead.budget_max)}`,
     lead.bedrooms != null && `Beds: ${lead.bedrooms}`,
@@ -59,7 +59,7 @@ export function buildBulkClientDetailsMessage(leads: LeadWithRelations[]): strin
       `${i + 1}. ${fullName(lead)}`,
       lead.phone && `   Phone: ${lead.phone}`,
       lead.email && `   Email: ${lead.email}`,
-      lead.preferred_area && `   Area: ${lead.preferred_area}`,
+      lead.preferred_area && `   Location: ${lead.preferred_area}`,
       (lead.budget_min != null || lead.budget_max != null) &&
         `   Budget: ${formatBudgetRange(lead.budget_min, lead.budget_max)}`,
       `   Priority: ${lead.priority}`,

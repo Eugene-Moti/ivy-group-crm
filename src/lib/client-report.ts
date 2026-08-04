@@ -3,10 +3,12 @@ import autoTable from "jspdf-autotable";
 import { ACTIVITY_TYPE_META } from "@/lib/activity";
 import { formatBudgetRange, formatDate, formatDateTime, fullName } from "@/lib/format";
 import {
+  drawBrandFooter,
   drawBrandHeader,
   drawWatermarkOnAllPages,
   loadIvyBrandAssets,
   IVY_BRAND,
+  IVY_TABLE_HEAD_STYLES,
 } from "@/lib/pdf-branding";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivityWithAuthor } from "@/lib/queries/activities";
@@ -114,8 +116,8 @@ export async function generateClientOwnershipReport({
       ["Status", statusLabel],
       ["Priority", lead.priority],
       ["Source", lead.lead_source?.name ?? "—"],
-      ["Property type", lead.property_type?.name ?? "—"],
-      ["Preferred area", lead.preferred_area ?? "—"],
+      ["Project", lead.property_type?.name ?? "—"],
+      ["Location", lead.preferred_area ?? "—"],
       ["Budget", formatBudgetRange(lead.budget_min, lead.budget_max)],
       ["Sales manager", lead.assigned_agent?.name ?? "Unassigned"],
       ["Referred by", lead.referred_by ? fullName(lead.referred_by) : "—"],
@@ -123,7 +125,7 @@ export async function generateClientOwnershipReport({
       ["Last contact", formatDate(lead.last_contact_at)],
     ],
     styles: { fontSize: 9 },
-    headStyles: { fillColor: IVY_BRAND.ivy800 },
+    headStyles: IVY_TABLE_HEAD_STYLES,
     margin: { left: MARGIN, right: MARGIN },
   });
 
@@ -150,7 +152,7 @@ export async function generateClientOwnershipReport({
         attribution(a.author?.full_name),
       ]),
       styles: { fontSize: 8 },
-      headStyles: { fillColor: IVY_BRAND.ivy800 },
+      headStyles: IVY_TABLE_HEAD_STYLES,
       columnStyles: { 2: { cellWidth: 80 } },
       margin: { left: MARGIN, right: MARGIN },
     });
@@ -234,18 +236,7 @@ export async function generateClientOwnershipReport({
   }
 
   drawWatermarkOnAllPages(doc, icon);
-
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(
-      `Ivy Group CRM — Confidential — Page ${i} of ${pageCount}`,
-      MARGIN,
-      doc.internal.pageSize.getHeight() - 8
-    );
-  }
+  drawBrandFooter(doc, MARGIN, "Ivy Group CRM — Confidential — Proof of client ownership");
 
   doc.save(`${name.replace(/\s+/g, "-")}-ownership-report.pdf`);
 }

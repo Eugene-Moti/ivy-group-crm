@@ -36,3 +36,12 @@ export async function getLeadEvidence(leadId: string): Promise<LeadEvidenceWithA
     })
   );
 }
+
+/** Lead id for every evidence entry — lightweight, for report-wide coverage insights rather than per-lead detail. */
+export async function getAllEvidenceLeadIds(): Promise<Pick<LeadEvidenceRow, "lead_id">[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("lead_evidence").select("lead_id");
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}

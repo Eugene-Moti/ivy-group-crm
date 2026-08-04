@@ -75,7 +75,11 @@ these in order:
    adds the `lead_evidence` table (dated notes/screenshots per lead, for proving contact
    if ownership is ever disputed) and a private `lead-evidence` Storage bucket with its
    RLS policies for the actual file bytes.
-10. [`supabase/seed.sql`](supabase/seed.sql) —
+10. [`supabase/migrations/20260803000000_project_locations.sql`](supabase/migrations/20260803000000_project_locations.sql) —
+   adds `property_types.location` and seeds the four current developments (Ivy Park,
+   Ivy Myst, Blossoms Ivy, Luckinn Ivy) with their locations — "property type" now means
+   an actual named project, and its location auto-fills on the lead form when selected.
+11. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

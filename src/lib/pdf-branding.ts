@@ -13,6 +13,13 @@ export const IVY_BRAND = {
   muted: [120, 120, 120] as [number, number, number],
 };
 
+/** Shared jspdf-autotable header styling — a gold band with dark ink text, matching the letterhead. */
+export const IVY_TABLE_HEAD_STYLES = {
+  fillColor: IVY_BRAND.gold,
+  textColor: IVY_BRAND.ink,
+  fontStyle: "bold" as const,
+};
+
 function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -50,7 +57,11 @@ export function loadIvyBrandAssets() {
   return cachedAssets;
 }
 
-/** Draws the logo + a gold rule at the top of the current page; returns the Y to start content from. */
+/**
+ * Letterhead-style header: logo centered at the top, title and subtitle
+ * centered beneath it, closed off by a gold rule over a thin ink rule.
+ * Returns the Y to start content from.
+ */
 export function drawBrandHeader(
   doc: jsPDF,
   logo: ImageAsset | null,
@@ -60,30 +71,58 @@ export function drawBrandHeader(
   margin: number
 ): number {
   const topY = 10;
-  const logoSize = 20;
-  let textX = margin;
+  const centerX = pageWidth / 2;
+  let y = topY;
 
   if (logo) {
-    const w = logoSize;
-    const h = logoSize * (logo.height / logo.width);
-    doc.addImage(logo.dataUrl, "PNG", margin, topY, w, h);
-    textX = margin + w + 6;
+    const h = 16;
+    const w = h * (logo.width / logo.height);
+    doc.addImage(logo.dataUrl, "PNG", centerX - w / 2, y, w, h);
+    y += h + 5;
   }
 
-  doc.setFontSize(15);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(...IVY_BRAND.ink);
-  doc.text(title, textX, topY + 8);
+  doc.text(title, centerX, y, { align: "center" });
+  y += 6;
 
+  doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...IVY_BRAND.muted);
-  doc.text(subtitle, textX, topY + 14);
+  doc.text(subtitle, centerX, y, { align: "center" });
+  y += 5;
 
-  const ruleY = topY + logoSize + 4;
   doc.setDrawColor(...IVY_BRAND.gold);
-  doc.setLineWidth(0.8);
-  doc.line(margin, ruleY, pageWidth - margin, ruleY);
+  doc.setLineWidth(0.9);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 1.4;
+  doc.setDrawColor(...IVY_BRAND.ivy900);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, pageWidth - margin, y);
 
-  return ruleY + 8;
+  return y + 8;
+}
+
+/** Stamps a consistent gold-rule footer with page numbers on every page — call last, after the watermark. */
+export function drawBrandFooter(doc: jsPDF, margin: number, label = "Ivy Group CRM — Confidential") {
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const footerY = pageHeight - 10;
+
+    doc.setDrawColor(...IVY_BRAND.gold);
+    doc.setLineWidth(0.4);
+    doc.line(margin, footerY - 3, pageWidth - margin, footerY - 3);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.setTextColor(...IVY_BRAND.muted);
+    doc.text(label, margin, footerY);
+    doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, footerY, { align: "right" });
+  }
 }
 
 /** Stamps a large, faint, centered icon watermark on every page the document currently has. */

@@ -56,6 +56,25 @@ export function applyReportFilters(
   });
 }
 
+/**
+ * Builds a human, contextual report title from whichever filters are active
+ * — e.g. "Judy's Assigned Leads", "Hot · Ivy Park Leads" — so an exported
+ * PDF/CSV/Excel file is self-describing instead of always saying "Leads".
+ */
+export function composeReportTitle(opts: {
+  agentName?: string | null;
+  descriptors?: (string | null | undefined)[];
+  baseName?: string;
+}): string {
+  const { agentName, descriptors = [], baseName = "Leads" } = opts;
+  const qualifiers = descriptors.filter((d): d is string => !!d);
+  let title = qualifiers.length ? `${qualifiers.join(" · ")} ${baseName}` : baseName;
+  if (agentName) {
+    title = `${agentName}'s ${qualifiers.length ? title : `Assigned ${baseName}`}`;
+  }
+  return title;
+}
+
 export function computeSourcePerformance(leads: LeadWithRelations[]) {
   const map = new Map<string, { total: number; won: number }>();
   for (const lead of leads) {
