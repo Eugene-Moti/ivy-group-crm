@@ -6,6 +6,7 @@ import type { ActivitySummary } from "@/lib/full-analysis";
 
 const RECENT_CONTACT_DAYS = 7;
 const OFFER_STAGE_KEY = "offer_made";
+const NEGOTIATING_STAGE_KEY = "negotiating";
 
 /**
  * A deliberately redacted lead row for sharing outside the sales team —
@@ -31,10 +32,12 @@ export type MarketingReport = {
   totalActive: number;
   hotCount: number;
   offerStageCount: number;
+  negotiatingCount: number;
   topSource: MarketingSourceRow | null;
   hotLeads: MarketingLeadRow[];
   promising: MarketingLeadRow[];
   offerStage: MarketingLeadRow[];
+  negotiating: MarketingLeadRow[];
   sourcePerformance: MarketingSourceRow[];
 };
 
@@ -81,6 +84,7 @@ export function computeMarketingReport(
     return differenceInCalendarDays(now, new Date(lastActivity)) <= RECENT_CONTACT_DAYS;
   });
   const offerStage = activeLeads.filter((l) => l.status === OFFER_STAGE_KEY);
+  const negotiating = activeLeads.filter((l) => l.status === NEGOTIATING_STAGE_KEY);
 
   const sourceMap = new Map<string, { total: number; won: number }>();
   for (const lead of leads) {
@@ -108,10 +112,12 @@ export function computeMarketingReport(
     totalActive: activeLeads.length,
     hotCount: hot.length,
     offerStageCount: offerStage.length,
+    negotiatingCount: negotiating.length,
     topSource,
     hotLeads: hot.map((l) => toRow(l, statusLabels)),
     promising: promising.map((l) => toRow(l, statusLabels)),
     offerStage: offerStage.map((l) => toRow(l, statusLabels)),
+    negotiating: negotiating.map((l) => toRow(l, statusLabels)),
     sourcePerformance,
   };
 }

@@ -58,15 +58,17 @@ export function MarketingReportView({
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat label="Active leads" value={String(report.totalActive)} />
         <Stat label="Hot leads" value={String(report.hotCount)} />
+        <Stat label="Negotiating" value={String(report.negotiatingCount)} />
         <Stat label="At offer stage" value={String(report.offerStageCount)} />
         <Stat label="Best-converting source" value={report.topSource?.source ?? "—"} />
       </div>
 
       <MarketingTable title="Hot leads" rows={report.hotLeads} />
       <MarketingTable title="Promising — hot and recently in contact" rows={report.promising} />
+      <MarketingTable title="Negotiating" rows={report.negotiating} />
       <MarketingTable title="At offer stage" rows={report.offerStage} />
 
       <div className="space-y-2">

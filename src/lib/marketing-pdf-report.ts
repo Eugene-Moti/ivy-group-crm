@@ -88,6 +88,7 @@ export async function generateMarketingReport({
   const kpis: [string, string][] = [
     ["Active leads", String(report.totalActive)],
     ["Hot leads", String(report.hotCount)],
+    ["Negotiating", String(report.negotiatingCount)],
     ["At offer stage", String(report.offerStageCount)],
     ["Best-converting source", report.topSource ? report.topSource.source : "—"],
   ];
@@ -107,6 +108,7 @@ export async function generateMarketingReport({
 
   y = section(doc, "Hot leads", report.hotLeads, y);
   y = section(doc, "Promising — hot and recently in contact", report.promising, y);
+  y = section(doc, "Negotiating", report.negotiating, y);
   y = section(doc, "At offer stage", report.offerStage, y);
 
   y = ensureSpace(doc, y, 16);
