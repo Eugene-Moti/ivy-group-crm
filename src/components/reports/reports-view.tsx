@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QueryBuilder } from "@/components/reports/query-builder";
@@ -56,6 +57,18 @@ export function ReportsView({
   const requestedTab = searchParams.get("tab");
   const defaultTab = VALID_TABS.includes(requestedTab ?? "") ? requestedTab! : "builder";
 
+  /**
+   * Real Estate Agent leads are a referral channel, not client deals — they
+   * shouldn't inflate "total leads," conversion rate, or any other deal
+   * performance number. Excluded here for every report that's about deal
+   * performance; still fully visible on the Kanban/Leads table, and still
+   * counted in their own right on the Referrers report.
+   */
+  const clientLeads = useMemo(
+    () => leads.filter((l) => l.lead_type !== "Real Estate Agent"),
+    [leads]
+  );
+
   return (
     <div className="space-y-4">
       <div>
@@ -90,10 +103,10 @@ export function ReportsView({
           />
         </TabsContent>
         <TabsContent value="source" className="pt-4">
-          <SourcePerformanceReport leads={leads} />
+          <SourcePerformanceReport leads={clientLeads} />
         </TabsContent>
         <TabsContent value="conversion" className="pt-4">
-          <ConversionByStageReport leads={leads} />
+          <ConversionByStageReport leads={clientLeads} />
         </TabsContent>
         <TabsContent value="agent" className="pt-4">
           <AgentPerformanceReport leads={leads} />
@@ -105,20 +118,20 @@ export function ReportsView({
           <ReferrerPerformanceReport leads={leads} />
         </TabsContent>
         <TabsContent value="velocity" className="pt-4">
-          <PipelineVelocityReport leads={leads} activitySummaries={activitySummaries} />
+          <PipelineVelocityReport leads={clientLeads} activitySummaries={activitySummaries} />
         </TabsContent>
         <TabsContent value="conversion-timeline" className="pt-4">
-          <ConversionTimelineReport leads={leads} activitySummaries={activitySummaries} />
+          <ConversionTimelineReport leads={clientLeads} activitySummaries={activitySummaries} />
         </TabsContent>
         <TabsContent value="duplicates" className="pt-4">
           <DuplicateLeadsReport leads={leads} />
         </TabsContent>
         <TabsContent value="marketing" className="pt-4">
-          <MarketingReportView leads={leads} activitySummaries={activitySummaries} />
+          <MarketingReportView leads={clientLeads} activitySummaries={activitySummaries} />
         </TabsContent>
         <TabsContent value="full-analysis" className="pt-4">
           <FullAnalysisReport
-            leads={leads}
+            leads={clientLeads}
             activitySummaries={activitySummaries}
             evidenceLeadIds={evidenceLeadIds}
           />

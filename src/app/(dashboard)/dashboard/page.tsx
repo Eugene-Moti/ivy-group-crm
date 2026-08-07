@@ -20,7 +20,11 @@ export default async function DashboardPage() {
     getPipelineStages(),
   ]);
 
-  const dashboardLeads: DashboardLead[] = leads.map((lead) => ({
+  // Real Estate Agent leads are a referral channel, not client deals — they
+  // don't belong in "total leads," conversion rate, or pipeline value.
+  const clientLeads = leads.filter((lead) => lead.lead_type !== "Real Estate Agent");
+
+  const dashboardLeads: DashboardLead[] = clientLeads.map((lead) => ({
     id: lead.id,
     status: lead.status,
     priority: lead.priority,
