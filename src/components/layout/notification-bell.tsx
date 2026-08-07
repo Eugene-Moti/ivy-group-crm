@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AlertTriangle, Bell, CheckCircle2, OctagonAlert } from "lucide-react";
+import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
 import { useIsAdmin } from "@/components/providers/profile-provider";
-import { computeNotifications, type NotificationActivity, type NotificationLead } from "@/lib/notifications";
+import {
+  computeNotifications,
+  type NotificationActivity,
+  type NotificationItem,
+  type NotificationLead,
+} from "@/lib/notifications";
 import {
   Popover,
   PopoverContent,
@@ -17,11 +24,31 @@ import { cn } from "@/lib/utils";
 const LEAD_COLUMNS =
   "id, first_name, last_name, phone, email, status, priority, next_follow_up_at, created_at";
 
+function showToast(
+  title: string,
+  description: string,
+  severity: NotificationItem["severity"],
+  onView: () => void
+) {
+  const options = {
+    description,
+    duration: 10000,
+    action: { label: "View", onClick: onView },
+  };
+  if (severity === "critical") {
+    toast.error(title, options);
+  } else {
+    toast.warning(title, options);
+  }
+}
+
 export function NotificationBell() {
   const isAdmin = useIsAdmin();
+  const router = useRouter();
   const [leads, setLeads] = useState<NotificationLead[]>([]);
   const [activities, setActivities] = useState<NotificationActivity[]>([]);
   const [open, setOpen] = useState(false);
+  const seenIdsRef = useRef<Set<string> | null>(null);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -54,6 +81,39 @@ export function NotificationBell() {
   const notifications = useMemo(() => computeNotifications(leads, activities), [leads, activities]);
   const criticalCount = notifications.filter((n) => n.severity === "critical").length;
   const totalCount = notifications.length;
+
+  /**
+   * Proactive popups, not just a passive badge — someone who never thinks to
+   * click the bell should still get interrupted. On the first load each
+   * session, one consolidated toast summarizes whatever's already urgent.
+   * After that, only genuinely NEW categories (one that was empty and just
+   * became non-empty) get their own toast — an item's count climbing
+   * further doesn't re-alert, so this stays useful instead of noisy.
+   */
+  useEffect(() => {
+    if (leads.length === 0 && activities.length === 0) return;
+    const currentIds = new Set(notifications.map((n) => n.id));
+
+    if (seenIdsRef.current === null) {
+      const critical = notifications.filter((n) => n.severity === "critical");
+      if (critical.length > 0) {
+        showToast(
+          `${critical.length} urgent item${critical.length === 1 ? "" : "s"} need attention`,
+          critical.map((n) => n.title).join(" · "),
+          "critical",
+          () => router.push("/reports?tab=full-analysis")
+        );
+      }
+    } else {
+      const newlyAppeared = notifications.filter((n) => !seenIdsRef.current!.has(n.id));
+      for (const item of newlyAppeared) {
+        showToast(item.title, item.detail, item.severity, () => router.push(item.href));
+      }
+    }
+
+    seenIdsRef.current = currentIds;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only react to notifications changing, router identity is stable
+  }, [notifications]);
 
   if (!isAdmin) return null;
 
