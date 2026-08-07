@@ -7,6 +7,9 @@ import { LeadProfileView } from "@/components/leads/lead-profile-view";
 import { LeadProfileEditor } from "@/components/leads/lead-profile-editor";
 import { ReferredLeadsList } from "@/components/leads/referred-leads-list";
 import { GenerateReferralReportButton } from "@/components/leads/generate-referral-report-button";
+import { ConvertAgentToClientDialog } from "@/components/leads/convert-agent-to-client-dialog";
+import { Button } from "@/components/ui/button";
+import { UserPlus } from "lucide-react";
 import { AddActivityForm } from "@/components/leads/add-activity-form";
 import { ActivityTimeline } from "@/components/leads/activity-timeline";
 import { EvidenceUploadForm } from "@/components/leads/evidence-upload-form";
@@ -43,6 +46,7 @@ export function LeadDetail({
 }) {
   const isAdmin = useIsAdmin();
   const [isEditing, setIsEditing] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -72,9 +76,15 @@ export function LeadDetail({
           )}
           {lead.lead_type === "Real Estate Agent" && (
             <div className="mt-4 space-y-2">
-              {isAdmin && referredLeads.length > 0 && (
-                <div className="flex justify-end">
-                  <GenerateReferralReportButton agentLead={lead} referredLeads={referredLeads} />
+              {isAdmin && (
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setConvertOpen(true)}>
+                    <UserPlus className="size-3.5" />
+                    Add client details
+                  </Button>
+                  {referredLeads.length > 0 && (
+                    <GenerateReferralReportButton agentLead={lead} referredLeads={referredLeads} />
+                  )}
                 </div>
               )}
               <ReferredLeadsList leads={referredLeads} />
@@ -106,6 +116,14 @@ export function LeadDetail({
         )}
         <EvidenceTimeline evidence={evidence} isAdmin={isAdmin} />
       </div>
+
+      {lead.lead_type === "Real Estate Agent" && (
+        <ConvertAgentToClientDialog
+          open={convertOpen}
+          onOpenChange={setConvertOpen}
+          agentLead={lead}
+        />
+      )}
     </div>
   );
 }
