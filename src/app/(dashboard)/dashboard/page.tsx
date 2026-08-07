@@ -1,5 +1,6 @@
 import { getLeads } from "@/lib/queries/leads";
 import { getRecentActivities } from "@/lib/queries/activities";
+import { getPipelineStages } from "@/lib/queries/settings";
 import {
   computeAgentLeaderboard,
   computeKpis,
@@ -13,9 +14,10 @@ import {
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 
 export default async function DashboardPage() {
-  const [leads, recentActivities] = await Promise.all([
+  const [leads, recentActivities, pipelineStages] = await Promise.all([
     getLeads(),
     getRecentActivities(15),
+    getPipelineStages(),
   ]);
 
   const dashboardLeads: DashboardLead[] = leads.map((lead) => ({
@@ -36,7 +38,7 @@ export default async function DashboardPage() {
 
   const kpis = computeKpis(dashboardLeads, now);
   const kpiTrends = computeKpiTrends(dashboardLeads, now);
-  const pipelineByStatus = computePipelineByStatus(dashboardLeads);
+  const pipelineByStatus = computePipelineByStatus(dashboardLeads, pipelineStages);
   const prioritySplit = computePrioritySplit(dashboardLeads);
   const leadsBySource = computeLeadsBySource(dashboardLeads);
   const leadsOverTime = computeLeadsOverTime(dashboardLeads, now);

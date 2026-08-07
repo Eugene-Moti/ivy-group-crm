@@ -12,10 +12,9 @@ import {
   YAxis,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STATUS_COLORS, type LeadStatus } from "@/lib/constants";
 import { CHART_GRID, CHART_INK, chartTooltipStyle } from "@/components/dashboard/chart-theme";
 import { EmptyChartState } from "@/components/dashboard/empty-chart-state";
-import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
 
 export function PipelineByStatusChart({
   data,
@@ -24,7 +23,9 @@ export function PipelineByStatusChart({
 }) {
   const router = useRouter();
   const statusLabels = useStatusLabels();
-  const formatStatus = (value: string) => statusLabels[value as LeadStatus] ?? value;
+  const stages = usePipelineStages();
+  const colorOf = (status: string) => stages.find((s) => s.key === status)?.color ?? "#7A8B84";
+  const formatStatus = (value: string) => statusLabels[value] ?? value;
   const hasData = data.some((d) => d.count > 0);
 
   return (
@@ -63,10 +64,7 @@ export function PipelineByStatusChart({
                 }}
               >
                 {data.map((entry) => (
-                  <Cell
-                    key={entry.status}
-                    fill={STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS]}
-                  />
+                  <Cell key={entry.status} fill={colorOf(entry.status)} />
                 ))}
               </Bar>
             </BarChart>

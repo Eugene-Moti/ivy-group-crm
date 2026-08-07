@@ -8,7 +8,14 @@ import {
   startOfDay,
   endOfDay,
 } from "date-fns";
-import { LEAD_STATUSES, LEAD_PRIORITIES, type LeadStatus, type LeadPriority } from "@/lib/constants";
+import {
+  CLOSED_STATUS_KEYS,
+  LEAD_PRIORITIES,
+  WON_STATUS_KEY,
+  type LeadStatus,
+  type LeadPriority,
+} from "@/lib/constants";
+import type { PipelineStage } from "@/lib/queries/settings";
 
 export type DashboardLead = {
   id: string;
@@ -24,8 +31,6 @@ export type DashboardLead = {
   assigned_agent_name: string | null;
 };
 
-const CLOSED: LeadStatus[] = ["Closed - Won", "Closed - Lost"];
-
 export function computeKpis(leads: DashboardLead[], now: Date) {
   const totalLeads = leads.length;
 
@@ -36,14 +41,14 @@ export function computeKpis(leads: DashboardLead[], now: Date) {
     (l) =>
       l.next_follow_up_at &&
       isBefore(new Date(l.next_follow_up_at), now) &&
-      !CLOSED.includes(l.status)
+      !CLOSED_STATUS_KEYS.includes(l.status)
   ).length;
 
-  const dealsWon = leads.filter((l) => l.status === "Closed - Won").length;
+  const dealsWon = leads.filter((l) => l.status === WON_STATUS_KEY).length;
   const conversionRate = totalLeads > 0 ? (dealsWon / totalLeads) * 100 : 0;
 
   const pipelineValue = leads
-    .filter((l) => !CLOSED.includes(l.status))
+    .filter((l) => !CLOSED_STATUS_KEYS.includes(l.status))
     .reduce((sum, l) => sum + (l.budget_max ?? l.budget_min ?? 0), 0);
 
   return {
@@ -56,10 +61,10 @@ export function computeKpis(leads: DashboardLead[], now: Date) {
   };
 }
 
-export function computePipelineByStatus(leads: DashboardLead[]) {
-  return LEAD_STATUSES.map((status) => ({
-    status,
-    count: leads.filter((l) => l.status === status).length,
+export function computePipelineByStatus(leads: DashboardLead[], stages: PipelineStage[]) {
+  return stages.map((stage) => ({
+    status: stage.key,
+    count: leads.filter((l) => l.status === stage.key).length,
   }));
 }
 

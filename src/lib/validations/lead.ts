@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES } from "@/lib/constants";
+import { LEAD_PRIORITIES, LEAD_TYPES } from "@/lib/constants";
 
 function isBlank(value: string | undefined): boolean {
   return !value || value.trim() === "";
@@ -20,7 +20,7 @@ export const leadFormSchema = z
     lead_source_id: z.string().optional(),
     campaign_id: z.string().optional(),
     priority: z.enum(LEAD_PRIORITIES),
-    status: z.enum(LEAD_STATUSES),
+    status: z.string().min(1, "Status is required."),
     lead_type: z.enum(LEAD_TYPES),
     referred_by_lead_id: z.string().optional(),
     created_at: z.string().optional(),

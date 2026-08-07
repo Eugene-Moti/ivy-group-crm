@@ -1,9 +1,4 @@
-import {
-  DEFAULT_LEAD_COLUMN_LABELS,
-  LEAD_PRIORITIES,
-  LEAD_STATUSES,
-  type LeadColumnId,
-} from "@/lib/constants";
+import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, type LeadColumnId } from "@/lib/constants";
 import type { LeadColumnLabels } from "@/lib/queries/settings";
 
 export type ImportFieldKey =
@@ -168,4 +163,13 @@ function toEnumLookup(values: readonly string[]): Map<string, string> {
 }
 
 export const PRIORITY_LOOKUP = toEnumLookup(LEAD_PRIORITIES);
-export const STATUS_LOOKUP = toEnumLookup(LEAD_STATUSES);
+
+/** Matches a spreadsheet's status text against either a stage's label or its stable key. */
+export function buildStatusLookup(stages: { key: string; label: string }[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const stage of stages) {
+    map.set(stage.label.toLowerCase().trim(), stage.key);
+    map.set(stage.key.toLowerCase().trim(), stage.key);
+  }
+  return map;
+}

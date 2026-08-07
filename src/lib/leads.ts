@@ -1,10 +1,10 @@
-import type { LeadStatus } from "@/lib/constants";
+import { CLOSED_STATUS_KEYS, type LeadStatus } from "@/lib/constants";
 import { formatBudgetRange, fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export type FollowUpAlert = "Overdue" | "Due Soon" | "On Track" | "None";
 
-export const CLOSED_STATUSES: LeadStatus[] = ["Closed - Won", "Closed - Lost"];
+export const CLOSED_STATUSES: LeadStatus[] = CLOSED_STATUS_KEYS;
 
 const DUE_SOON_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 

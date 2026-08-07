@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { NEW_LEAD_STATUS_KEY } from "@/lib/constants";
 import type { LeadFormValues } from "@/lib/validations/lead";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { Database } from "@/types/database.types";
@@ -16,7 +17,7 @@ export function leadFormDefaults(
   if (!lead) {
     return {
       priority: "Warm",
-      status: "New Lead",
+      status: NEW_LEAD_STATUS_KEY,
       lead_type: "Direct Client",
       created_at: format(new Date(), "yyyy-MM-dd"),
     };

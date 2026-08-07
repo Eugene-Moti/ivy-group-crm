@@ -1,10 +1,5 @@
-import {
-  PRIORITY_LOOKUP,
-  STATUS_LOOKUP,
-  splitFullName,
-  type ImportFieldKey,
-} from "@/lib/import/field-config";
-import type { LeadPriority, LeadStatus } from "@/lib/constants";
+import { PRIORITY_LOOKUP, splitFullName, type ImportFieldKey } from "@/lib/import/field-config";
+import { NEW_LEAD_STATUS_KEY, type LeadPriority, type LeadStatus } from "@/lib/constants";
 
 export type ImportRowData = {
   first_name: string;
@@ -65,7 +60,9 @@ export function validateImportRow(
   existingSourceNames: Set<string>,
   existingPropertyTypeNames: Set<string>,
   /** lowercased full_name -> profile id */
-  agentIdsByName: Map<string, string>
+  agentIdsByName: Map<string, string>,
+  /** lowercased stage label/key -> stage key */
+  statusLookup: Map<string, string>
 ): ImportRowResult {
   const errors: string[] = [];
 
@@ -93,7 +90,7 @@ export function validateImportRow(
   if (priorityRaw && !priority) errors.push(`Unrecognized priority "${priorityRaw}"`);
 
   const statusRaw = field(row, mapping, "status");
-  const status = statusRaw ? STATUS_LOOKUP.get(statusRaw.toLowerCase()) : "New Lead";
+  const status = statusRaw ? statusLookup.get(statusRaw.toLowerCase()) : NEW_LEAD_STATUS_KEY;
   if (statusRaw && !status) errors.push(`Unrecognized status "${statusRaw}"`);
 
   const budgetMinRaw = field(row, mapping, "budget_min");
@@ -150,7 +147,7 @@ export function validateImportRow(
       email: emailRaw || null,
       lead_source_name,
       priority: (priority ?? "Warm") as LeadPriority,
-      status: (status ?? "New Lead") as LeadStatus,
+      status: (status ?? NEW_LEAD_STATUS_KEY) as LeadStatus,
       property_type_name,
       preferred_area: field(row, mapping, "preferred_area") || null,
       budget_min,

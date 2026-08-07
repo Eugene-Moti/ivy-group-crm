@@ -10,9 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LEAD_PRIORITIES, LEAD_STATUSES } from "@/lib/constants";
+import { LEAD_PRIORITIES } from "@/lib/constants";
 import { ALL, EMPTY_REPORT_FILTERS, type ReportFilters } from "@/lib/report-metrics";
-import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import { usePipelineStages } from "@/components/providers/status-labels-provider";
 
 type LeadOption = { id: string; name: string };
 type ProjectOption = { id: string; name: string; location: string | null };
@@ -33,7 +33,7 @@ export function ReportFiltersBar({
   agents: AgentOption[];
   areas: string[];
 }) {
-  const statusLabels = useStatusLabels();
+  const stages = usePipelineStages();
 
   function set<K extends keyof ReportFilters>(key: K, value: ReportFilters[K]) {
     onChange({ ...filters, [key]: value });
@@ -51,9 +51,9 @@ export function ReportFiltersBar({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={ALL}>All statuses</SelectItem>
-          {LEAD_STATUSES.map((s) => (
-            <SelectItem key={s} value={s}>
-              {statusLabels[s]}
+          {stages.map((s) => (
+            <SelectItem key={s.key} value={s.key}>
+              {s.label}
             </SelectItem>
           ))}
         </SelectContent>

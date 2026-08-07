@@ -11,6 +11,7 @@ import { leadFormSchema, type LeadFormValues } from "@/lib/validations/lead";
 import { buildLeadPayload, leadFormDefaults } from "@/lib/leads-form";
 import { logStatusChange } from "@/lib/activity-log";
 import { useProfile } from "@/components/providers/profile-provider";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ export function LeadFormDialog({
 }) {
   const isEdit = !!lead;
   const profile = useProfile();
+  const statusLabels = useStatusLabels();
 
   const {
     register,
@@ -86,7 +88,7 @@ export function LeadFormDialog({
     }
 
     if (isEdit) {
-      await logStatusChange(supabase, lead.id, lead.status, values.status, profile?.id ?? null);
+      await logStatusChange(supabase, lead.id, lead.status, values.status, statusLabels, profile?.id ?? null);
     }
 
     toast.success(isEdit ? "Lead updated" : "Lead created");

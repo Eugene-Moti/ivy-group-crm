@@ -1,7 +1,8 @@
 import { differenceInCalendarDays, format } from "date-fns";
-import type { ActivityType, LeadStatus } from "@/lib/constants";
+import { WON_STATUS_KEY, LOST_STATUS_KEY, type ActivityType, type LeadStatus } from "@/lib/constants";
 import { CLOSED_STATUSES, getFollowUpAlert } from "@/lib/leads";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { PipelineStage } from "@/lib/queries/settings";
 
 const STALE_OPEN_DAYS = 30;
 const HOT_UNCONTACTED_DAYS = 7;
@@ -61,12 +62,13 @@ export function computeFullAnalysis(
   activitySummaries: ActivitySummary[],
   evidenceLeadIds: EvidenceLeadId[],
   statusLabels: Record<LeadStatus, string>,
+  stages: PipelineStage[],
   now: Date = new Date()
 ): FullAnalysis {
   const totalLeads = leads.length;
   const openLeads = leads.filter((l) => !CLOSED_STATUSES.includes(l.status));
-  const wonLeads = leads.filter((l) => l.status === "Closed - Won");
-  const lostLeads = leads.filter((l) => l.status === "Closed - Lost");
+  const wonLeads = leads.filter((l) => l.status === WON_STATUS_KEY);
+  const lostLeads = leads.filter((l) => l.status === LOST_STATUS_KEY);
   const conversionRate = rate(totalLeads, wonLeads.length);
 
   const overdueFollowUps = openLeads.filter(
@@ -99,22 +101,11 @@ export function computeFullAnalysis(
     wonLeads.filter((l) => evidenceLeadSet.has(l.id)).length
   );
 
-  const statusOrder: LeadStatus[] = [
-    "New Lead",
-    "Contacted",
-    "Qualified",
-    "Viewing Scheduled",
-    "Negotiating",
-    "Offer Made",
-    "Closed - Won",
-    "Closed - Lost",
-    "On Hold",
-  ];
-  const byStatusRows = statusOrder.map((status) => {
-    const count = leads.filter((l) => l.status === status).length;
+  const byStatusRows = stages.map((stage) => {
+    const count = leads.filter((l) => l.status === stage.key).length;
     return {
-      status,
-      label: statusLabels[status] ?? status,
+      status: stage.key,
+      label: statusLabels[stage.key] ?? stage.label,
       count,
       percentOfTotal: totalLeads > 0 ? (count / totalLeads) * 100 : 0,
     };
@@ -136,7 +127,7 @@ export function computeFullAnalysis(
       const key = keyOf(lead);
       const entry = map.get(key) ?? { total: 0, won: 0 };
       entry.total += 1;
-      if (lead.status === "Closed - Won") entry.won += 1;
+      if (lead.status === WON_STATUS_KEY) entry.won += 1;
       map.set(key, entry);
     }
     return [...map.entries()]

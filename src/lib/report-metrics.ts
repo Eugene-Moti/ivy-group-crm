@@ -1,6 +1,7 @@
-import { LEAD_STATUSES } from "@/lib/constants";
+import { WON_STATUS_KEY } from "@/lib/constants";
 import { CLOSED_STATUSES, getFollowUpAlert } from "@/lib/leads";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { PipelineStage } from "@/lib/queries/settings";
 
 export type ReportFilters = {
   status: string;
@@ -81,7 +82,7 @@ export function computeSourcePerformance(leads: LeadWithRelations[]) {
     const name = lead.lead_source?.name ?? "Unknown";
     const entry = map.get(name) ?? { total: 0, won: 0 };
     entry.total += 1;
-    if (lead.status === "Closed - Won") entry.won += 1;
+    if (lead.status === WON_STATUS_KEY) entry.won += 1;
     map.set(name, entry);
   }
   return [...map.entries()]
@@ -94,12 +95,12 @@ export function computeSourcePerformance(leads: LeadWithRelations[]) {
     .sort((a, b) => b.total - a.total);
 }
 
-export function computeConversionByStage(leads: LeadWithRelations[]) {
+export function computeConversionByStage(leads: LeadWithRelations[], stages: PipelineStage[]) {
   const total = leads.length;
-  return LEAD_STATUSES.map((status) => {
-    const count = leads.filter((l) => l.status === status).length;
+  return stages.map((stage) => {
+    const count = leads.filter((l) => l.status === stage.key).length;
     return {
-      status,
+      status: stage.key,
       count,
       percentOfTotal: total > 0 ? (count / total) * 100 : 0,
     };
@@ -156,7 +157,7 @@ export function computeAgentPerformance(leads: LeadWithRelations[]) {
     const name = lead.assigned_agent?.name ?? "Unassigned";
     const entry = map.get(name) ?? { total: 0, won: 0 };
     entry.total += 1;
-    if (lead.status === "Closed - Won") entry.won += 1;
+    if (lead.status === WON_STATUS_KEY) entry.won += 1;
     map.set(name, entry);
   }
   return [...map.entries()]

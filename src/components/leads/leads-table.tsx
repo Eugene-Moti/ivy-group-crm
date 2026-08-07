@@ -55,7 +55,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useIsAdmin, useProfile } from "@/components/providers/profile-provider";
-import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
 import { getLeadColumns } from "@/components/leads/lead-columns";
 import { LeadFormDialog } from "@/components/leads/lead-form-dialog";
 import { DeleteLeadDialog } from "@/components/leads/delete-lead-dialog";
@@ -64,7 +64,7 @@ import { BulkAssignAgentDialog } from "@/components/leads/bulk-assign-agent-dial
 import { BulkSendToAgentDialog } from "@/components/leads/bulk-send-to-agent-dialog";
 import { BulkChangePriorityDialog } from "@/components/leads/bulk-change-priority-dialog";
 import { ExportButtons } from "@/components/shared/export-buttons";
-import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES, type LeadStatus } from "@/lib/constants";
+import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_TYPES, type LeadStatus } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import { composeReportTitle } from "@/lib/report-metrics";
 import { createClient } from "@/lib/supabase/client";
@@ -112,6 +112,7 @@ export function LeadsTable({
   const isAdmin = useIsAdmin();
   const profile = useProfile();
   const statusLabels = useStatusLabels();
+  const stages = usePipelineStages();
   const [isGeneratingBulkReport, setIsGeneratingBulkReport] = useState(false);
 
   const [globalSearch, setGlobalSearch] = useState("");
@@ -405,9 +406,9 @@ export function LeadsTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All statuses</SelectItem>
-              {LEAD_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {statusLabels[s]}
+              {stages.map((s) => (
+                <SelectItem key={s.key} value={s.key}>
+                  {s.label}
                 </SelectItem>
               ))}
             </SelectContent>

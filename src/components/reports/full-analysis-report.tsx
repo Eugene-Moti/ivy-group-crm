@@ -27,9 +27,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CHART_GOLD, CHART_GRID, CHART_INK, chartTooltipStyle } from "@/components/dashboard/chart-theme";
 import { EmptyChartState } from "@/components/dashboard/empty-chart-state";
 import { useProfile } from "@/components/providers/profile-provider";
-import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
 import { computeFullAnalysis, type ActivitySummary, type EvidenceLeadId, type FullAnalysisInsight } from "@/lib/full-analysis";
 import { generateFullAnalysisReport } from "@/lib/full-analysis-report";
+import { WON_STATUS_KEY, LOST_STATUS_KEY } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
@@ -53,12 +54,13 @@ export function FullAnalysisReport({
   evidenceLeadIds: EvidenceLeadId[];
 }) {
   const statusLabels = useStatusLabels();
+  const stages = usePipelineStages();
   const profile = useProfile();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const analysis = useMemo(
-    () => computeFullAnalysis(leads, activitySummaries, evidenceLeadIds, statusLabels),
-    [leads, activitySummaries, evidenceLeadIds, statusLabels]
+    () => computeFullAnalysis(leads, activitySummaries, evidenceLeadIds, statusLabels, stages),
+    [leads, activitySummaries, evidenceLeadIds, statusLabels, stages]
   );
 
   async function handleGeneratePdf() {
@@ -85,12 +87,12 @@ export function FullAnalysisReport({
     {
       label: "Closed — Won",
       value: String(overview.wonLeads),
-      href: `/leads?status=${encodeURIComponent("Closed - Won")}`,
+      href: `/leads?status=${encodeURIComponent(WON_STATUS_KEY)}`,
     },
     {
       label: "Closed — Lost",
       value: String(overview.lostLeads),
-      href: `/leads?status=${encodeURIComponent("Closed - Lost")}`,
+      href: `/leads?status=${encodeURIComponent(LOST_STATUS_KEY)}`,
     },
     { label: "Conversion rate", value: `${overview.conversionRate.toFixed(1)}%` },
     { label: "Overdue follow-ups", value: String(overview.overdueFollowUps), href: "/follow-ups" },

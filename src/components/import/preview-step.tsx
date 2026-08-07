@@ -22,6 +22,7 @@ export function PreviewStep({
   existingSourceNames,
   existingPropertyTypeNames,
   agentsByName,
+  statusLookup,
   isImporting,
   onBack,
   onConfirm,
@@ -31,6 +32,7 @@ export function PreviewStep({
   existingSourceNames: Set<string>;
   existingPropertyTypeNames: Set<string>;
   agentsByName: Map<string, string>;
+  statusLookup: Map<string, string>;
   isImporting: boolean;
   onBack: () => void;
   onConfirm: (results: ImportRowResult[]) => void;
@@ -44,10 +46,11 @@ export function PreviewStep({
           mapping,
           existingSourceNames,
           existingPropertyTypeNames,
-          agentsByName
+          agentsByName,
+          statusLookup
         )
       ),
-    [rows, mapping, existingSourceNames, existingPropertyTypeNames, agentsByName]
+    [rows, mapping, existingSourceNames, existingPropertyTypeNames, agentsByName, statusLookup]
   );
 
   const valid = results.filter((r) => r.data);

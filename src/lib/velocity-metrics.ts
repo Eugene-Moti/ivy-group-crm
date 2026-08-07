@@ -1,6 +1,6 @@
 import { differenceInCalendarDays } from "date-fns";
 import { CLOSED_STATUSES } from "@/lib/leads";
-import type { LeadStatus } from "@/lib/constants";
+import { WON_STATUS_KEY, LOST_STATUS_KEY, type LeadStatus } from "@/lib/constants";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivitySummary } from "@/lib/full-analysis";
 
@@ -113,8 +113,8 @@ export function computeVelocity(
     byManager,
     byProject,
     closeTime: {
-      won: closeTimeFor("Closed - Won"),
-      lost: closeTimeFor("Closed - Lost"),
+      won: closeTimeFor(WON_STATUS_KEY),
+      lost: closeTimeFor(LOST_STATUS_KEY),
     },
   };
 }

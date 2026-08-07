@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
-import { getStatusLabels } from "@/lib/queries/settings";
+import { getPipelineStages } from "@/lib/queries/settings";
 import { ProfileProvider } from "@/components/providers/profile-provider";
 import { StatusLabelsProvider } from "@/components/providers/status-labels-provider";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -20,11 +20,11 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const statusLabels = await getStatusLabels();
+  const pipelineStages = await getPipelineStages();
 
   return (
     <ProfileProvider profile={profile}>
-      <StatusLabelsProvider labels={statusLabels}>
+      <StatusLabelsProvider stages={pipelineStages}>
         <Suspense fallback={null}>
           <RouteProgressBar />
         </Suspense>

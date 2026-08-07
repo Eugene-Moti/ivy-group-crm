@@ -15,7 +15,8 @@ import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/components/providers/profile-provider";
-import { LEAD_STATUSES, type LeadStatus } from "@/lib/constants";
+import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
+import type { LeadStatus } from "@/lib/constants";
 import { fullName } from "@/lib/format";
 import { KanbanColumn } from "@/components/leads/kanban/kanban-column";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
@@ -43,6 +44,8 @@ export function LeadsKanban({
 }) {
   const router = useRouter();
   const profile = useProfile();
+  const stages = usePipelineStages();
+  const statusLabels = useStatusLabels();
   const [overrides, setOverrides] = useState<Record<string, LeadStatus>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -52,14 +55,14 @@ export function LeadsKanban({
 
   const leadsByStatus = useMemo(() => {
     const map = new Map<LeadStatus, LeadWithRelations[]>(
-      LEAD_STATUSES.map((s) => [s, []])
+      stages.map((s) => [s.key, []])
     );
     for (const lead of leads) {
       const status = overrides[lead.id] ?? lead.status;
       map.get(status)?.push(lead);
     }
     return map;
-  }, [leads, overrides]);
+  }, [leads, overrides, stages]);
 
   const activeLead = activeId ? leads.find((l) => l.id === activeId) : undefined;
 
@@ -124,11 +127,11 @@ export function LeadsKanban({
     await supabase.from("activities").insert({
       lead_id: leadId,
       type: "status_change",
-      body: `Status changed from ${previousStatus} to ${newStatus}.`,
+      body: `Status changed from ${statusLabels[previousStatus] ?? previousStatus} to ${statusLabels[newStatus] ?? newStatus}.`,
       created_by: profile?.id ?? null,
     });
 
-    toast.success(`${fullName(lead)} moved to ${newStatus}`);
+    toast.success(`${fullName(lead)} moved to ${statusLabels[newStatus] ?? newStatus}`);
     router.refresh();
   }
 
@@ -139,11 +142,11 @@ export function LeadsKanban({
       onDragEnd={handleDragEnd}
     >
       <div className="flex gap-3 overflow-x-auto pb-4" onWheel={handleWheel}>
-        {LEAD_STATUSES.map((status) => (
+        {stages.map((stage) => (
           <KanbanColumn
-            key={status}
-            status={status}
-            leads={leadsByStatus.get(status) ?? []}
+            key={stage.key}
+            status={stage.key}
+            leads={leadsByStatus.get(stage.key) ?? []}
             isAdmin={isAdmin}
           />
         ))}

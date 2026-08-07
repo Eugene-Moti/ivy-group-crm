@@ -11,6 +11,7 @@ import { leadFormSchema, type LeadFormValues } from "@/lib/validations/lead";
 import { buildLeadPayload, leadFormDefaults } from "@/lib/leads-form";
 import { logStatusChange } from "@/lib/activity-log";
 import { useProfile } from "@/components/providers/profile-provider";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ export function LeadProfileEditor({
 }) {
   const router = useRouter();
   const profile = useProfile();
+  const statusLabels = useStatusLabels();
 
   const {
     register,
@@ -65,7 +67,7 @@ export function LeadProfileEditor({
       return;
     }
 
-    await logStatusChange(supabase, lead.id, lead.status, values.status, profile?.id ?? null);
+    await logStatusChange(supabase, lead.id, lead.status, values.status, statusLabels, profile?.id ?? null);
 
     toast.success("Lead updated");
     onDone();

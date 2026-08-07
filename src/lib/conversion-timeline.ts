@@ -1,5 +1,6 @@
 import { differenceInCalendarDays } from "date-fns";
 import { formatDate } from "@/lib/format";
+import { WON_STATUS_KEY, LOST_STATUS_KEY } from "@/lib/constants";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivitySummary } from "@/lib/full-analysis";
 
@@ -48,7 +49,7 @@ export function computeConversionTimelines(
   }
 
   const closedLeads = leads.filter(
-    (l) => l.status === "Closed - Won" || l.status === "Closed - Lost"
+    (l) => l.status === WON_STATUS_KEY || l.status === LOST_STATUS_KEY
   );
 
   return closedLeads
@@ -69,7 +70,7 @@ export function computeConversionTimelines(
         name: `${lead.first_name} ${lead.last_name}`.trim(),
         managerName: lead.assigned_agent?.name ?? "Unassigned",
         projectName: lead.property_type?.name ?? "—",
-        outcome: lead.status === "Closed - Won" ? "Won" : "Lost",
+        outcome: lead.status === WON_STATUS_KEY ? "Won" : "Lost",
         inquiryDate: formatDate(lead.created_at),
         closedDate: lastChange ? formatDate(lastChange.created_at) : null,
         daysToClose: lastChange

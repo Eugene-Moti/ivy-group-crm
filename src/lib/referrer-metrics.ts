@@ -1,4 +1,5 @@
 import { fullName } from "@/lib/format";
+import { WON_STATUS_KEY } from "@/lib/constants";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export type ReferrerPerformance = {
@@ -23,7 +24,7 @@ export function computeReferrerPerformance(leads: LeadWithRelations[]): Referrer
   return agents
     .map((agent) => {
       const referred = leads.filter((l) => l.referred_by_lead_id === agent.id);
-      const wonCount = referred.filter((l) => l.status === "Closed - Won").length;
+      const wonCount = referred.filter((l) => l.status === WON_STATUS_KEY).length;
       return {
         id: agent.id,
         name: fullName(agent),

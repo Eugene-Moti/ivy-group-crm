@@ -1,11 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import {
-  DEFAULT_LEAD_COLUMN_LABELS,
-  DEFAULT_STATUS_LABELS,
-  type LeadColumnId,
-  type LeadStatus,
-} from "@/lib/constants";
+import { DEFAULT_LEAD_COLUMN_LABELS, type LeadColumnId } from "@/lib/constants";
 import type { Database } from "@/types/database.types";
 
 export type CampaignRow = Database["public"]["Tables"]["campaigns"]["Row"];
@@ -54,17 +49,15 @@ export async function getLeadColumnLabels(): Promise<LeadColumnLabels> {
   return labels;
 }
 
-export type StatusLabels = Record<LeadStatus, string>;
+export type PipelineStage = Database["public"]["Tables"]["pipeline_stages"]["Row"];
 
-export async function getStatusLabels(): Promise<StatusLabels> {
+export async function getPipelineStages(): Promise<PipelineStage[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("status_labels").select("*");
+  const { data, error } = await supabase
+    .from("pipeline_stages")
+    .select("*")
+    .order("sort_order");
 
   if (error) throw new Error(error.message);
-
-  const labels = { ...DEFAULT_STATUS_LABELS };
-  for (const row of data ?? []) {
-    labels[row.status] = row.label;
-  }
-  return labels;
+  return data ?? [];
 }

@@ -3,8 +3,8 @@
 import { useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import { hexToRgba } from "@/lib/color";
-import { STATUS_COLORS, type LeadStatus } from "@/lib/constants";
-import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import type { LeadStatus } from "@/lib/constants";
+import { useStatusColor, useStatusLabels } from "@/components/providers/status-labels-provider";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
@@ -19,7 +19,7 @@ export function KanbanColumn({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const labels = useStatusLabels();
-  const color = STATUS_COLORS[status];
+  const color = useStatusColor(status);
 
   return (
     <div

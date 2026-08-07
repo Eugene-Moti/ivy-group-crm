@@ -3,14 +3,15 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { StatusBadge } from "@/components/badges/status-badge";
-import { STATUS_COLORS } from "@/lib/constants";
 import { computeConversionByStage } from "@/lib/report-metrics";
-import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export function ConversionByStageReport({ leads }: { leads: LeadWithRelations[] }) {
   const statusLabels = useStatusLabels();
-  const rows = computeConversionByStage(leads).map((r) => ({
+  const stages = usePipelineStages();
+  const colorOf = (status: string) => stages.find((s) => s.key === status)?.color ?? "#7A8B84";
+  const rows = computeConversionByStage(leads, stages).map((r) => ({
     ...r,
     percentLabel: `${r.percentOfTotal.toFixed(1)}%`,
   }));
@@ -56,7 +57,7 @@ export function ConversionByStageReport({ leads }: { leads: LeadWithRelations[] 
                         className="h-full rounded-full"
                         style={{
                           width: `${row.percentOfTotal}%`,
-                          backgroundColor: STATUS_COLORS[row.status],
+                          backgroundColor: colorOf(row.status),
                         }}
                       />
                     </div>

@@ -1,16 +1,15 @@
-export const LEAD_STATUSES = [
-  "New Lead",
-  "Contacted",
-  "Qualified",
-  "Viewing Scheduled",
-  "Negotiating",
-  "Offer Made",
-  "Closed - Won",
-  "Closed - Lost",
-  "On Hold",
-] as const;
-
-export type LeadStatus = (typeof LEAD_STATUSES)[number];
+/**
+ * Pipeline stages are admin-manageable (Settings > Pipeline stages,
+ * pipeline_stages table) rather than a fixed set — so LeadStatus is just a
+ * stable text key now, not a literal union. Three keys are structurally
+ * fixed (protected from deletion at the DB level) because reporting logic
+ * depends on them always existing:
+ */
+export type LeadStatus = string;
+export const NEW_LEAD_STATUS_KEY = "new_lead";
+export const WON_STATUS_KEY = "closed_won";
+export const LOST_STATUS_KEY = "closed_lost";
+export const CLOSED_STATUS_KEYS: LeadStatus[] = [WON_STATUS_KEY, LOST_STATUS_KEY];
 
 export const LEAD_PRIORITIES = ["Hot", "Warm", "Cold"] as const;
 export type LeadPriority = (typeof LEAD_PRIORITIES)[number];
@@ -33,27 +32,6 @@ export const ACTIVITY_TYPES = [
   "status_change",
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
-
-/**
- * Hex colors for pipeline stages — used for badges, kanban columns, and charts.
- * The six active stages are a single-hue ordinal ramp (validated: monotone
- * lightness, distinct adjacent steps, clears contrast against the dark ivy
- * surface) rather than arbitrary categorical hues — stage order carries the
- * meaning, so one blue getting bolder as a deal progresses reads better than
- * six unrelated colors. The three terminal/paused statuses get fixed,
- * validated-distinct colors instead (gold win / red loss / grey hold).
- */
-export const STATUS_COLORS: Record<LeadStatus, string> = {
-  "New Lead": "#BED2EC",
-  Contacted: "#9FBDE3",
-  Qualified: "#81A9DA",
-  "Viewing Scheduled": "#6294D1",
-  Negotiating: "#447FC8",
-  "Offer Made": "#256ABF",
-  "Closed - Won": "#C9A24B",
-  "Closed - Lost": "#CD5C5C",
-  "On Hold": "#909A93",
-};
 
 /** Hex colors for lead priority — used for badges and charts. */
 export const PRIORITY_COLORS: Record<LeadPriority, string> = {
@@ -87,21 +65,3 @@ export const DEFAULT_LEAD_COLUMN_LABELS = {
 } as const;
 
 export type LeadColumnId = keyof typeof DEFAULT_LEAD_COLUMN_LABELS;
-
-/**
- * Default display labels for each pipeline stage. Admins can rename these
- * from Settings (status_labels table) — the stage itself (Kanban column
- * identity, filtering, colors, "closed deal" logic) always stays keyed by
- * the fixed LeadStatus value; only what's shown on screen changes.
- */
-export const DEFAULT_STATUS_LABELS: Record<LeadStatus, string> = {
-  "New Lead": "New Lead",
-  Contacted: "Contacted",
-  Qualified: "Qualified",
-  "Viewing Scheduled": "Viewing Scheduled",
-  Negotiating: "Negotiating",
-  "Offer Made": "Offer Made",
-  "Closed - Won": "Closed - Won",
-  "Closed - Lost": "Closed - Lost",
-  "On Hold": "On Hold",
-};

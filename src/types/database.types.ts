@@ -13,16 +13,8 @@ export type Json =
 
 export type UserRole = "admin" | "viewer";
 export type LeadPriority = "Hot" | "Warm" | "Cold";
-export type LeadStatus =
-  | "New Lead"
-  | "Contacted"
-  | "Qualified"
-  | "Viewing Scheduled"
-  | "Negotiating"
-  | "Offer Made"
-  | "Closed - Won"
-  | "Closed - Lost"
-  | "On Hold";
+/** Pipeline stage — a stable text key referencing pipeline_stages.key, not a fixed enum. */
+export type LeadStatus = string;
 export type ActivityType =
   | "note"
   | "call"
@@ -140,18 +132,30 @@ export interface Database {
         };
         Relationships: [];
       };
-      status_labels: {
+      pipeline_stages: {
         Row: {
-          status: LeadStatus;
+          key: string;
           label: string;
+          color: string;
+          sort_order: number;
+          is_protected: boolean;
+          created_at: string;
         };
         Insert: {
-          status: LeadStatus;
+          key: string;
           label: string;
+          color?: string;
+          sort_order: number;
+          is_protected?: boolean;
+          created_at?: string;
         };
         Update: {
-          status?: LeadStatus;
+          key?: string;
           label?: string;
+          color?: string;
+          sort_order?: number;
+          is_protected?: boolean;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -296,6 +300,13 @@ export interface Database {
             referencedRelation: "leads";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "leads_status_fkey";
+            columns: ["status"];
+            isOneToOne: false;
+            referencedRelation: "pipeline_stages";
+            referencedColumns: ["key"];
+          },
         ];
       };
       activities: {
@@ -434,7 +445,6 @@ export interface Database {
     Enums: {
       user_role: UserRole;
       lead_priority: LeadPriority;
-      lead_status: LeadStatus;
       activity_type: ActivityType;
     };
     CompositeTypes: Record<string, never>;

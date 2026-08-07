@@ -79,7 +79,12 @@ these in order:
    adds `property_types.location` and seeds the four current developments (Ivy Park,
    Ivy Myst, Blossoms Ivy, Luckinn Ivy) with their locations — "property type" now means
    an actual named project, and its location auto-fills on the lead form when selected.
-11. [`supabase/seed.sql`](supabase/seed.sql) —
+11. [`supabase/migrations/20260804000000_pipeline_stages.sql`](supabase/migrations/20260804000000_pipeline_stages.sql) —
+   converts pipeline status from a fixed enum into an admin-manageable `pipeline_stages`
+   table (add/rename/reorder/delete from Settings), preserving every lead's existing
+   stage and any labels already customized. "New Lead", "Closed - Won", and
+   "Closed - Lost" stay protected from deletion since reporting logic depends on them.
+12. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

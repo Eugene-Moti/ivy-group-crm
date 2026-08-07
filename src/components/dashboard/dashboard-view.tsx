@@ -13,6 +13,7 @@ import {
 
 import { useRealtimeLeadsRefresh } from "@/hooks/use-realtime-leads-refresh";
 import { formatKES } from "@/lib/format";
+import { WON_STATUS_KEY } from "@/lib/constants";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { PipelineByStatusChart } from "@/components/dashboard/pipeline-by-status-chart";
 import { LeadsBySourceChart } from "@/components/dashboard/leads-by-source-chart";
@@ -94,7 +95,7 @@ export function DashboardView({
           label="Deals won"
           value={kpis.dealsWon}
           trend={kpiTrends.dealsWon}
-          href={`/leads?status=${encodeURIComponent("Closed - Won")}`}
+          href={`/leads?status=${encodeURIComponent(WON_STATUS_KEY)}`}
         />
         <KpiCard
           icon={Percent}

@@ -9,8 +9,8 @@ import {
   type UseFormSetValue,
   type UseFormWatch,
 } from "react-hook-form";
-import { LEAD_PRIORITIES, LEAD_STATUSES, LEAD_TYPES } from "@/lib/constants";
-import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import { LEAD_PRIORITIES, LEAD_TYPES } from "@/lib/constants";
+import { usePipelineStages } from "@/components/providers/status-labels-provider";
 import { fullName } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import { findMatchingLeads, type LeadIdentity } from "@/lib/duplicate-leads";
@@ -64,7 +64,7 @@ export function LeadFormFields({
   setValue: UseFormSetValue<LeadFormValues>;
   watch: UseFormWatch<LeadFormValues>;
 }) {
-  const statusLabels = useStatusLabels();
+  const stages = usePipelineStages();
   const referrableAgentLeads = agentLeads.filter((a) => a.id !== currentLeadId);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -342,9 +342,9 @@ export function LeadFormFields({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {LEAD_STATUSES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {statusLabels[s]}
+                    {stages.map((s) => (
+                      <SelectItem key={s.key} value={s.key}>
+                        {s.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

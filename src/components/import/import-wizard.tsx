@@ -6,7 +6,8 @@ import { Check } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { autoMapHeaders, type ImportFieldKey } from "@/lib/import/field-config";
+import { autoMapHeaders, buildStatusLookup, type ImportFieldKey } from "@/lib/import/field-config";
+import { usePipelineStages } from "@/components/providers/status-labels-provider";
 import type { ParsedSheet } from "@/lib/import/parse-file";
 import type { ImportRowResult } from "@/lib/import/validate-row";
 import type { LeadColumnLabels } from "@/lib/queries/settings";
@@ -44,6 +45,9 @@ export function ImportWizard({
   const [mapping, setMapping] = useState<Partial<Record<ImportFieldKey, string>>>({});
   const [isImporting, setIsImporting] = useState(false);
   const [result, setResult] = useState<{ imported: number; skipped: number } | null>(null);
+
+  const pipelineStages = usePipelineStages();
+  const statusLookup = useMemo(() => buildStatusLookup(pipelineStages), [pipelineStages]);
 
   const existingSourceNames = useMemo(
     () => new Set(leadSources.map((s) => s.name.toLowerCase())),
@@ -236,6 +240,7 @@ export function ImportWizard({
           existingSourceNames={existingSourceNames}
           existingPropertyTypeNames={existingPropertyTypeNames}
           agentsByName={agentIdsByName}
+          statusLookup={statusLookup}
           isImporting={isImporting}
           onBack={() => setStep("map")}
           onConfirm={handleConfirm}
