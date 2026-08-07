@@ -12,7 +12,11 @@ import { Button } from "@/components/ui/button";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import { computeReferrerPerformance } from "@/lib/referrer-metrics";
-import { findDualActivePairs, ON_HOLD_STATUS_KEY, type DualActivePair } from "@/lib/agent-client-dedup";
+import {
+  findDualActivePairs,
+  REFERRED_CLIENT_ACTIVE_STATUS_KEY,
+  type DualActivePair,
+} from "@/lib/agent-client-dedup";
 import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
@@ -98,7 +102,7 @@ function DualActiveReview({ pairs }: { pairs: DualActivePair[] }) {
     const supabase = createClient();
     const { error } = await supabase
       .from("leads")
-      .update({ status: ON_HOLD_STATUS_KEY })
+      .update({ status: REFERRED_CLIENT_ACTIVE_STATUS_KEY })
       .eq("id", agent.id);
     setResolvingId(null);
 
@@ -107,7 +111,7 @@ function DualActiveReview({ pairs }: { pairs: DualActivePair[] }) {
       return;
     }
 
-    toast.success(`${fullName(agent)} moved to On Hold`);
+    toast.success(`${fullName(agent)} moved to "Referred — Client Active"`);
     router.refresh();
   }
 
@@ -123,8 +127,9 @@ function DualActiveReview({ pairs }: { pairs: DualActivePair[] }) {
           <p className="text-sm text-muted-foreground">
             These agents and the clients they referred both currently show as live
             cards on the Kanban board — the client&apos;s record carries the deal
-            forward now, so the agent&apos;s card can move to On Hold. Nothing is
-            changed until you confirm each one below.
+            forward now, so the agent&apos;s card can move to &quot;Referred — Client
+            Active&quot;, which means the referral succeeded, not that it stalled.
+            Nothing is changed until you confirm each one below.
           </p>
         </div>
       </div>
@@ -163,7 +168,7 @@ function DualActiveReview({ pairs }: { pairs: DualActivePair[] }) {
                     onClick={() => handleResolve(agent)}
                   >
                     {resolvingId === agent.id && <Loader2 className="size-3.5 animate-spin" />}
-                    Move agent to On Hold
+                    Mark referral as resolved
                   </Button>
                 </TableCell>
               </TableRow>

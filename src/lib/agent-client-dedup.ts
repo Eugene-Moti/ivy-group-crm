@@ -1,7 +1,16 @@
 import { CLOSED_STATUS_KEYS } from "@/lib/constants";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
+/**
+ * Where a resolved agent (one whose referral has moved to an active client
+ * record) gets moved — distinct from "On Hold", which implies paused/stalled.
+ * The agent didn't stall; they successfully referred someone and the deal is
+ * now tracked on the client's own card instead.
+ */
+export const REFERRED_CLIENT_ACTIVE_STATUS_KEY = "referred_client_active";
+
 const ON_HOLD_STATUS_KEY = "on_hold";
+const RESOLVED_STATUS_KEYS = [ON_HOLD_STATUS_KEY, REFERRED_CLIENT_ACTIVE_STATUS_KEY];
 
 export type DualActivePair = {
   agent: LeadWithRelations;
@@ -9,11 +18,13 @@ export type DualActivePair = {
 };
 
 /**
- * Agent leads that are still active in the pipeline (not closed, not on
- * hold) while a client they referred is ALSO still active — i.e. the same
- * deal effectively has two live cards on the Kanban board. Flagged for
- * manual review rather than auto-resolved, since moving an agent's status
- * is a real change worth a human glance first.
+ * Agent leads that are still active in the pipeline while a client they
+ * referred is ALSO still active — i.e. the same deal effectively has two
+ * live cards on the Kanban board. Flagged for manual review rather than
+ * auto-resolved, since moving an agent's status is a real change worth a
+ * human glance first. Agents already resolved (moved to "Referred — Client
+ * Active", or manually put On Hold) are excluded so they don't keep
+ * reappearing here.
  */
 export function findDualActivePairs(leads: LeadWithRelations[]): DualActivePair[] {
   const pairs: DualActivePair[] = [];
@@ -22,7 +33,7 @@ export function findDualActivePairs(leads: LeadWithRelations[]): DualActivePair[
     (l) =>
       l.lead_type === "Real Estate Agent" &&
       !CLOSED_STATUS_KEYS.includes(l.status) &&
-      l.status !== ON_HOLD_STATUS_KEY
+      !RESOLVED_STATUS_KEYS.includes(l.status)
   );
 
   for (const agent of activeAgents) {
@@ -36,5 +47,3 @@ export function findDualActivePairs(leads: LeadWithRelations[]): DualActivePair[
 
   return pairs;
 }
-
-export { ON_HOLD_STATUS_KEY };

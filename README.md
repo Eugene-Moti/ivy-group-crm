@@ -84,7 +84,12 @@ these in order:
    table (add/rename/reorder/delete from Settings), preserving every lead's existing
    stage and any labels already customized. "New Lead", "Closed - Won", and
    "Closed - Lost" stay protected from deletion since reporting logic depends on them.
-12. [`supabase/seed.sql`](supabase/seed.sql) —
+12. [`supabase/migrations/20260805000000_referred_client_active_stage.sql`](supabase/migrations/20260805000000_referred_client_active_stage.sql) —
+   adds a "Referred — Client Active" pipeline stage, used by the agent/client dedup
+   review tool (Reports > Referrers) to resolve an agent whose referral has moved to
+   an active client record — distinct from "On Hold", which would wrongly imply the
+   referral stalled.
+13. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
