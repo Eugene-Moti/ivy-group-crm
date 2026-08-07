@@ -112,14 +112,18 @@ export function computeLeadsOverTime(leads: DashboardLead[], now: Date) {
 const AGENT_LEADERBOARD_CAP = 8;
 
 export function computeAgentLeaderboard(leads: DashboardLead[]) {
-  const counts = new Map<string, number>();
+  const counts = new Map<string, { name: string; count: number }>();
   for (const lead of leads) {
     if (!lead.assigned_to) continue;
-    const name = lead.assigned_agent_name ?? "Unknown";
-    counts.set(name, (counts.get(name) ?? 0) + 1);
+    const entry = counts.get(lead.assigned_to) ?? {
+      name: lead.assigned_agent_name ?? "Unknown",
+      count: 0,
+    };
+    entry.count += 1;
+    counts.set(lead.assigned_to, entry);
   }
   return [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
+    .map(([id, { name, count }]) => ({ id, name, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, AGENT_LEADERBOARD_CAP);
 }

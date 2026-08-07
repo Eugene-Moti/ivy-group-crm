@@ -90,6 +90,9 @@ export function LeadsTable({
   campaigns,
   autoOpenCreate,
   initialStatusFilter,
+  initialPriorityFilter,
+  initialAgentFilter,
+  initialSinceDate,
   columnLabels = DEFAULT_LEAD_COLUMN_LABELS,
 }: {
   leads: LeadWithRelations[];
@@ -100,6 +103,9 @@ export function LeadsTable({
   campaigns: LeadOption[];
   autoOpenCreate?: boolean;
   initialStatusFilter?: string;
+  initialPriorityFilter?: string;
+  initialAgentFilter?: string;
+  initialSinceDate?: string;
   columnLabels?: LeadColumnLabels;
 }) {
   const router = useRouter();
@@ -111,12 +117,13 @@ export function LeadsTable({
   const [globalSearch, setGlobalSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(initialStatusFilter ?? ALL);
   const [sourceFilter, setSourceFilter] = useState(ALL);
-  const [priorityFilter, setPriorityFilter] = useState(ALL);
-  const [agentFilter, setAgentFilter] = useState(ALL);
+  const [priorityFilter, setPriorityFilter] = useState(initialPriorityFilter ?? ALL);
+  const [agentFilter, setAgentFilter] = useState(initialAgentFilter ?? ALL);
   const [leadTypeFilter, setLeadTypeFilter] = useState(ALL);
   const [areaFilter, setAreaFilter] = useState("");
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
+  const [sinceFilter, setSinceFilter] = useState(initialSinceDate ?? "");
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "created_at", desc: true },
@@ -161,7 +168,8 @@ export function LeadsTable({
       leadTypeFilter !== ALL ||
       (areaFilter && areaFilter !== ALL) ||
       budgetMin ||
-      budgetMax
+      budgetMax ||
+      sinceFilter
   );
 
   function clearFilters() {
@@ -174,12 +182,14 @@ export function LeadsTable({
     setAreaFilter(ALL);
     setBudgetMin("");
     setBudgetMax("");
+    setSinceFilter("");
   }
 
   const filteredLeads = useMemo(() => {
     const search = globalSearch.trim().toLowerCase();
     const min = budgetMin ? Number(budgetMin) : undefined;
     const max = budgetMax ? Number(budgetMax) : undefined;
+    const since = sinceFilter ? new Date(sinceFilter) : undefined;
 
     return leads.filter((lead) => {
       if (search) {
@@ -203,9 +213,10 @@ export function LeadsTable({
       if (areaFilter && areaFilter !== ALL && lead.preferred_area !== areaFilter) return false;
       if (min != null && (lead.budget_max ?? lead.budget_min ?? 0) < min) return false;
       if (max != null && (lead.budget_min ?? lead.budget_max ?? 0) > max) return false;
+      if (since && new Date(lead.created_at) < since) return false;
       return true;
     });
-  }, [leads, globalSearch, statusFilter, priorityFilter, sourceFilter, agentFilter, leadTypeFilter, areaFilter, budgetMin, budgetMax]);
+  }, [leads, globalSearch, statusFilter, priorityFilter, sourceFilter, agentFilter, leadTypeFilter, areaFilter, budgetMin, budgetMax, sinceFilter]);
 
   const exportTitle = useMemo(
     () =>
@@ -486,6 +497,12 @@ export function LeadsTable({
             onChange={(e) => setBudgetMax(e.target.value)}
             className="w-28"
           />
+
+          {sinceFilter && (
+            <span className="rounded-full bg-gold/15 px-2.5 py-1 text-xs font-medium text-gold">
+              Since {formatDate(sinceFilter)}
+            </span>
+          )}
 
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>

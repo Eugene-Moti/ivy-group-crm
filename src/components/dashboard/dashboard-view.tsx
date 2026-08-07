@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+import { subWeeks } from "date-fns";
 import {
   AlertTriangle,
   Percent,
@@ -50,6 +52,11 @@ export function DashboardView({
 }) {
   useRealtimeLeadsRefresh();
 
+  const newThisWeekHref = useMemo(
+    () => `/leads?since=${encodeURIComponent(subWeeks(new Date(), 1).toISOString().slice(0, 10))}`,
+    []
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -72,7 +79,7 @@ export function DashboardView({
           label="New this week"
           value={kpis.newThisWeek}
           trend={kpiTrends.newThisWeek}
-          href="/leads"
+          href={newThisWeekHref}
         />
         <KpiCard
           icon={AlertTriangle}

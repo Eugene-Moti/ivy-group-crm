@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -78,13 +79,21 @@ export function FullAnalysisReport({
   }
 
   const { overview } = analysis;
-  const kpis: { label: string; value: string }[] = [
-    { label: "Total leads", value: String(overview.totalLeads) },
+  const kpis: { label: string; value: string; href?: string }[] = [
+    { label: "Total leads", value: String(overview.totalLeads), href: "/leads" },
     { label: "Open pipeline", value: String(overview.openLeads) },
-    { label: "Closed — Won", value: String(overview.wonLeads) },
-    { label: "Closed — Lost", value: String(overview.lostLeads) },
+    {
+      label: "Closed — Won",
+      value: String(overview.wonLeads),
+      href: `/leads?status=${encodeURIComponent("Closed - Won")}`,
+    },
+    {
+      label: "Closed — Lost",
+      value: String(overview.lostLeads),
+      href: `/leads?status=${encodeURIComponent("Closed - Lost")}`,
+    },
     { label: "Conversion rate", value: `${overview.conversionRate.toFixed(1)}%` },
-    { label: "Overdue follow-ups", value: String(overview.overdueFollowUps) },
+    { label: "Overdue follow-ups", value: String(overview.overdueFollowUps), href: "/follow-ups" },
     { label: "Median open-lead age", value: `${overview.medianOpenLeadAgeDays.toFixed(0)}d` },
     { label: "Notes coverage", value: `${overview.noteCoverage.toFixed(0)}%` },
     { label: "Won leads with evidence", value: `${overview.evidenceCoverageOnWon.toFixed(0)}%` },
@@ -104,12 +113,26 @@ export function FullAnalysisReport({
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {kpis.map((kpi) => (
-          <div key={kpi.label} className="rounded-xl border border-border bg-card p-3">
-            <p className="text-xs text-muted-foreground">{kpi.label}</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{kpi.value}</p>
-          </div>
-        ))}
+        {kpis.map((kpi) => {
+          const tile = (
+            <div
+              className={cn(
+                "rounded-xl border border-border bg-card p-3",
+                kpi.href && "transition-colors hover:border-gold/50"
+              )}
+            >
+              <p className="text-xs text-muted-foreground">{kpi.label}</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{kpi.value}</p>
+            </div>
+          );
+          return kpi.href ? (
+            <Link key={kpi.label} href={kpi.href}>
+              {tile}
+            </Link>
+          ) : (
+            <div key={kpi.label}>{tile}</div>
+          );
+        })}
       </div>
 
       <div className="space-y-3">

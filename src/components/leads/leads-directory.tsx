@@ -41,6 +41,9 @@ export function LeadsDirectory({
 
   const shouldAutoOpenCreate = isAdmin && searchParams.get("new") === "1";
   const initialStatusFilter = searchParams.get("status") ?? undefined;
+  const initialPriorityFilter = searchParams.get("priority") ?? undefined;
+  const initialAgentFilter = searchParams.get("agent") ?? undefined;
+  const initialSinceDate = searchParams.get("since") ?? undefined;
 
   useEffect(() => {
     if (shouldAutoOpenCreate) {
@@ -76,6 +79,9 @@ export function LeadsDirectory({
           campaigns={campaigns}
           autoOpenCreate={shouldAutoOpenCreate}
           initialStatusFilter={initialStatusFilter}
+          initialPriorityFilter={initialPriorityFilter}
+          initialAgentFilter={initialAgentFilter}
+          initialSinceDate={initialSinceDate}
           columnLabels={columnLabels}
         />
       ) : (

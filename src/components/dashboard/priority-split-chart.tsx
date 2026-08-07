@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PRIORITY_COLORS } from "@/lib/constants";
@@ -11,7 +12,12 @@ export function PrioritySplitChart({
 }: {
   data: { priority: string; count: number }[];
 }) {
+  const router = useRouter();
   const total = data.reduce((sum, d) => sum + d.count, 0);
+
+  function goToPriority(priority: string) {
+    router.push(`/leads?priority=${encodeURIComponent(priority)}`);
+  }
 
   return (
     <Card className="rounded-2xl">
@@ -33,6 +39,12 @@ export function PrioritySplitChart({
                   outerRadius="90%"
                   paddingAngle={2}
                   strokeWidth={0}
+                  cursor="pointer"
+                  onClick={(entry: unknown) => {
+                    const priority = (entry as { payload?: { priority: string } }).payload
+                      ?.priority;
+                    if (priority) goToPriority(priority);
+                  }}
                 >
                   {data.map((entry) => (
                     <Cell
@@ -46,7 +58,12 @@ export function PrioritySplitChart({
             </ResponsiveContainer>
             <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
               {data.map((entry) => (
-                <div key={entry.priority} className="flex items-center gap-1.5 text-xs">
+                <button
+                  key={entry.priority}
+                  type="button"
+                  onClick={() => goToPriority(entry.priority)}
+                  className="flex items-center gap-1.5 text-xs hover:underline"
+                >
                   <span
                     className="size-2 rounded-full"
                     style={{
@@ -57,7 +74,7 @@ export function PrioritySplitChart({
                   <span className="text-muted-foreground">
                     {entry.priority} ({entry.count})
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           </div>

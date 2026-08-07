@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   Bar,
   BarChart,
@@ -21,6 +22,7 @@ export function PipelineByStatusChart({
 }: {
   data: { status: string; count: number }[];
 }) {
+  const router = useRouter();
   const statusLabels = useStatusLabels();
   const formatStatus = (value: string) => statusLabels[value as LeadStatus] ?? value;
   const hasData = data.some((d) => d.count > 0);
@@ -50,7 +52,16 @@ export function PipelineByStatusChart({
                 contentStyle={chartTooltipStyle}
                 labelFormatter={(label) => formatStatus(String(label))}
               />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={18}>
+              <Bar
+                dataKey="count"
+                radius={[0, 4, 4, 0]}
+                maxBarSize={18}
+                cursor="pointer"
+                onClick={(entry: unknown) => {
+                  const status = (entry as { payload?: { status: string } }).payload?.status;
+                  if (status) router.push(`/leads?status=${encodeURIComponent(status)}`);
+                }}
+              >
                 {data.map((entry) => (
                   <Cell
                     key={entry.status}
