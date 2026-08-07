@@ -1,8 +1,19 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { createClient } from "@/lib/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { ExportButtons } from "@/components/shared/export-buttons";
+import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import { computeReferrerPerformance } from "@/lib/referrer-metrics";
+import { findDualActivePairs, ON_HOLD_STATUS_KEY, type DualActivePair } from "@/lib/agent-client-dedup";
+import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export function ReferrerPerformanceReport({ leads }: { leads: LeadWithRelations[] }) {
@@ -12,8 +23,14 @@ export function ReferrerPerformanceReport({ leads }: { leads: LeadWithRelations[
     winRateLabel: `${r.winRate.toFixed(1)}%`,
   }));
 
+  const dualActivePairs = useMemo(() => findDualActivePairs(leads), [leads]);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {dualActivePairs.length > 0 && (
+        <DualActiveReview pairs={dualActivePairs} />
+      )}
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
           Every lead tagged &quot;Real Estate Agent&quot; — how many buyer clients
@@ -64,6 +81,93 @@ export function ReferrerPerformanceReport({ leads }: { leads: LeadWithRelations[
                 </TableCell>
               </TableRow>
             )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function DualActiveReview({ pairs }: { pairs: DualActivePair[] }) {
+  const router = useRouter();
+  const statusLabels = useStatusLabels();
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
+
+  async function handleResolve(agent: LeadWithRelations) {
+    setResolvingId(agent.id);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("leads")
+      .update({ status: ON_HOLD_STATUS_KEY })
+      .eq("id", agent.id);
+    setResolvingId(null);
+
+    if (error) {
+      toast.error("Failed to update agent", { description: error.message });
+      return;
+    }
+
+    toast.success(`${fullName(agent)} moved to On Hold`);
+    router.refresh();
+  }
+
+  return (
+    <div className="space-y-2 rounded-xl border border-gold/40 bg-gold/5 p-4">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="mt-0.5 size-4 shrink-0 text-gold" />
+        <div>
+          <p className="text-sm font-medium">
+            {pairs.length} agent{pairs.length === 1 ? "" : "s"} with a referred client both
+            still active
+          </p>
+          <p className="text-sm text-muted-foreground">
+            These agents and the clients they referred both currently show as live
+            cards on the Kanban board — the client&apos;s record carries the deal
+            forward now, so the agent&apos;s card can move to On Hold. Nothing is
+            changed until you confirm each one below.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 overflow-x-auto rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Agent</TableHead>
+              <TableHead>Agent status</TableHead>
+              <TableHead>Referred client</TableHead>
+              <TableHead>Client status</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pairs.map(({ agent, client }) => (
+              <TableRow key={`${agent.id}-${client.id}`}>
+                <TableCell className="font-medium">
+                  <Link href={`/leads/${agent.id}`} className="hover:text-gold hover:underline">
+                    {fullName(agent)}
+                  </Link>
+                </TableCell>
+                <TableCell>{statusLabels[agent.status] ?? agent.status}</TableCell>
+                <TableCell>
+                  <Link href={`/leads/${client.id}`} className="hover:text-gold hover:underline">
+                    {fullName(client)}
+                  </Link>
+                </TableCell>
+                <TableCell>{statusLabels[client.status] ?? client.status}</TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={resolvingId === agent.id}
+                    onClick={() => handleResolve(agent)}
+                  >
+                    {resolvingId === agent.id && <Loader2 className="size-3.5 animate-spin" />}
+                    Move agent to On Hold
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
