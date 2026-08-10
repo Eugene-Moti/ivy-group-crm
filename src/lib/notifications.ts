@@ -1,9 +1,10 @@
-import { differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays, endOfDay } from "date-fns";
 import { CLOSED_STATUS_KEYS } from "@/lib/constants";
 import { findAllDuplicateClusters } from "@/lib/duplicate-leads";
 
 const STALE_OPEN_DAYS = 30;
 const HOT_UNCONTACTED_DAYS = 7;
+const VIEWING_STAGE_KEY = "viewing_scheduled";
 
 export type NotificationLead = {
   id: string;
@@ -62,6 +63,22 @@ export function computeNotifications(
       title: `${overdue.length} overdue follow-up${overdue.length === 1 ? "" : "s"}`,
       detail: "Open leads whose next follow-up date has already passed.",
       href: "/follow-ups",
+    });
+  }
+
+  const siteVisitsDue = openLeads.filter(
+    (l) =>
+      l.status === VIEWING_STAGE_KEY &&
+      l.next_follow_up_at &&
+      new Date(l.next_follow_up_at) <= endOfDay(now)
+  );
+  if (siteVisitsDue.length > 0) {
+    items.push({
+      id: "site-visits-due",
+      severity: "critical",
+      title: `${siteVisitsDue.length} site visit${siteVisitsDue.length === 1 ? "" : "s"} due`,
+      detail: "Scheduled viewings due today or already passed.",
+      href: "/leads?status=viewing_scheduled",
     });
   }
 
