@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LEAD_PRIORITIES, LEAD_TYPES } from "@/lib/constants";
+import { LEAD_PRIORITIES, LEAD_TYPES, LOST_STATUS_KEY } from "@/lib/constants";
 
 function isBlank(value: string | undefined): boolean {
   return !value || value.trim() === "";
@@ -50,6 +50,8 @@ export const leadFormSchema = z
     next_follow_up_at: z.string().optional(),
     assigned_to: z.string().optional(),
     notes: z.string().optional(),
+    lost_reason: z.string().optional(),
+    lost_reason_note: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -60,6 +62,10 @@ export const leadFormSchema = z
       message: "Minimum budget must be less than or equal to maximum budget.",
       path: ["budget_min"],
     }
-  );
+  )
+  .refine((data) => data.status !== LOST_STATUS_KEY || !isBlank(data.lost_reason), {
+    message: "Select why this lead was lost.",
+    path: ["lost_reason"],
+  });
 
 export type LeadFormValues = z.infer<typeof leadFormSchema>;

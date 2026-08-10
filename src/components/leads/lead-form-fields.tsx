@@ -9,7 +9,7 @@ import {
   type UseFormSetValue,
   type UseFormWatch,
 } from "react-hook-form";
-import { LEAD_PRIORITIES, LEAD_TYPES } from "@/lib/constants";
+import { LEAD_PRIORITIES, LEAD_TYPES, LOST_REASONS, LOST_STATUS_KEY } from "@/lib/constants";
 import { usePipelineStages } from "@/components/providers/status-labels-provider";
 import { fullName } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
@@ -92,6 +92,7 @@ export function LeadFormFields({
     allLeadIdentities,
     currentLeadId
   );
+  const isLost = watch("status") === LOST_STATUS_KEY;
 
   return (
     <FieldGroup>
@@ -388,6 +389,41 @@ export function LeadFormFields({
           )}
         />
       </div>
+
+      {isLost && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+          <Controller
+            control={control}
+            name="lost_reason"
+            render={({ field }) => (
+              <Field>
+                <FieldLabel>Why was this lead lost?</FieldLabel>
+                <FieldContent>
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a reason" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LOST_REASONS.map((reason) => (
+                        <SelectItem key={reason} value={reason}>
+                          {reason}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={[errors.lost_reason]} />
+                </FieldContent>
+              </Field>
+            )}
+          />
+          <Field>
+            <FieldLabel htmlFor="lost_reason_note">Details (optional)</FieldLabel>
+            <FieldContent>
+              <Input id="lost_reason_note" {...register("lost_reason_note")} />
+            </FieldContent>
+          </Field>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>

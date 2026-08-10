@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { NEW_LEAD_STATUS_KEY } from "@/lib/constants";
+import { LOST_STATUS_KEY, NEW_LEAD_STATUS_KEY } from "@/lib/constants";
 import type { LeadFormValues } from "@/lib/validations/lead";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { Database } from "@/types/database.types";
@@ -42,6 +42,8 @@ export function leadFormDefaults(
     next_follow_up_at: toDatetimeLocal(lead.next_follow_up_at),
     assigned_to: lead.assigned_to ?? undefined,
     notes: lead.notes ?? undefined,
+    lost_reason: lead.lost_reason ?? undefined,
+    lost_reason_note: lead.lost_reason_note ?? undefined,
   };
 }
 
@@ -73,5 +75,8 @@ export function buildLeadPayload(values: LeadFormValues): LeadInsertOrUpdate {
       : null,
     assigned_to: noneToNull(values.assigned_to),
     notes: blankToNull(values.notes),
+    // Clear any stale reason if the lead isn't (or is no longer) Closed - Lost.
+    lost_reason: values.status === LOST_STATUS_KEY ? blankToNull(values.lost_reason) : null,
+    lost_reason_note: values.status === LOST_STATUS_KEY ? blankToNull(values.lost_reason_note) : null,
   };
 }

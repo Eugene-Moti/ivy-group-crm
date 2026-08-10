@@ -33,6 +33,17 @@ export const ACTIVITY_TYPES = [
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
+/** Why a lead was marked Closed - Lost — captured at the moment it happens, so losses become patterns instead of dead ends. */
+export const LOST_REASONS = [
+  "Budget mismatch",
+  "Chose a competitor",
+  "Unresponsive",
+  "Changed mind",
+  "Financing fell through",
+  "Other",
+] as const;
+export type LostReason = (typeof LOST_REASONS)[number];
+
 /** Hex colors for lead priority — used for badges and charts. */
 export const PRIORITY_COLORS: Record<LeadPriority, string> = {
   Hot: "#E4572E",

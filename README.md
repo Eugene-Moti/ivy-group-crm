@@ -94,7 +94,11 @@ these in order:
    moment any lead is inserted (or has its "Referred by agent" newly set) pointing at
    them while active — covers every path that can establish the link, not just the
    "Add client details" button. Depends on migration 12 above already being applied.
-14. [`supabase/seed.sql`](supabase/seed.sql) —
+14. [`supabase/migrations/20260807000000_lost_reason.sql`](supabase/migrations/20260807000000_lost_reason.sql) —
+   adds `lost_reason` and `lost_reason_note` to `leads`, captured when a lead moves to
+   Closed - Lost (Kanban drag or the edit form) — powers the Lost Leads report and the
+   win-back reminder notification. Nullable; existing lost leads just won't have one.
+15. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

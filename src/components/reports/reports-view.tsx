@@ -13,6 +13,7 @@ import { PipelineVelocityReport } from "@/components/reports/pipeline-velocity-r
 import { ConversionTimelineReport } from "@/components/reports/conversion-timeline-report";
 import { DuplicateLeadsReport } from "@/components/reports/duplicate-leads-report";
 import { MarketingReportView } from "@/components/reports/marketing-report";
+import { LostLeadsReport } from "@/components/reports/lost-leads-report";
 import { FullAnalysisReport } from "@/components/reports/full-analysis-report";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { SavedQueryRow } from "@/lib/queries/saved-queries";
@@ -33,6 +34,7 @@ const VALID_TABS = [
   "conversion-timeline",
   "duplicates",
   "marketing",
+  "lost-leads",
   "full-analysis",
 ];
 
@@ -90,6 +92,7 @@ export function ReportsView({
           <TabsTrigger value="conversion-timeline">Conversion timeline</TabsTrigger>
           <TabsTrigger value="duplicates">Duplicates</TabsTrigger>
           <TabsTrigger value="marketing">Marketing</TabsTrigger>
+          <TabsTrigger value="lost-leads">Lost leads</TabsTrigger>
           <TabsTrigger value="full-analysis">Full analysis</TabsTrigger>
         </TabsList>
 
@@ -128,6 +131,9 @@ export function ReportsView({
         </TabsContent>
         <TabsContent value="marketing" className="pt-4">
           <MarketingReportView leads={leads} />
+        </TabsContent>
+        <TabsContent value="lost-leads" className="pt-4">
+          <LostLeadsReport leads={clientLeads} />
         </TabsContent>
         <TabsContent value="full-analysis" className="pt-4">
           <FullAnalysisReport

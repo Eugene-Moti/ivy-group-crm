@@ -1,10 +1,12 @@
 import { differenceInCalendarDays, endOfDay } from "date-fns";
-import { CLOSED_STATUS_KEYS } from "@/lib/constants";
+import { CLOSED_STATUS_KEYS, LOST_STATUS_KEY } from "@/lib/constants";
 import { findAllDuplicateClusters } from "@/lib/duplicate-leads";
 
 const STALE_OPEN_DAYS = 30;
 const HOT_UNCONTACTED_DAYS = 7;
 const VIEWING_STAGE_KEY = "viewing_scheduled";
+const WIN_BACK_MONTHS = 6;
+const WIN_BACK_DAYS = WIN_BACK_MONTHS * 30;
 
 export type NotificationLead = {
   id: string;
@@ -16,6 +18,7 @@ export type NotificationLead = {
   priority: string;
   next_follow_up_at: string | null;
   created_at: string;
+  updated_at: string;
 };
 
 export type NotificationActivity = { lead_id: string; created_at: string };
@@ -122,6 +125,25 @@ export function computeNotifications(
       title: `${staleOpen.length} open lead${staleOpen.length === 1 ? "" : "s"} older than ${STALE_OPEN_DAYS} days with no notes`,
       detail: "No recorded contact history at all — either gone cold, or activity isn't being logged.",
       href: "/reports?tab=full-analysis",
+    });
+  }
+
+  // updated_at is a proxy for "when it was lost" (no dedicated closed-at
+  // timestamp) — close enough since a lost lead is rarely touched again
+  // afterward, so a big gap since its last update reliably means it's been
+  // sitting untouched since it closed.
+  const winBackCandidates = leads.filter(
+    (l) =>
+      l.status === LOST_STATUS_KEY &&
+      differenceInCalendarDays(now, new Date(l.updated_at)) > WIN_BACK_DAYS
+  );
+  if (winBackCandidates.length > 0) {
+    items.push({
+      id: "win-back-candidates",
+      severity: "warning",
+      title: `${winBackCandidates.length} lost lead${winBackCandidates.length === 1 ? "" : "s"} untouched for ${WIN_BACK_MONTHS}+ months`,
+      detail: "Worth a re-engagement touch — budgets, financing, and the market all change over time.",
+      href: `/leads?status=${LOST_STATUS_KEY}`,
     });
   }
 

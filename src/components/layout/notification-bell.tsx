@@ -22,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const LEAD_COLUMNS =
-  "id, first_name, last_name, phone, email, status, priority, next_follow_up_at, created_at";
+  "id, first_name, last_name, phone, email, status, priority, next_follow_up_at, created_at, updated_at";
 
 function showToast(
   title: string,

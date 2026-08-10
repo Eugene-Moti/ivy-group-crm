@@ -213,6 +213,8 @@ export interface Database {
           notes: string | null;
           lead_type: LeadType;
           referred_by_lead_id: string | null;
+          lost_reason: string | null;
+          lost_reason_note: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -237,6 +239,8 @@ export interface Database {
           notes?: string | null;
           lead_type?: LeadType;
           referred_by_lead_id?: string | null;
+          lost_reason?: string | null;
+          lost_reason_note?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -261,6 +265,8 @@ export interface Database {
           notes?: string | null;
           lead_type?: LeadType;
           referred_by_lead_id?: string | null;
+          lost_reason?: string | null;
+          lost_reason_note?: string | null;
           created_at?: string;
           updated_at?: string;
         };

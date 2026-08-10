@@ -16,10 +16,11 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/components/providers/profile-provider";
 import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
-import type { LeadStatus } from "@/lib/constants";
+import { LOST_STATUS_KEY, type LeadStatus } from "@/lib/constants";
 import { fullName } from "@/lib/format";
 import { KanbanColumn } from "@/components/leads/kanban/kanban-column";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
+import { LostReasonDialog } from "@/components/leads/lost-reason-dialog";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 /** Nearest ancestor (up to `boundary`) that can still scroll vertically. */
@@ -48,6 +49,7 @@ export function LeadsKanban({
   const statusLabels = useStatusLabels();
   const [overrides, setOverrides] = useState<Record<string, LeadStatus>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [pendingLostDrag, setPendingLostDrag] = useState<LeadWithRelations | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -99,23 +101,23 @@ export function LeadsKanban({
     setActiveId(String(event.active.id));
   }
 
-  async function handleDragEnd(event: DragEndEvent) {
-    setActiveId(null);
-    const { active, over } = event;
-    if (!over || !isAdmin) return;
-
-    const leadId = String(active.id);
-    const newStatus = over.id as LeadStatus;
-    const lead = leads.find((l) => l.id === leadId);
-    if (!lead || lead.status === newStatus) return;
-
+  async function commitStatusChange(
+    lead: LeadWithRelations,
+    newStatus: LeadStatus,
+    lostReason?: { reason: string; note: string }
+  ) {
+    const leadId = lead.id;
     const previousStatus = lead.status;
     setOverrides((prev) => ({ ...prev, [leadId]: newStatus }));
 
     const supabase = createClient();
     const { error } = await supabase
       .from("leads")
-      .update({ status: newStatus })
+      .update({
+        status: newStatus,
+        lost_reason: lostReason?.reason ?? null,
+        lost_reason_note: lostReason?.note || null,
+      })
       .eq("id", leadId);
 
     if (error) {
@@ -133,6 +135,25 @@ export function LeadsKanban({
 
     toast.success(`${fullName(lead)} moved to ${statusLabels[newStatus] ?? newStatus}`);
     router.refresh();
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over || !isAdmin) return;
+
+    const leadId = String(active.id);
+    const newStatus = over.id as LeadStatus;
+    const lead = leads.find((l) => l.id === leadId);
+    if (!lead || lead.status === newStatus) return;
+
+    if (newStatus === LOST_STATUS_KEY) {
+      // Card stays put — nothing is optimistically moved — until a reason is confirmed.
+      setPendingLostDrag(lead);
+      return;
+    }
+
+    await commitStatusChange(lead, newStatus);
   }
 
   return (
@@ -158,6 +179,18 @@ export function LeadsKanban({
           </div>
         ) : null}
       </DragOverlay>
+
+      {pendingLostDrag && (
+        <LostReasonDialog
+          open={!!pendingLostDrag}
+          onOpenChange={(open) => !open && setPendingLostDrag(null)}
+          leadName={fullName(pendingLostDrag)}
+          onConfirm={async (reason, note) => {
+            await commitStatusChange(pendingLostDrag, LOST_STATUS_KEY, { reason, note });
+            setPendingLostDrag(null);
+          }}
+        />
+      )}
     </DndContext>
   );
 }
