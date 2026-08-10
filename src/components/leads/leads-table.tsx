@@ -25,6 +25,7 @@ import {
   Plus,
   Search,
   Send,
+  Tag,
   Trash2,
   UserCog,
   X,
@@ -63,6 +64,7 @@ import { BulkDeleteLeadsDialog } from "@/components/leads/bulk-delete-leads-dial
 import { BulkAssignAgentDialog } from "@/components/leads/bulk-assign-agent-dialog";
 import { BulkSendToAgentDialog } from "@/components/leads/bulk-send-to-agent-dialog";
 import { BulkChangePriorityDialog } from "@/components/leads/bulk-change-priority-dialog";
+import { BulkSetLostReasonDialog } from "@/components/leads/bulk-set-lost-reason-dialog";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { DEFAULT_LEAD_COLUMN_LABELS, LEAD_PRIORITIES, LEAD_TYPES, type LeadStatus } from "@/lib/constants";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
@@ -144,6 +146,7 @@ export function LeadsTable({
   const [bulkSendOpen, setBulkSendOpen] = useState(false);
   const [bulkAssignOpen, setBulkAssignOpen] = useState(false);
   const [bulkPriorityOpen, setBulkPriorityOpen] = useState(false);
+  const [bulkLostReasonOpen, setBulkLostReasonOpen] = useState(false);
 
   useEffect(() => {
     if (autoOpenCreate) {
@@ -534,6 +537,10 @@ export function LeadsTable({
                 <Send className="size-3.5" />
                 Send to manager
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setBulkLostReasonOpen(true)}>
+                <Tag className="size-3.5" />
+                Set lost reason
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -722,6 +729,15 @@ export function LeadsTable({
             onOpenChange={setBulkPriorityOpen}
             leadIds={selectedLeads.map((lead) => lead.id)}
             onChanged={() => {
+              setRowSelection({});
+              router.refresh();
+            }}
+          />
+          <BulkSetLostReasonDialog
+            open={bulkLostReasonOpen}
+            onOpenChange={setBulkLostReasonOpen}
+            leads={selectedLeads}
+            onApplied={() => {
               setRowSelection({});
               router.refresh();
             }}
