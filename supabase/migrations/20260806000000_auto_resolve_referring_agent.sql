@@ -18,17 +18,34 @@
 -- refers a second or third client over time needs nothing extra: the first
 -- confirmed referral already moved them, and this trigger no-ops on
 -- subsequent ones since they're already at the resolved stage.
+--
+-- All of that conditional logic lives in the function body (not a CREATE
+-- TRIGGER ... WHEN clause) because TG_OP is only available inside the
+-- trigger function itself, not in a WHEN expression.
 
 create function public.auto_resolve_referring_agent()
 returns trigger
 language plpgsql
 as $$
 begin
+  if new.referred_by_lead_id is null then
+    return new;
+  end if;
+
+  if tg_op = 'UPDATE' and old.referred_by_lead_id is not distinct from new.referred_by_lead_id then
+    return new;
+  end if;
+
+  if new.status in ('closed_won', 'closed_lost') then
+    return new;
+  end if;
+
   update public.leads
   set status = 'referred_client_active'
   where id = new.referred_by_lead_id
     and lead_type = 'Real Estate Agent'
     and status not in ('closed_won', 'closed_lost', 'referred_client_active');
+
   return new;
 end;
 $$;
@@ -36,9 +53,4 @@ $$;
 create trigger leads_auto_resolve_referring_agent
   after insert or update of referred_by_lead_id on public.leads
   for each row
-  when (
-    new.referred_by_lead_id is not null
-    and new.status not in ('closed_won', 'closed_lost')
-    and (tg_op = 'INSERT' or old.referred_by_lead_id is distinct from new.referred_by_lead_id)
-  )
   execute function public.auto_resolve_referring_agent();
