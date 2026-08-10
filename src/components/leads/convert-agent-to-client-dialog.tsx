@@ -26,11 +26,14 @@ import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
  * For deals worked through an agent before the actual client's identity is
  * known — this spins the deal off into its own "Direct Client" lead once
  * that identity is learned, carrying over the project/budget/priority/
- * status/manager the deal already had. It does NOT copy notes or evidence:
- * those stay on the agent's record exactly as logged, so the client's own
- * record only accumulates evidence from the point it exists — matching how
- * every other record in this system is append-only and untouched by
- * downstream actions.
+ * status/manager the deal already had. Inserting a lead with
+ * referred_by_lead_id set fires a DB trigger (auto_resolve_referring_agent)
+ * that automatically moves the agent's own card to "Referred — Client
+ * Active", so the same deal doesn't show twice on the Kanban — no status
+ * update needed here. It does NOT copy notes or evidence: those stay on the
+ * agent's record exactly as logged, so the client's own record only
+ * accumulates evidence from the point it exists — matching how every other
+ * record in this system is append-only and untouched by downstream actions.
  */
 export function ConvertAgentToClientDialog({
   open,
@@ -129,8 +132,9 @@ export function ConvertAgentToClientDialog({
           <DialogDescription>
             Creates a new client lead linked back to {fullName(agentLead)}, carrying
             over the project, budget, priority, status, and sales manager already on
-            this deal. {fullName(agentLead)}&apos;s own record, notes, and evidence
-            are left exactly as they are.
+            this deal. {fullName(agentLead)}&apos;s own card automatically moves to
+            &quot;Referred — Client Active&quot;, so this deal no longer shows twice on
+            the Kanban — their notes and evidence are left exactly as they are.
           </DialogDescription>
         </DialogHeader>
 

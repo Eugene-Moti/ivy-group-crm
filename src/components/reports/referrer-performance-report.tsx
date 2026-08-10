@@ -125,11 +125,9 @@ function DualActiveReview({ pairs }: { pairs: DualActivePair[] }) {
             still active
           </p>
           <p className="text-sm text-muted-foreground">
-            These agents and the clients they referred both currently show as live
-            cards on the Kanban board — the client&apos;s record carries the deal
-            forward now, so the agent&apos;s card can move to &quot;Referred — Client
-            Active&quot;, which means the referral succeeded, not that it stalled.
-            Nothing is changed until you confirm each one below.
+            New referrals resolve this automatically now — this list only catches
+            pairs linked before that was turned on, or set up some other way. Nothing
+            is changed until you confirm each one below.
           </p>
         </div>
       </div>

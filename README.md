@@ -89,7 +89,12 @@ these in order:
    review tool (Reports > Referrers) to resolve an agent whose referral has moved to
    an active client record — distinct from "On Hold", which would wrongly imply the
    referral stalled.
-13. [`supabase/seed.sql`](supabase/seed.sql) —
+13. [`supabase/migrations/20260806000000_auto_resolve_referring_agent.sql`](supabase/migrations/20260806000000_auto_resolve_referring_agent.sql) —
+   adds a trigger that automatically moves an agent to "Referred — Client Active" the
+   moment any lead is inserted (or has its "Referred by agent" newly set) pointing at
+   them while active — covers every path that can establish the link, not just the
+   "Add client details" button. Depends on migration 12 above already being applied.
+14. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
