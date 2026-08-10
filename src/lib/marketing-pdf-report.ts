@@ -86,10 +86,9 @@ export async function generateMarketingReport({
   );
 
   const kpis: [string, string][] = [
-    ["Active leads", String(report.totalActive)],
-    ["Hot leads", String(report.hotCount)],
     ["Negotiating", String(report.negotiatingCount)],
     ["At offer stage", String(report.offerStageCount)],
+    ["Site visits booked", String(report.siteVisitCount)],
     ["Best-converting source", report.topSource ? report.topSource.source : "—"],
   ];
   const colWidth = (PAGE_WIDTH - MARGIN * 2) / kpis.length;
@@ -106,10 +105,9 @@ export async function generateMarketingReport({
   });
   y += 18;
 
-  y = section(doc, "Hot leads", report.hotLeads, y);
-  y = section(doc, "Promising — hot and recently in contact", report.promising, y);
   y = section(doc, "Negotiating", report.negotiating, y);
   y = section(doc, "At offer stage", report.offerStage, y);
+  y = section(doc, "Site visits / meetings booked", report.siteVisits, y);
 
   y = ensureSpace(doc, y, 16);
   doc.setFont("helvetica", "bold");
@@ -125,6 +123,27 @@ export async function generateMarketingReport({
       String(s.total),
       String(s.won),
       `${s.winRate.toFixed(1)}%`,
+    ]),
+    styles: { fontSize: 8.5 },
+    headStyles: IVY_TABLE_HEAD_STYLES,
+    margin: { left: MARGIN, right: MARGIN },
+  });
+  y = lastAutoTableY(doc) + 10;
+
+  y = ensureSpace(doc, y, 16);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...IVY_BRAND.ink);
+  doc.text("Leads assigned per sales manager", MARGIN, y);
+  y += 5;
+  autoTable(doc, {
+    startY: y,
+    head: [["Sales manager", "Direct clients", "Agents", "Total"]],
+    body: report.managerBreakdown.map((m) => [
+      m.managerName,
+      String(m.directClientCount),
+      String(m.agentCount),
+      String(m.total),
     ]),
     styles: { fontSize: 8.5 },
     headStyles: IVY_TABLE_HEAD_STYLES,

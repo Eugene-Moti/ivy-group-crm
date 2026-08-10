@@ -1,12 +1,10 @@
-import { differenceInCalendarDays } from "date-fns";
 import { CLOSED_STATUS_KEYS, WON_STATUS_KEY } from "@/lib/constants";
 import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
-import type { ActivitySummary } from "@/lib/full-analysis";
 
-const RECENT_CONTACT_DAYS = 7;
 const OFFER_STAGE_KEY = "offer_made";
 const NEGOTIATING_STAGE_KEY = "negotiating";
+const VIEWING_STAGE_KEY = "viewing_scheduled";
 
 /**
  * A deliberately redacted lead row for sharing outside the sales team —
@@ -28,17 +26,23 @@ export type MarketingLeadRow = {
 
 export type MarketingSourceRow = { source: string; total: number; won: number; winRate: number };
 
+export type ManagerBreakdownRow = {
+  managerName: string;
+  directClientCount: number;
+  agentCount: number;
+  total: number;
+};
+
 export type MarketingReport = {
-  totalActive: number;
-  hotCount: number;
   offerStageCount: number;
   negotiatingCount: number;
+  siteVisitCount: number;
   topSource: MarketingSourceRow | null;
-  hotLeads: MarketingLeadRow[];
-  promising: MarketingLeadRow[];
   offerStage: MarketingLeadRow[];
   negotiating: MarketingLeadRow[];
+  siteVisits: MarketingLeadRow[];
   sourcePerformance: MarketingSourceRow[];
+  managerBreakdown: ManagerBreakdownRow[];
 };
 
 function toRow(lead: LeadWithRelations, statusLabels: Record<string, string>): MarketingLeadRow {
@@ -56,38 +60,25 @@ function toRow(lead: LeadWithRelations, statusLabels: Record<string, string>): M
 }
 
 /**
- * Everything a marketing-team share-out needs to understand pipeline
- * momentum — hot leads, promising activity, who's at the offer stage, and
- * which sources are converting — with client contact details intentionally
- * left out.
+ * A tightly curated share-out for the marketing team: who's at the offer
+ * stage, who's negotiating, who has a site visit/meeting booked, which
+ * sources are converting, and how each sales manager's active workload
+ * splits between direct clients and referring agents. Client contact
+ * details and budgets are intentionally left out.
  */
 export function computeMarketingReport(
   leads: LeadWithRelations[],
-  activitySummaries: ActivitySummary[],
-  statusLabels: Record<string, string>,
-  now: Date = new Date()
+  statusLabels: Record<string, string>
 ): MarketingReport {
-  const activeLeads = leads.filter((l) => !CLOSED_STATUS_KEYS.includes(l.status));
+  const clientLeads = leads.filter((l) => l.lead_type !== "Real Estate Agent");
+  const activeClientLeads = clientLeads.filter((l) => !CLOSED_STATUS_KEYS.includes(l.status));
 
-  const lastActivityAtByLead = new Map<string, string>();
-  for (const a of activitySummaries) {
-    const existing = lastActivityAtByLead.get(a.lead_id);
-    if (!existing || new Date(a.created_at) > new Date(existing)) {
-      lastActivityAtByLead.set(a.lead_id, a.created_at);
-    }
-  }
-
-  const hot = activeLeads.filter((l) => l.priority === "Hot");
-  const promising = hot.filter((l) => {
-    const lastActivity = lastActivityAtByLead.get(l.id);
-    if (!lastActivity) return false;
-    return differenceInCalendarDays(now, new Date(lastActivity)) <= RECENT_CONTACT_DAYS;
-  });
-  const offerStage = activeLeads.filter((l) => l.status === OFFER_STAGE_KEY);
-  const negotiating = activeLeads.filter((l) => l.status === NEGOTIATING_STAGE_KEY);
+  const offerStage = activeClientLeads.filter((l) => l.status === OFFER_STAGE_KEY);
+  const negotiating = activeClientLeads.filter((l) => l.status === NEGOTIATING_STAGE_KEY);
+  const siteVisits = activeClientLeads.filter((l) => l.status === VIEWING_STAGE_KEY);
 
   const sourceMap = new Map<string, { total: number; won: number }>();
-  for (const lead of leads) {
+  for (const lead of clientLeads) {
     const name = lead.lead_source?.name ?? "Unknown";
     const entry = sourceMap.get(name) ?? { total: 0, won: 0 };
     entry.total += 1;
@@ -108,16 +99,33 @@ export function computeMarketingReport(
     ? [...ratedSources].sort((a, b) => b.winRate - a.winRate)[0]
     : null;
 
+  const activeLeads = leads.filter((l) => !CLOSED_STATUS_KEYS.includes(l.status));
+  const managerMap = new Map<string, { directClient: number; agent: number }>();
+  for (const lead of activeLeads) {
+    const name = lead.assigned_agent?.name ?? "Unassigned";
+    const entry = managerMap.get(name) ?? { directClient: 0, agent: 0 };
+    if (lead.lead_type === "Real Estate Agent") entry.agent += 1;
+    else entry.directClient += 1;
+    managerMap.set(name, entry);
+  }
+  const managerBreakdown = [...managerMap.entries()]
+    .map(([managerName, { directClient, agent }]) => ({
+      managerName,
+      directClientCount: directClient,
+      agentCount: agent,
+      total: directClient + agent,
+    }))
+    .sort((a, b) => b.total - a.total);
+
   return {
-    totalActive: activeLeads.length,
-    hotCount: hot.length,
     offerStageCount: offerStage.length,
     negotiatingCount: negotiating.length,
+    siteVisitCount: siteVisits.length,
     topSource,
-    hotLeads: hot.map((l) => toRow(l, statusLabels)),
-    promising: promising.map((l) => toRow(l, statusLabels)),
     offerStage: offerStage.map((l) => toRow(l, statusLabels)),
     negotiating: negotiating.map((l) => toRow(l, statusLabels)),
+    siteVisits: siteVisits.map((l) => toRow(l, statusLabels)),
     sourcePerformance,
+    managerBreakdown,
   };
 }

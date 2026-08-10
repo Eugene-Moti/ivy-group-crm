@@ -1,13 +1,4 @@
-import {
-  startOfWeek,
-  subWeeks,
-  isAfter,
-  isBefore,
-  format,
-  subDays,
-  startOfDay,
-  endOfDay,
-} from "date-fns";
+import { subWeeks, isAfter, isBefore, subDays, startOfDay, endOfDay } from "date-fns";
 import {
   CLOSED_STATUS_KEYS,
   LEAD_PRIORITIES,
@@ -93,25 +84,6 @@ export function computeLeadsBySource(leads: DashboardLead[]) {
   const rest = sorted.slice(OTHER_SOURCE_CAP - 1);
   const otherCount = rest.reduce((sum, r) => sum + r.count, 0);
   return [...top, { name: "Other", count: otherCount }];
-}
-
-export function computeLeadsOverTime(leads: DashboardLead[], now: Date) {
-  const weeks = Array.from({ length: 12 }, (_, i) => {
-    const weekStart = startOfWeek(subWeeks(now, 11 - i), { weekStartsOn: 1 });
-    return { weekStart, label: format(weekStart, "d MMM"), count: 0 };
-  });
-
-  for (const lead of leads) {
-    const createdAt = new Date(lead.created_at);
-    for (let i = weeks.length - 1; i >= 0; i--) {
-      if (!isBefore(createdAt, weeks[i].weekStart)) {
-        weeks[i].count += 1;
-        break;
-      }
-    }
-  }
-
-  return weeks.map((w) => ({ label: w.label, count: w.count }));
 }
 
 const AGENT_LEADERBOARD_CAP = 8;

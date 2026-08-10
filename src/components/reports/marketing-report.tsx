@@ -11,23 +11,13 @@ import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import { computeMarketingReport, type MarketingLeadRow } from "@/lib/marketing-report";
 import { generateMarketingReport } from "@/lib/marketing-pdf-report";
 import type { LeadWithRelations } from "@/lib/queries/leads";
-import type { ActivitySummary } from "@/lib/full-analysis";
 
-export function MarketingReportView({
-  leads,
-  activitySummaries,
-}: {
-  leads: LeadWithRelations[];
-  activitySummaries: ActivitySummary[];
-}) {
+export function MarketingReportView({ leads }: { leads: LeadWithRelations[] }) {
   const statusLabels = useStatusLabels();
   const profile = useProfile();
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const report = useMemo(
-    () => computeMarketingReport(leads, activitySummaries, statusLabels),
-    [leads, activitySummaries, statusLabels]
-  );
+  const report = useMemo(() => computeMarketingReport(leads, statusLabels), [leads, statusLabels]);
 
   async function handleGeneratePdf() {
     setIsGenerating(true);
@@ -58,18 +48,16 @@ export function MarketingReportView({
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <Stat label="Active leads" value={String(report.totalActive)} />
-        <Stat label="Hot leads" value={String(report.hotCount)} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Negotiating" value={String(report.negotiatingCount)} />
         <Stat label="At offer stage" value={String(report.offerStageCount)} />
+        <Stat label="Site visits booked" value={String(report.siteVisitCount)} />
         <Stat label="Best-converting source" value={report.topSource?.source ?? "—"} />
       </div>
 
-      <MarketingTable title="Hot leads" rows={report.hotLeads} />
-      <MarketingTable title="Promising — hot and recently in contact" rows={report.promising} />
       <MarketingTable title="Negotiating" rows={report.negotiating} />
       <MarketingTable title="At offer stage" rows={report.offerStage} />
+      <MarketingTable title="Site visits / meetings booked" rows={report.siteVisits} />
 
       <div className="space-y-2">
         <p className="text-sm font-medium">Source performance</p>
@@ -97,6 +85,40 @@ export function MarketingReportView({
                 <TableRow>
                   <TableCell colSpan={4} className="h-20 text-center text-muted-foreground">
                     No leads yet.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Leads assigned per sales manager</p>
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Sales manager</TableHead>
+                <TableHead>Direct clients</TableHead>
+                <TableHead>Agents</TableHead>
+                <TableHead>Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {report.managerBreakdown.length ? (
+                report.managerBreakdown.map((m) => (
+                  <TableRow key={m.managerName}>
+                    <TableCell className="font-medium">{m.managerName}</TableCell>
+                    <TableCell>{m.directClientCount}</TableCell>
+                    <TableCell>{m.agentCount}</TableCell>
+                    <TableCell>{m.total}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-20 text-center text-muted-foreground">
+                    No active leads yet.
                   </TableCell>
                 </TableRow>
               )}

@@ -6,7 +6,6 @@ import {
   computeKpis,
   computeKpiTrends,
   computeLeadsBySource,
-  computeLeadsOverTime,
   computePipelineByStatus,
   computePrioritySplit,
   type DashboardLead,
@@ -45,8 +44,8 @@ export default async function DashboardPage() {
   const pipelineByStatus = computePipelineByStatus(dashboardLeads, pipelineStages);
   const prioritySplit = computePrioritySplit(dashboardLeads);
   const leadsBySource = computeLeadsBySource(dashboardLeads);
-  const leadsOverTime = computeLeadsOverTime(dashboardLeads, now);
   const agentLeaderboard = computeAgentLeaderboard(dashboardLeads);
+  const leadCreatedDates = dashboardLeads.map((l) => l.created_at);
 
   return (
     <DashboardView
@@ -55,7 +54,7 @@ export default async function DashboardPage() {
       pipelineByStatus={pipelineByStatus}
       prioritySplit={prioritySplit}
       leadsBySource={leadsBySource}
-      leadsOverTime={leadsOverTime}
+      leadCreatedDates={leadCreatedDates}
       agentLeaderboard={agentLeaderboard}
       recentActivities={recentActivities}
     />

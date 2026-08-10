@@ -127,7 +127,7 @@ export function ReportsView({
           <DuplicateLeadsReport leads={leads} />
         </TabsContent>
         <TabsContent value="marketing" className="pt-4">
-          <MarketingReportView leads={clientLeads} activitySummaries={activitySummaries} />
+          <MarketingReportView leads={leads} />
         </TabsContent>
         <TabsContent value="full-analysis" className="pt-4">
           <FullAnalysisReport

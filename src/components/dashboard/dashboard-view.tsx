@@ -26,7 +26,6 @@ import type {
   computeKpis,
   computeKpiTrends,
   computeLeadsBySource,
-  computeLeadsOverTime,
   computePipelineByStatus,
   computePrioritySplit,
 } from "@/lib/dashboard-metrics";
@@ -38,7 +37,7 @@ export function DashboardView({
   pipelineByStatus,
   prioritySplit,
   leadsBySource,
-  leadsOverTime,
+  leadCreatedDates,
   agentLeaderboard,
   recentActivities,
 }: {
@@ -47,7 +46,7 @@ export function DashboardView({
   pipelineByStatus: ReturnType<typeof computePipelineByStatus>;
   prioritySplit: ReturnType<typeof computePrioritySplit>;
   leadsBySource: ReturnType<typeof computeLeadsBySource>;
-  leadsOverTime: ReturnType<typeof computeLeadsOverTime>;
+  leadCreatedDates: string[];
   agentLeaderboard: ReturnType<typeof computeAgentLeaderboard>;
   recentActivities: ActivityWithLeadAndAuthor[];
 }) {
@@ -116,7 +115,7 @@ export function DashboardView({
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <LeadsOverTimeChart data={leadsOverTime} />
+        <LeadsOverTimeChart createdDates={leadCreatedDates} />
         <PipelineByStatusChart data={pipelineByStatus} />
         <LeadsBySourceChart data={leadsBySource} />
         <PrioritySplitChart data={prioritySplit} />
