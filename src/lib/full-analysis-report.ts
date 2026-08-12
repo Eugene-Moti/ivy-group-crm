@@ -81,8 +81,8 @@ export async function generateFullAnalysisReport({
   const kpis: [string, string][] = [
     ["Total leads", String(overview.totalLeads)],
     ["Open pipeline", String(overview.openLeads)],
-    ["Closed — Won", String(overview.wonLeads)],
-    ["Closed — Lost", String(overview.lostLeads)],
+    ["Leads Won", String(overview.wonLeads)],
+    ["Leads Lost", String(overview.lostLeads)],
     ["Conversion rate", `${overview.conversionRate.toFixed(1)}%`],
     ["Overdue follow-ups", String(overview.overdueFollowUps)],
     ["Median open-lead age", `${overview.medianOpenLeadAgeDays.toFixed(0)} days`],
@@ -113,7 +113,14 @@ export async function generateFullAnalysisReport({
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     const detailLines = doc.splitTextToSize(insight.detail, PAGE_WIDTH - MARGIN * 2 - 6);
-    const blockHeight = 12 + detailLines.length * 4.2;
+    const leadsLine =
+      insight.leads && insight.leads.length > 0
+        ? doc.splitTextToSize(
+            `Leads: ${insight.leads.map((l) => l.name).join(", ")}`,
+            PAGE_WIDTH - MARGIN * 2 - 6
+          )
+        : [];
+    const blockHeight = 12 + detailLines.length * 4.2 + leadsLine.length * 4.2;
     y = ensureSpace(doc, y, blockHeight);
 
     doc.setFillColor(...color);
@@ -135,6 +142,13 @@ export async function generateFullAnalysisReport({
     doc.setFontSize(8.5);
     doc.setTextColor(...IVY_BRAND.muted);
     doc.text(detailLines, MARGIN + 4, y + 5);
+
+    if (leadsLine.length > 0) {
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...IVY_BRAND.muted);
+      doc.text(leadsLine, MARGIN + 4, y + 5 + detailLines.length * 4.2);
+    }
 
     y += blockHeight + 2;
   }

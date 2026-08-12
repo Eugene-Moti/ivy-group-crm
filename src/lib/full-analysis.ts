@@ -1,6 +1,7 @@
 import { differenceInCalendarDays, format } from "date-fns";
 import { WON_STATUS_KEY, LOST_STATUS_KEY, type ActivityType, type LeadStatus } from "@/lib/constants";
 import { CLOSED_STATUSES, getFollowUpAlert } from "@/lib/leads";
+import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { PipelineStage } from "@/lib/queries/settings";
 
@@ -16,10 +17,14 @@ export type ActivitySummary = {
 };
 export type EvidenceLeadId = { lead_id: string };
 
+export type InsightLeadRef = { id: string; name: string };
+
 export type FullAnalysisInsight = {
   severity: "critical" | "warning" | "positive" | "info";
   title: string;
   detail: string;
+  /** The exact leads this insight is about, so it can be shown/linked instead of taken on faith. Omitted for insights that are an aggregate comparison rather than a specific lead list. */
+  leads?: InsightLeadRef[];
 };
 
 export type RatePerformance = { name: string; total: number; won: number; winRate: number };
@@ -71,9 +76,10 @@ export function computeFullAnalysis(
   const lostLeads = leads.filter((l) => l.status === LOST_STATUS_KEY);
   const conversionRate = rate(totalLeads, wonLeads.length);
 
-  const overdueFollowUps = openLeads.filter(
+  const overdueFollowUpLeads = openLeads.filter(
     (l) => getFollowUpAlert(l.next_follow_up_at, l.status) === "Overdue"
-  ).length;
+  );
+  const overdueFollowUps = overdueFollowUpLeads.length;
 
   const medianOpenLeadAgeDays = median(
     openLeads.map((l) => differenceInCalendarDays(now, new Date(l.created_at)))
@@ -166,6 +172,7 @@ export function computeFullAnalysis(
       detail: worstManager
         ? `${worstManager[0]} has the most at ${worstManager[1]}. Overdue follow-ups are the fastest way to lose a warm client — clear the backlog first.`
         : "Clear the backlog before it costs a client.",
+      leads: overdueFollowUpLeads.map((l) => ({ id: l.id, name: fullName(l) })),
     });
   }
 
@@ -178,6 +185,7 @@ export function computeFullAnalysis(
       severity: "warning",
       title: `${staleOpenLeads.length} open lead${staleOpenLeads.length === 1 ? "" : "s"} older than ${STALE_OPEN_DAYS} days with no notes logged`,
       detail: "These leads have no recorded contact history at all — either they've gone cold, or the team's activity isn't being logged. Worth a manual check.",
+      leads: staleOpenLeads.map((l) => ({ id: l.id, name: fullName(l) })),
     });
   }
 
@@ -192,6 +200,7 @@ export function computeFullAnalysis(
       severity: "critical",
       title: `${uncontactedHotLeads.length} Hot-priority lead${uncontactedHotLeads.length === 1 ? "" : "s"} without contact in the last ${HOT_UNCONTACTED_DAYS} days`,
       detail: "Hot leads are the closest to converting — and the most expensive to lose to a competitor through inaction.",
+      leads: uncontactedHotLeads.map((l) => ({ id: l.id, name: fullName(l) })),
     });
   }
 
@@ -201,6 +210,7 @@ export function computeFullAnalysis(
       severity: "warning",
       title: `${wonWithoutEvidence.length} closed-won client${wonWithoutEvidence.length === 1 ? "" : "s"} with no evidence on file`,
       detail: "No screenshots or dated notes recorded proving contact — an ownership dispute on these clients would be hard to defend. Consider backfilling evidence for recent wins.",
+      leads: wonWithoutEvidence.map((l) => ({ id: l.id, name: fullName(l) })),
     });
   }
 

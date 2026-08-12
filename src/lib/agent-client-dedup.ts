@@ -1,13 +1,7 @@
-import { CLOSED_STATUS_KEYS } from "@/lib/constants";
+import { CLOSED_STATUS_KEYS, REFERRED_CLIENT_ACTIVE_STATUS_KEY } from "@/lib/constants";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
-/**
- * Where a resolved agent (one whose referral has moved to an active client
- * record) gets moved — distinct from "On Hold", which implies paused/stalled.
- * The agent didn't stall; they successfully referred someone and the deal is
- * now tracked on the client's own card instead.
- */
-export const REFERRED_CLIENT_ACTIVE_STATUS_KEY = "referred_client_active";
+export { REFERRED_CLIENT_ACTIVE_STATUS_KEY };
 
 const ON_HOLD_STATUS_KEY = "on_hold";
 const RESOLVED_STATUS_KEYS = [ON_HOLD_STATUS_KEY, REFERRED_CLIENT_ACTIVE_STATUS_KEY];

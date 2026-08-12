@@ -98,7 +98,12 @@ these in order:
    adds `lost_reason` and `lost_reason_note` to `leads`, captured when a lead moves to
    Closed - Lost (Kanban drag or the edit form) — powers the Lost Leads report and the
    win-back reminder notification. Nullable; existing lost leads just won't have one.
-15. [`supabase/seed.sql`](supabase/seed.sql) —
+15. [`supabase/migrations/20260808000000_clear_resolved_agent_follow_up.sql`](supabase/migrations/20260808000000_clear_resolved_agent_follow_up.sql) —
+   backfills `next_follow_up_at` to null for already-resolved "Referred — Client Active"
+   agents, and updates the migration-13 trigger to do the same going forward, so a
+   resolved agent's stale follow-up date stops duplicating their referred client's in
+   Follow-ups and the notification bell. Depends on migration 13 above already being applied.
+16. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

@@ -1,4 +1,4 @@
-import { CLOSED_STATUS_KEYS, type LeadStatus } from "@/lib/constants";
+import { CLOSED_STATUS_KEYS, FOLLOW_UP_EXCLUDED_STATUS_KEYS, type LeadStatus } from "@/lib/constants";
 import { formatBudgetRange, fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
@@ -10,13 +10,16 @@ const DUE_SOON_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
 /**
  * Overdue: past due. Due Soon: within the next 3 days. On Track: further out.
- * None: no follow-up scheduled, or the deal is already closed.
+ * None: no follow-up scheduled, the deal is already closed, or (for an
+ * agent) their referral has resolved to an active client record — the
+ * client's own follow-up is the one that matters now, not a leftover date
+ * on the agent's card.
  */
 export function getFollowUpAlert(
   nextFollowUpAt: string | null,
   status: LeadStatus
 ): FollowUpAlert {
-  if (!nextFollowUpAt || CLOSED_STATUSES.includes(status)) return "None";
+  if (!nextFollowUpAt || FOLLOW_UP_EXCLUDED_STATUS_KEYS.includes(status)) return "None";
 
   const dueAt = new Date(nextFollowUpAt).getTime();
   const now = Date.now();

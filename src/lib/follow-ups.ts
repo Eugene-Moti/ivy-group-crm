@@ -1,5 +1,5 @@
 import { addDays, endOfDay, isAfter, isBefore } from "date-fns";
-import { CLOSED_STATUS_KEYS } from "@/lib/constants";
+import { FOLLOW_UP_EXCLUDED_STATUS_KEYS } from "@/lib/constants";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export function groupFollowUps(leads: LeadWithRelations[], now: Date) {
@@ -7,7 +7,7 @@ export function groupFollowUps(leads: LeadWithRelations[], now: Date) {
   const weekOut = addDays(now, 7);
 
   const relevant = leads.filter(
-    (l) => l.next_follow_up_at && !CLOSED_STATUS_KEYS.includes(l.status)
+    (l) => l.next_follow_up_at && !FOLLOW_UP_EXCLUDED_STATUS_KEYS.includes(l.status)
   );
 
   const overdue = relevant.filter(

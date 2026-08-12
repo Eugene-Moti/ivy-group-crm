@@ -1,5 +1,5 @@
 import { differenceInCalendarDays, endOfDay } from "date-fns";
-import { CLOSED_STATUS_KEYS, LOST_STATUS_KEY } from "@/lib/constants";
+import { FOLLOW_UP_EXCLUDED_STATUS_KEYS, LOST_STATUS_KEY } from "@/lib/constants";
 import { findAllDuplicateClusters } from "@/lib/duplicate-leads";
 
 const STALE_OPEN_DAYS = 30;
@@ -42,7 +42,9 @@ export function computeNotifications(
   activities: NotificationActivity[],
   now: Date = new Date()
 ): NotificationItem[] {
-  const openLeads = leads.filter((l) => !CLOSED_STATUS_KEYS.includes(l.status));
+  // Excludes closed deals and resolved agents (their referral moved to an
+  // active client record, so their own card isn't the one to chase anymore).
+  const openLeads = leads.filter((l) => !FOLLOW_UP_EXCLUDED_STATUS_KEYS.includes(l.status));
 
   const lastActivityAtByLead = new Map<string, string>();
   const activityCountByLead = new Map<string, number>();

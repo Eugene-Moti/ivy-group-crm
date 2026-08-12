@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
   FileDown,
   Info,
   Loader2,
@@ -85,12 +86,12 @@ export function FullAnalysisReport({
     { label: "Total leads", value: String(overview.totalLeads), href: "/leads" },
     { label: "Open pipeline", value: String(overview.openLeads) },
     {
-      label: "Closed — Won",
+      label: "Leads Won",
       value: String(overview.wonLeads),
       href: `/leads?status=${encodeURIComponent(WON_STATUS_KEY)}`,
     },
     {
-      label: "Closed — Lost",
+      label: "Leads Lost",
       value: String(overview.lostLeads),
       href: `/leads?status=${encodeURIComponent(LOST_STATUS_KEY)}`,
     },
@@ -140,25 +141,9 @@ export function FullAnalysisReport({
       <div className="space-y-3">
         <h2 className="text-sm font-semibold tracking-tight">Insights &amp; suggestions</h2>
         <div className="space-y-2">
-          {analysis.insights.map((insight, i) => {
-            const meta = SEVERITY_META[insight.severity];
-            const Icon = meta.icon;
-            return (
-              <div
-                key={i}
-                className={cn(
-                  "flex items-start gap-3 rounded-xl border border-border border-l-4 bg-card p-3",
-                  meta.className
-                )}
-              >
-                <Icon className="mt-0.5 size-4 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">{insight.title}</p>
-                  <p className="mt-0.5 text-sm text-muted-foreground">{insight.detail}</p>
-                </div>
-              </div>
-            );
-          })}
+          {analysis.insights.map((insight, i) => (
+            <InsightCard key={i} insight={insight} />
+          ))}
         </div>
       </div>
 
@@ -239,6 +224,62 @@ export function FullAnalysisReport({
             .map((s) => [s.label, String(s.count), `${s.percentOfTotal.toFixed(1)}%`])}
         />
       </div>
+    </div>
+  );
+}
+
+function InsightCard({ insight }: { insight: FullAnalysisInsight }) {
+  const [expanded, setExpanded] = useState(false);
+  const meta = SEVERITY_META[insight.severity];
+  const Icon = meta.icon;
+  const hasLeads = !!insight.leads?.length;
+
+  return (
+    <div
+      className={cn(
+        "rounded-xl border border-border border-l-4 bg-card p-3",
+        meta.className
+      )}
+    >
+      <button
+        type="button"
+        onClick={() => hasLeads && setExpanded((v) => !v)}
+        disabled={!hasLeads}
+        className={cn(
+          "flex w-full items-start gap-3 text-left",
+          hasLeads && "cursor-pointer"
+        )}
+      >
+        <Icon className="mt-0.5 size-4 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">{insight.title}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{insight.detail}</p>
+        </div>
+        {hasLeads && (
+          <ChevronDown
+            className={cn(
+              "mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform",
+              expanded && "rotate-180"
+            )}
+          />
+        )}
+      </button>
+      {hasLeads && expanded && (
+        <ul className="mt-3 flex flex-wrap gap-1.5 border-t border-border/60 pt-3">
+          {insight.leads!.map((lead) => (
+            <li key={lead.id}>
+              <Link
+                href={`/leads/${lead.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground transition-colors hover:border-gold/50 hover:text-gold"
+              >
+                {lead.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
