@@ -35,9 +35,15 @@ cp .env.local.example .env.local
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+GROQ_API_KEY=your-groq-api-key
 ```
 
 `.env.local` is gitignored — never commit real keys.
+
+The **AI Assistant** (chat panel in the top bar) needs `GROQ_API_KEY`. Get a
+free key at [console.groq.com/keys](https://console.groq.com/keys) — no card
+required. Without it, the assistant button still shows but replies with a
+"not configured" message instead of erroring the whole app.
 
 ## 3. Run the database migrations + seed data
 

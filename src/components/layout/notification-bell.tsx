@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Bell, CheckCircle2, OctagonAlert } from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2, OctagonAlert, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
 import { useIsAdmin } from "@/components/providers/profile-provider";
+import { useAssistant } from "@/components/providers/assistant-provider";
 import {
   computeNotifications,
   type NotificationActivity,
@@ -45,6 +46,7 @@ function showToast(
 export function NotificationBell() {
   const isAdmin = useIsAdmin();
   const router = useRouter();
+  const { openAssistant } = useAssistant();
   const [leads, setLeads] = useState<NotificationLead[]>([]);
   const [activities, setActivities] = useState<NotificationActivity[]>([]);
   const [open, setOpen] = useState(false);
@@ -181,13 +183,28 @@ export function NotificationBell() {
           </ul>
         )}
 
-        <Link
-          href="/reports?tab=full-analysis"
-          onClick={() => setOpen(false)}
-          className="block text-center text-xs text-gold hover:underline"
-        >
-          View full analysis report
-        </Link>
+        <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
+          <Link
+            href="/reports?tab=full-analysis"
+            onClick={() => setOpen(false)}
+            className="text-xs text-gold hover:underline"
+          >
+            View full analysis report
+          </Link>
+          {totalCount > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                openAssistant("Summarize what needs my attention right now and what to do about it.");
+              }}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Sparkles className="size-3" />
+              Ask AI
+            </button>
+          )}
+        </div>
       </PopoverContent>
     </Popover>
   );

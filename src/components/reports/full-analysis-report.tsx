@@ -10,6 +10,7 @@ import {
   Info,
   Loader2,
   OctagonAlert,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -31,6 +32,7 @@ import { useProfile } from "@/components/providers/profile-provider";
 import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
 import { computeFullAnalysis, type ActivitySummary, type EvidenceLeadId, type FullAnalysisInsight } from "@/lib/full-analysis";
 import { generateFullAnalysisReport } from "@/lib/full-analysis-report";
+import { useAssistant } from "@/components/providers/assistant-provider";
 import { WON_STATUS_KEY, LOST_STATUS_KEY } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -57,6 +59,7 @@ export function FullAnalysisReport({
   const statusLabels = useStatusLabels();
   const stages = usePipelineStages();
   const profile = useProfile();
+  const { openAssistant } = useAssistant();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const analysis = useMemo(
@@ -109,10 +112,24 @@ export function FullAnalysisReport({
           Every lead, sales manager, project, and source — rolled into one premium,
           shareable summary with data-driven suggestions on where to focus next.
         </p>
-        <Button size="sm" onClick={handleGeneratePdf} disabled={isGenerating}>
-          {isGenerating ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}
-          Generate PDF
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              openAssistant(
+                "Summarize the current Full Analysis insights and tell me what to prioritize this week."
+              )
+            }
+          >
+            <Sparkles className="size-4" />
+            Ask AI
+          </Button>
+          <Button size="sm" onClick={handleGeneratePdf} disabled={isGenerating}>
+            {isGenerating ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}
+            Generate PDF
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
