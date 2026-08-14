@@ -3,6 +3,7 @@ import "server-only";
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const DEFAULT_MODEL = "llama-3.3-70b-versatile";
 const MAX_TOOL_ITERATIONS = 5;
+const MAX_RETRIES_PER_CALL = 2;
 
 export type GroqToolCall = {
   id: string;
@@ -25,6 +26,64 @@ export type ToolDefinition = {
 };
 
 export type ToolExecutor = (args: Record<string, unknown>) => Promise<unknown> | unknown;
+
+class ToolUseFailedError extends Error {}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * One completions call, with retries for Groq's `tool_use_failed` error — a
+ * documented, purely-stochastic reliability quirk in Groq's function-calling
+ * (the model occasionally emits malformed call arguments; regenerating the
+ * same request usually succeeds) rather than anything wrong with the request
+ * itself, so a same-input retry is the correct fix rather than a bug to chase.
+ */
+async function callGroqOnce(
+  apiKey: string,
+  conversation: ChatMessage[],
+  toolSchema: { type: "function"; function: { name: string; description: string; parameters: Record<string, unknown> } }[]
+): Promise<{ content: string | null; tool_calls?: GroqToolCall[] }> {
+  for (let attempt = 0; attempt <= MAX_RETRIES_PER_CALL; attempt++) {
+    const res = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || DEFAULT_MODEL,
+        messages: conversation,
+        tools: toolSchema,
+        tool_choice: "auto",
+        temperature: 0.3,
+        max_tokens: 1024,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const message = data.choices?.[0]?.message;
+      if (!message) throw new Error("Groq API returned no message.");
+      return message;
+    }
+
+    const body = await res.text().catch(() => "");
+    const isToolUseFailed = res.status === 400 && body.includes("tool_use_failed");
+    if (isToolUseFailed && attempt < MAX_RETRIES_PER_CALL) {
+      await sleep(250 * (attempt + 1));
+      continue;
+    }
+    if (isToolUseFailed) {
+      throw new ToolUseFailedError(
+        "The assistant had trouble forming a request for that — try rephrasing, or ask something more specific."
+      );
+    }
+    throw new Error(`Groq API error (${res.status}): ${body.slice(0, 300)}`);
+  }
+  throw new ToolUseFailedError("The assistant had trouble forming a request for that — try rephrasing.");
+}
 
 /**
  * Runs the Groq chat-completions tool-calling loop to a final text answer.
@@ -52,30 +111,7 @@ export async function runGroqAssistant({
   }));
 
   for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
-    const res = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: process.env.GROQ_MODEL || DEFAULT_MODEL,
-        messages: conversation,
-        tools: toolSchema,
-        tool_choice: "auto",
-        temperature: 0.3,
-        max_tokens: 1024,
-      }),
-    });
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new Error(`Groq API error (${res.status}): ${body.slice(0, 300)}`);
-    }
-
-    const data = await res.json();
-    const message = data.choices?.[0]?.message;
-    if (!message) throw new Error("Groq API returned no message.");
+    const message = await callGroqOnce(apiKey, conversation, toolSchema);
 
     const toolCalls: GroqToolCall[] | undefined = message.tool_calls;
     if (!toolCalls || toolCalls.length === 0) {
