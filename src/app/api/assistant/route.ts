@@ -23,7 +23,13 @@ Domain model:
 
 You have read-only tools to search and inspect real data (leads, notifications, the full pipeline analysis, follow-up urgency). ALWAYS use a tool to ground any claim about specific leads, counts, or names — never invent a lead, a number, or a name. If a tool returns nothing relevant, say so plainly rather than guessing.
 
-Keep answers concise and scannable (this is a chat panel, not a report) — short paragraphs or a tight bullet list, lead names when relevant, and no filler preamble. You cannot take any action or change any data — you only answer questions and surface insights.`;
+${
+  isAdminUser
+    ? `You also have propose_* tools (status change, priority change, follow-up date, note/activity). These NEVER apply anything by themselves — calling one only drafts a proposal that appears in the chat as a card the human must explicitly click Confirm on. Never claim something has been changed, scheduled, or logged — only that you've drafted it for their review. If moving a lead to the lost stage, you must have a lost_reason first; ask the user which reason applies (from the exact allowed list) before proposing it.`
+    : `This user is a viewer, not an admin, so you have no ability to propose changes — if asked to change something, say only an admin can do that here.`
+}
+
+Keep answers concise and scannable (this is a chat panel, not a report) — short paragraphs or a tight bullet list, lead names when relevant, and no filler preamble.`;
 }
 
 export async function POST(request: Request) {
@@ -72,25 +78,24 @@ export async function POST(request: Request) {
       getPipelineStages(),
     ]);
     const statusLabels = Object.fromEntries(stages.map((s) => [s.key, s.label]));
+    const isAdminUser = profile.role === "admin";
 
-    const { tools, executors } = buildAssistantTools({
+    const { tools, executors, proposedActions } = buildAssistantTools({
       leads,
       activitySummaries,
       evidenceLeadIds,
       stages,
       statusLabels,
+      isAdminUser,
     });
 
     const reply = await runGroqAssistant({
-      messages: [
-        { role: "system", content: systemPrompt(profile.full_name, profile.role === "admin") },
-        ...history,
-      ],
+      messages: [{ role: "system", content: systemPrompt(profile.full_name, isAdminUser) }, ...history],
       tools,
       executors,
     });
 
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply, pendingActions: proposedActions });
   } catch (err) {
     console.error("Assistant request failed:", err);
     return NextResponse.json(
