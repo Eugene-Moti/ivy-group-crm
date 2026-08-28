@@ -5,11 +5,14 @@ const ICON_PATH = "/logo-icon.png";
 
 export type ImageAsset = { dataUrl: string; width: number; height: number };
 
+// Navy-charcoal + gold, matching src/app/globals.css's --ink/--ivy-900/
+// --ivy-800/--gold tokens (which jsPDF can't read directly — hence this
+// hand-kept RGB mirror; keep both in lockstep on any future palette change).
 export const IVY_BRAND = {
-  ink: [11, 31, 22] as [number, number, number],
-  ivy900: [15, 42, 29] as [number, number, number],
-  ivy800: [22, 56, 42] as [number, number, number],
-  gold: [201, 162, 75] as [number, number, number],
+  ink: [20, 22, 28] as [number, number, number],
+  ivy900: [29, 32, 41] as [number, number, number],
+  ivy800: [44, 48, 56] as [number, number, number],
+  gold: [201, 165, 74] as [number, number, number],
   muted: [120, 120, 120] as [number, number, number],
 };
 

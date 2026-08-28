@@ -47,45 +47,66 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Ivy brand palette, exposed as first-class Tailwind colors */
+  /* Ivy brand palette, exposed as first-class Tailwind colors. Same names
+     as before the rebrand — every bg-gold/text-ink/bg-mist/bg-ivy-* call
+     site across the app keeps working unchanged, only the values moved
+     from green to navy-charcoal + gold (matching the Marketing Command
+     Center's palette — see app/globals.css there). --ivy-950..100 is a
+     new fuller scale (the old palette only had 900/800/700); ivy-600
+     through ivy-100 are additions, not replacements. */
   --color-ink: var(--ink);
+  --color-ivy-950: var(--ivy-950);
   --color-ivy-900: var(--ivy-900);
   --color-ivy-800: var(--ivy-800);
   --color-ivy-700: var(--ivy-700);
+  --color-ivy-600: var(--ivy-600);
+  --color-ivy-500: var(--ivy-500);
+  --color-ivy-400: var(--ivy-400);
+  --color-ivy-300: var(--ivy-300);
+  --color-ivy-100: var(--ivy-100);
   --color-gold: var(--gold);
   --color-gold-soft: var(--gold-soft);
   --color-mist: var(--mist);
+  --color-success: var(--success);
 }
 
 :root {
-  /* Ivy brand tokens (constant across themes) */
-  --ink: #0b1f16;
-  --ivy-900: #0f2a1d;
-  --ivy-800: #16382a;
-  --ivy-700: #1e4d3a;
-  --gold: #c9a24b;
-  --gold-soft: #e7d3a1;
-  --mist: #f1f6f3;
+  /* Ivy brand tokens (constant across themes) — navy-charcoal + gold, no
+     green. Ported from the Marketing Command Center's app/globals.css. */
+  --ink: #14161c;
+  --ivy-950: #14161c;
+  --ivy-900: #1d2029;
+  --ivy-800: #2c3038;
+  --ivy-700: #454a54;
+  --ivy-600: #5a606b;
+  --ivy-500: #767c87;
+  --ivy-400: #9aa0a9;
+  --ivy-300: #c3c7cd;
+  --ivy-100: #eef0f2;
+  --gold: #c9a54a;
+  --gold-soft: #dabb6f;
+  --mist: #eceef1;
+  --success: #16a34a;
   --radius: 0.75rem;
 
   /* Light theme */
   --background: var(--mist);
-  --foreground: #10261a;
+  --foreground: #111827;
   --card: #ffffff;
-  --card-foreground: #10261a;
+  --card-foreground: #111827;
   --popover: #ffffff;
-  --popover-foreground: #10261a;
+  --popover-foreground: #111827;
   --primary: var(--gold);
   --primary-foreground: var(--ink);
-  --secondary: #e4ede8;
-  --secondary-foreground: #10261a;
-  --muted: #e4ede8;
-  --muted-foreground: #55695f;
-  --accent: #e4ede8;
-  --accent-foreground: #10261a;
-  --destructive: #c9382f;
-  --border: #d8e3dc;
-  --input: #d8e3dc;
+  --secondary: #e5e7eb;
+  --secondary-foreground: #111827;
+  --muted: #e5e7eb;
+  --muted-foreground: #6b7280;
+  --accent: #e5e7eb;
+  --accent-foreground: #111827;
+  --destructive: #dc2626;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
   --ring: var(--gold);
   --chart-1: var(--gold);
   --chart-2: #4a90c2;
@@ -94,34 +115,37 @@
   --chart-5: #9b7fd1;
 
   /* Sidebar stays brand-dark in both themes */
-  --sidebar: var(--ivy-900);
+  --sidebar: var(--ivy-950);
   --sidebar-foreground: var(--mist);
   --sidebar-primary: var(--gold);
   --sidebar-primary-foreground: var(--ink);
-  --sidebar-accent: var(--ivy-800);
+  --sidebar-accent: var(--ivy-900);
   --sidebar-accent-foreground: var(--mist);
-  --sidebar-border: rgb(30 77 58 / 60%);
+  --sidebar-border: rgb(255 255 255 / 8%);
   --sidebar-ring: var(--gold);
 }
 
 .dark {
-  --background: var(--ink);
-  --foreground: var(--mist);
+  /* Warm near-black canvas, distinct from the cooler navy --ivy-950 used
+     for chrome — same split the Marketing Command Center's dark mode
+     uses, rather than reusing --ink for both. */
+  --background: #0c0a08;
+  --foreground: #f2ede1;
   --card: var(--ivy-800);
-  --card-foreground: var(--mist);
+  --card-foreground: #f2ede1;
   --popover: var(--ivy-800);
-  --popover-foreground: var(--mist);
+  --popover-foreground: #f2ede1;
   --primary: var(--gold);
   --primary-foreground: var(--ink);
   --secondary: var(--ivy-700);
-  --secondary-foreground: var(--mist);
+  --secondary-foreground: #f2ede1;
   --muted: var(--ivy-800);
-  --muted-foreground: #9db3a8;
+  --muted-foreground: #9ca3af;
   --accent: var(--ivy-700);
-  --accent-foreground: var(--mist);
+  --accent-foreground: #f2ede1;
   --destructive: #e4574c;
-  --border: rgb(30 77 58 / 60%);
-  --input: rgb(30 77 58 / 50%);
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.08);
   --ring: var(--gold);
   --chart-1: var(--gold);
   --chart-2: #4a90c2;
@@ -129,13 +153,13 @@
   --chart-4: #e08a3c;
   --chart-5: #9b7fd1;
 
-  --sidebar: var(--ivy-900);
+  --sidebar: var(--ivy-950);
   --sidebar-foreground: var(--mist);
   --sidebar-primary: var(--gold);
   --sidebar-primary-foreground: var(--ink);
-  --sidebar-accent: var(--ivy-800);
+  --sidebar-accent: var(--ivy-900);
   --sidebar-accent-foreground: var(--mist);
-  --sidebar-border: rgb(30 77 58 / 60%);
+  --sidebar-border: rgb(255 255 255 / 8%);
   --sidebar-ring: var(--gold);
 }
 

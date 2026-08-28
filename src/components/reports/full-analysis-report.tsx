@@ -43,7 +43,7 @@ const SEVERITY_META: Record<
 > = {
   critical: { icon: OctagonAlert, className: "border-l-destructive text-destructive" },
   warning: { icon: AlertTriangle, className: "border-l-gold text-gold" },
-  positive: { icon: CheckCircle2, className: "border-l-[#3A8C5C] text-[#3A8C5C]" },
+  positive: { icon: CheckCircle2, className: "border-l-success text-success" },
   info: { icon: Info, className: "border-l-ivy-800 text-foreground" },
 };
 

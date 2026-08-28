@@ -212,7 +212,7 @@ export function AssistantPanel({
                   <div
                     className={cn(
                       "flex size-7 shrink-0 items-center justify-center rounded-full",
-                      m.role === "user" ? "bg-ivy-800 text-white" : "bg-muted text-foreground"
+                      m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                     )}
                   >
                     {m.role === "user" ? <User className="size-3.5" /> : <Bot className="size-3.5" />}
@@ -221,7 +221,7 @@ export function AssistantPanel({
                     className={cn(
                       "max-w-[80%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap",
                       m.role === "user"
-                        ? "bg-ivy-800 text-white"
+                        ? "bg-primary text-primary-foreground"
                         : "border border-border bg-card text-foreground"
                     )}
                   >
@@ -261,7 +261,7 @@ export function AssistantPanel({
                           </p>
                         )}
                         {action.status === "done" && (
-                          <p className="mt-1.5 text-xs font-medium text-[#3A8C5C]">Applied.</p>
+                          <p className="mt-1.5 text-xs font-medium text-success">Applied.</p>
                         )}
                         {action.status === "cancelled" && (
                           <p className="mt-1.5 text-xs text-muted-foreground">Cancelled.</p>

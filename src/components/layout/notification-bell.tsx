@@ -152,7 +152,7 @@ export function NotificationBell() {
 
         {totalCount === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <CheckCircle2 className="size-6 text-[#3A8C5C]" />
+            <CheckCircle2 className="size-6 text-success" />
             <p className="text-sm text-muted-foreground">All caught up. Nothing urgent right now.</p>
           </div>
         ) : (

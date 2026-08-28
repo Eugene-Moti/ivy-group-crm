@@ -104,7 +104,7 @@ export function ConversionTimelineReport({
                     <Badge
                       className={
                         row.outcome === "Won"
-                          ? "bg-[#3A8C5C]/15 text-[#3A8C5C] border-[#3A8C5C]/30"
+                          ? "bg-success/15 text-success border-success/30"
                           : "bg-destructive/15 text-destructive border-destructive/30"
                       }
                     >
