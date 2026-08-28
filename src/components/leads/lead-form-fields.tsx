@@ -9,7 +9,7 @@ import {
   type UseFormSetValue,
   type UseFormWatch,
 } from "react-hook-form";
-import { LEAD_PRIORITIES, LEAD_TYPES, LOST_REASONS, LOST_STATUS_KEY } from "@/lib/constants";
+import { LEAD_PRIORITIES, LEAD_TYPES, LOST_REASONS, LOST_STATUS_KEY, WON_STATUS_KEY } from "@/lib/constants";
 import { usePipelineStages } from "@/components/providers/status-labels-provider";
 import { fullName } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
@@ -93,6 +93,14 @@ export function LeadFormFields({
     currentLeadId
   );
   const isLost = watch("status") === LOST_STATUS_KEY;
+  /**
+   * An agent isn't the customer, so "Won" never applies to their own card —
+   * a completed deal belongs on the client lead created via "Add client
+   * details". Hidden from the options (not just blocked on submit) so the
+   * wrong choice is never on offer in the first place.
+   */
+  const isAgentLead = watch("lead_type") === "Real Estate Agent";
+  const availableStages = stages.filter((s) => !(isAgentLead && s.key === WON_STATUS_KEY));
 
   return (
     <FieldGroup>
@@ -343,13 +351,19 @@ export function LeadFormFields({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {stages.map((s) => (
+                    {availableStages.map((s) => (
                       <SelectItem key={s.key} value={s.key}>
                         {s.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {isAgentLead && (
+                  <FieldDescription>
+                    Agents can&apos;t be marked Won — use &quot;Add client details&quot; on the lead&apos;s page to convert their referral into a client lead first.
+                  </FieldDescription>
+                )}
+                {errors.status && <FieldError>{errors.status.message}</FieldError>}
               </FieldContent>
             </Field>
           )}

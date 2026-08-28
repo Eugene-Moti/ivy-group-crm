@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LEAD_PRIORITIES, LEAD_TYPES, LOST_STATUS_KEY } from "@/lib/constants";
+import { LEAD_PRIORITIES, LEAD_TYPES, LOST_STATUS_KEY, WON_STATUS_KEY } from "@/lib/constants";
 
 function isBlank(value: string | undefined): boolean {
   return !value || value.trim() === "";
@@ -66,6 +66,10 @@ export const leadFormSchema = z
   .refine((data) => data.status !== LOST_STATUS_KEY || !isBlank(data.lost_reason), {
     message: "Select why this lead was lost.",
     path: ["lost_reason"],
+  })
+  .refine((data) => !(data.lead_type === "Real Estate Agent" && data.status === WON_STATUS_KEY), {
+    message: "An agent can't be marked Won — use \"Add client details\" to convert their referral first.",
+    path: ["status"],
   });
 
 export type LeadFormValues = z.infer<typeof leadFormSchema>;

@@ -1,5 +1,5 @@
 import { differenceInCalendarDays, endOfDay } from "date-fns";
-import { FOLLOW_UP_EXCLUDED_STATUS_KEYS, LOST_STATUS_KEY } from "@/lib/constants";
+import { FOLLOW_UP_EXCLUDED_STATUS_KEYS, LOST_STATUS_KEY, WON_STATUS_KEY } from "@/lib/constants";
 import { findAllDuplicateClusters } from "@/lib/duplicate-leads";
 
 const STALE_OPEN_DAYS = 30;
@@ -16,6 +16,7 @@ export type NotificationLead = {
   email: string | null;
   status: string;
   priority: string;
+  lead_type: string;
   next_follow_up_at: string | null;
   created_at: string;
   updated_at: string;
@@ -57,6 +58,21 @@ export function computeNotifications(
   }
 
   const items: NotificationItem[] = [];
+
+  // An agent's own card should never be Won — it means a completed deal has
+  // no client record at all (see the leads_agent_not_closed_won constraint).
+  const agentsMarkedWon = leads.filter(
+    (l) => l.lead_type === "Real Estate Agent" && l.status === WON_STATUS_KEY
+  );
+  if (agentsMarkedWon.length > 0) {
+    items.push({
+      id: "agents-marked-won",
+      severity: "critical",
+      title: `${agentsMarkedWon.length} agent${agentsMarkedWon.length === 1 ? "" : "s"} marked Won without a client record`,
+      detail: "An agent isn't the client — convert their referral with \"Add client details\" instead.",
+      href: "/reports?tab=agent-won-audit",
+    });
+  }
 
   const overdue = openLeads.filter(
     (l) => l.next_follow_up_at && new Date(l.next_follow_up_at) < now

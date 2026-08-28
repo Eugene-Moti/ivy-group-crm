@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/components/providers/profile-provider";
 import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
-import { LOST_STATUS_KEY, type LeadStatus } from "@/lib/constants";
+import { LOST_STATUS_KEY, WON_STATUS_KEY, type LeadStatus } from "@/lib/constants";
 import { fullName } from "@/lib/format";
 import { KanbanColumn } from "@/components/leads/kanban/kanban-column";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
@@ -146,6 +146,13 @@ export function LeadsKanban({
     const newStatus = over.id as LeadStatus;
     const lead = leads.find((l) => l.id === leadId);
     if (!lead || lead.status === newStatus) return;
+
+    if (newStatus === WON_STATUS_KEY && lead.lead_type === "Real Estate Agent") {
+      toast.error("Agents can't be marked Won", {
+        description: `${fullName(lead)} is a referral source, not the client — use "Add client details" on their lead page to convert this into a client deal first.`,
+      });
+      return;
+    }
 
     if (newStatus === LOST_STATUS_KEY) {
       // Card stays put — nothing is optimistically moved — until a reason is confirmed.

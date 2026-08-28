@@ -6,7 +6,7 @@ import { computeNotifications } from "@/lib/notifications";
 import { groupFollowUps } from "@/lib/follow-ups";
 import { fullName } from "@/lib/format";
 import { LOGGABLE_ACTIVITY_TYPES } from "@/lib/activity";
-import { LEAD_PRIORITIES, LOST_REASONS, LOST_STATUS_KEY, type ActivityType } from "@/lib/constants";
+import { LEAD_PRIORITIES, LOST_REASONS, LOST_STATUS_KEY, WON_STATUS_KEY, type ActivityType } from "@/lib/constants";
 import type { ProposedAction } from "@/lib/assistant-actions";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { PipelineStage } from "@/lib/queries/settings";
@@ -257,6 +257,13 @@ export function buildAssistantTools(ctx: {
         const stage = newStatus ? stages.find((s) => s.key === newStatus) : undefined;
         if (!stage) {
           return { error: `Invalid new_status. Must be one of: ${stages.map((s) => s.key).join(", ")}` };
+        }
+
+        if (newStatus === WON_STATUS_KEY && lead.lead_type === "Real Estate Agent") {
+          return {
+            error:
+              "This lead is a Real Estate Agent, not a client — an agent's own card can never be marked Won. Use propose_status_change is not the right tool here; the human needs to use \"Add client details\" on the agent's lead page first to create a client lead for whoever they referred, then that client lead can be proposed as Won.",
+          };
         }
 
         let lostReason: { reason: string; note: string } | undefined;

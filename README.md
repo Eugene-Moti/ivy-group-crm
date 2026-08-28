@@ -109,7 +109,14 @@ these in order:
    agents, and updates the migration-13 trigger to do the same going forward, so a
    resolved agent's stale follow-up date stops duplicating their referred client's in
    Follow-ups and the notification bell. Depends on migration 13 above already being applied.
-16. [`supabase/seed.sql`](supabase/seed.sql) —
+16. [`supabase/migrations/20260809000000_block_agent_closed_won.sql`](supabase/migrations/20260809000000_block_agent_closed_won.sql) —
+   adds a `not valid` check constraint blocking any Real Estate Agent lead from being set
+   to Closed - Won directly (a completed deal belongs on the client lead created via "Add
+   client details", never the agent's own card) — the backstop behind the same rule already
+   enforced in the Kanban board, the lead form, and the AI Assistant's propose_status_change
+   tool. `not valid` so it doesn't fail on leads that already violate it; find those via
+   Reports > Agent Won audit and fix each one by hand.
+17. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

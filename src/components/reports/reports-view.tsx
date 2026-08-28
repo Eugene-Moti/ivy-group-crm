@@ -12,6 +12,7 @@ import { ReferrerPerformanceReport } from "@/components/reports/referrer-perform
 import { PipelineVelocityReport } from "@/components/reports/pipeline-velocity-report";
 import { ConversionTimelineReport } from "@/components/reports/conversion-timeline-report";
 import { DuplicateLeadsReport } from "@/components/reports/duplicate-leads-report";
+import { AgentWonAuditReport } from "@/components/reports/agent-won-audit-report";
 import { MarketingReportView } from "@/components/reports/marketing-report";
 import { LostLeadsReport } from "@/components/reports/lost-leads-report";
 import { FullAnalysisReport } from "@/components/reports/full-analysis-report";
@@ -33,6 +34,7 @@ const VALID_TABS = [
   "velocity",
   "conversion-timeline",
   "duplicates",
+  "agent-won-audit",
   "marketing",
   "lost-leads",
   "full-analysis",
@@ -91,6 +93,7 @@ export function ReportsView({
           <TabsTrigger value="velocity">Pipeline velocity</TabsTrigger>
           <TabsTrigger value="conversion-timeline">Conversion timeline</TabsTrigger>
           <TabsTrigger value="duplicates">Duplicates</TabsTrigger>
+          <TabsTrigger value="agent-won-audit">Agent Won audit</TabsTrigger>
           <TabsTrigger value="marketing">Marketing</TabsTrigger>
           <TabsTrigger value="lost-leads">Lost leads</TabsTrigger>
           <TabsTrigger value="full-analysis">Full analysis</TabsTrigger>
@@ -128,6 +131,9 @@ export function ReportsView({
         </TabsContent>
         <TabsContent value="duplicates" className="pt-4">
           <DuplicateLeadsReport leads={leads} />
+        </TabsContent>
+        <TabsContent value="agent-won-audit" className="pt-4">
+          <AgentWonAuditReport leads={leads} />
         </TabsContent>
         <TabsContent value="marketing" className="pt-4">
           <MarketingReportView leads={leads} />
