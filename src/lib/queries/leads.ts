@@ -12,7 +12,8 @@ export type LeadWithRelations = LeadRow & {
   referred_by: { id: string; first_name: string; last_name: string } | null;
 };
 
-const LEAD_SELECT =
+/** Exported for callers that need every lead via a client this module doesn't construct itself — e.g. the digest cron route, which runs with no request/cookies and uses the service-role admin client instead. */
+export const LEAD_SELECT =
   "*, lead_source:lead_sources(id, name), property_type:property_types(id, name, location), assigned_agent:sales_agents!leads_assigned_to_fkey(id, name, phone, email), referred_by:leads!referred_by_lead_id(id, first_name, last_name)";
 
 /**

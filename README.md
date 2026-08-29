@@ -36,6 +36,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 GROQ_API_KEY=your-groq-api-key
+RESEND_API_KEY=your-resend-api-key
+CRON_SECRET=your-random-secret
 ```
 
 `.env.local` is gitignored — never commit real keys.
@@ -44,6 +46,21 @@ The **AI Assistant** (chat panel in the top bar) needs `GROQ_API_KEY`. Get a
 free key at [console.groq.com/keys](https://console.groq.com/keys) — no card
 required. Without it, the assistant button still shows but replies with a
 "not configured" message instead of erroring the whole app.
+
+The **daily AI briefing email** (sent to every admin each morning) needs
+`RESEND_API_KEY` (free at [resend.com/api-keys](https://resend.com/api-keys),
+~3,000 emails/month, no card) and `CRON_SECRET` (any random string — set the
+*same* value in Vercel's Environment Variables, since Vercel Cron
+automatically sends it as a Bearer token when invoking `/api/cron/digest`).
+By default the email sends from Resend's shared sandbox address, which can
+only deliver to the email on your own Resend account — verify a sending
+domain in Resend and set `DIGEST_FROM_EMAIL` once you want it to actually
+reach your admins' inboxes. The cron schedule lives in
+[`vercel.json`](vercel.json) (`0 6 * * *`, i.e. 06:00 UTC / 09:00 EAT daily)
+and only runs once deployed to Vercel — there's no local equivalent, though
+you can trigger it manually with
+`curl -H "Authorization: Bearer $CRON_SECRET" https://your-deployment.vercel.app/api/cron/digest`
+to test it.
 
 ## 3. Run the database migrations + seed data
 
