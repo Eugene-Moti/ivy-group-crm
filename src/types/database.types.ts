@@ -215,6 +215,10 @@ export interface Database {
           referred_by_lead_id: string | null;
           lost_reason: string | null;
           lost_reason_note: string | null;
+          deal_value: number | null;
+          commission_amount: number | null;
+          referral_fee_amount: number | null;
+          referral_fee_paid: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -241,6 +245,10 @@ export interface Database {
           referred_by_lead_id?: string | null;
           lost_reason?: string | null;
           lost_reason_note?: string | null;
+          deal_value?: number | null;
+          commission_amount?: number | null;
+          referral_fee_amount?: number | null;
+          referral_fee_paid?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -267,6 +275,10 @@ export interface Database {
           referred_by_lead_id?: string | null;
           lost_reason?: string | null;
           lost_reason_note?: string | null;
+          deal_value?: number | null;
+          commission_amount?: number | null;
+          referral_fee_amount?: number | null;
+          referral_fee_paid?: boolean;
           created_at?: string;
           updated_at?: string;
         };

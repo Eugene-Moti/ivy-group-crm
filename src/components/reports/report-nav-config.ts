@@ -12,6 +12,7 @@ import {
   TrendingDown,
   TrendingUp,
   Users,
+  Wallet,
   Workflow,
   type LucideIcon,
 } from "lucide-react";
@@ -53,6 +54,19 @@ export const REPORT_GROUPS: ReportGroup[] = [
         description:
           "Offer/negotiating counts, site visits booked, source performance, and manager breakdowns — redacted for sharing outside the sales team.",
         icon: Megaphone,
+      },
+    ],
+  },
+  {
+    label: "Revenue",
+    icon: Wallet,
+    reports: [
+      {
+        id: "revenue",
+        label: "Revenue & commissions",
+        description:
+          "Deal value, agency commission, and referral fees owed/paid on Won deals, by sales manager.",
+        icon: Wallet,
       },
     ],
   },

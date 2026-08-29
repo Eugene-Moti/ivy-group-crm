@@ -41,6 +41,10 @@ function summarizeLead(lead: LeadWithRelations, statusLabels: Record<string, str
     created_at: lead.created_at,
     lost_reason: lead.lost_reason,
     referred_by: lead.referred_by ? fullName(lead.referred_by) : null,
+    deal_value: lead.deal_value,
+    commission_amount: lead.commission_amount,
+    referral_fee_amount: lead.referral_fee_amount,
+    referral_fee_paid: lead.referral_fee_paid,
   };
 }
 

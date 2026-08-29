@@ -52,6 +52,19 @@ export const leadFormSchema = z
     notes: z.string().optional(),
     lost_reason: z.string().optional(),
     lost_reason_note: z.string().optional(),
+    deal_value: z
+      .string()
+      .optional()
+      .refine((v) => isBlank(v) || !Number.isNaN(Number(v)), "Enter a valid number."),
+    commission_amount: z
+      .string()
+      .optional()
+      .refine((v) => isBlank(v) || !Number.isNaN(Number(v)), "Enter a valid number."),
+    referral_fee_amount: z
+      .string()
+      .optional()
+      .refine((v) => isBlank(v) || !Number.isNaN(Number(v)), "Enter a valid number."),
+    referral_fee_paid: z.boolean().optional(),
   })
   .refine(
     (data) => {

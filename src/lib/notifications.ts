@@ -18,6 +18,7 @@ export type NotificationLead = {
   priority: string;
   lead_type: string;
   next_follow_up_at: string | null;
+  deal_value: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -71,6 +72,19 @@ export function computeNotifications(
       title: `${agentsMarkedWon.length} agent${agentsMarkedWon.length === 1 ? "" : "s"} marked Won without a client record`,
       detail: "An agent isn't the client — convert their referral with \"Add client details\" instead.",
       href: "/reports?tab=agent-won-audit",
+    });
+  }
+
+  const wonMissingDealValue = leads.filter(
+    (l) => l.status === WON_STATUS_KEY && l.deal_value == null
+  );
+  if (wonMissingDealValue.length > 0) {
+    items.push({
+      id: "won-missing-deal-value",
+      severity: "warning",
+      title: `${wonMissingDealValue.length} Won lead${wonMissingDealValue.length === 1 ? "" : "s"} missing a deal value`,
+      detail: "Revenue reporting undercounts until the actual closing figures are filled in.",
+      href: "/reports?tab=revenue",
     });
   }
 

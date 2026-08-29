@@ -21,6 +21,7 @@ import { PipelineVelocityReport } from "@/components/reports/pipeline-velocity-r
 import { ConversionTimelineReport } from "@/components/reports/conversion-timeline-report";
 import { DuplicateLeadsReport } from "@/components/reports/duplicate-leads-report";
 import { AgentWonAuditReport } from "@/components/reports/agent-won-audit-report";
+import { RevenueReport } from "@/components/reports/revenue-report";
 import { MarketingReportView } from "@/components/reports/marketing-report";
 import { LostLeadsReport } from "@/components/reports/lost-leads-report";
 import { FullAnalysisReport } from "@/components/reports/full-analysis-report";
@@ -100,6 +101,8 @@ export function ReportsView({
         return <DuplicateLeadsReport leads={leads} />;
       case "agent-won-audit":
         return <AgentWonAuditReport leads={leads} />;
+      case "revenue":
+        return <RevenueReport leads={leads} />;
       case "marketing":
         return <MarketingReportView leads={leads} />;
       case "lost-leads":

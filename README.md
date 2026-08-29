@@ -126,7 +126,13 @@ these in order:
    paperwork (contracts, ID copies, offer letters, proof of payment, title deeds) — the
    same pattern as `lead_evidence`/`lead-evidence`, kept as a separate table so uploading a
    document doesn't quietly count toward the "Won leads with evidence" reporting metric.
-19. [`supabase/seed.sql`](supabase/seed.sql) —
+19. [`supabase/migrations/20260812000000_deal_commission_tracking.sql`](supabase/migrations/20260812000000_deal_commission_tracking.sql) —
+   adds `deal_value`, `commission_amount`, `referral_fee_amount`, and `referral_fee_paid`
+   to `leads` — the actual closing figures a Won deal produces, separate from the
+   budget_min/budget_max range captured going in. All nullable and never required to mark
+   a lead Won; powers the new Reports > Revenue & commissions tab and a notification-bell
+   nudge for Won leads still missing a deal value.
+20. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
