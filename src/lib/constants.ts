@@ -92,6 +92,17 @@ export function getLostReasons(leadTypeOrTypes: string | string[]): LostReason[]
   return ALL_LOST_REASONS;
 }
 
+/** The paperwork a deal produces — distinct from lead_evidence, which is dated proof of contact, not documents. */
+export const DOCUMENT_TYPES = [
+  "Contract",
+  "ID copy",
+  "Offer letter",
+  "Proof of payment",
+  "Title deed",
+  "Other",
+] as const;
+export type DocumentType = (typeof DOCUMENT_TYPES)[number];
+
 /** Hex colors for lead priority — used for badges and charts. */
 export const PRIORITY_COLORS: Record<LeadPriority, string> = {
   Hot: "#E4572E",

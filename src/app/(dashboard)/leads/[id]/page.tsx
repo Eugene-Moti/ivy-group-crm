@@ -9,6 +9,7 @@ import {
 } from "@/lib/queries/leads";
 import { getActivities } from "@/lib/queries/activities";
 import { getLeadEvidence } from "@/lib/queries/evidence";
+import { getLeadDocuments } from "@/lib/queries/documents";
 import { getCampaigns } from "@/lib/queries/settings";
 import { LeadDetail } from "@/components/leads/lead-detail";
 
@@ -19,7 +20,7 @@ export default async function LeadDetailPage({
 }) {
   const { id } = await params;
 
-  const [lead, activities, leadSources, propertyTypes, agents, agentLeads, evidence, campaigns] =
+  const [lead, activities, leadSources, propertyTypes, agents, agentLeads, evidence, documents, campaigns] =
     await Promise.all([
       getLead(id),
       getActivities(id),
@@ -28,6 +29,7 @@ export default async function LeadDetailPage({
       getAgents(),
       getAgentLeads(),
       getLeadEvidence(id),
+      getLeadDocuments(id),
       getCampaigns(),
     ]);
 
@@ -47,6 +49,7 @@ export default async function LeadDetailPage({
       campaigns={campaigns}
       referredLeads={referredLeads}
       evidence={evidence}
+      documents={documents}
     />
   );
 }

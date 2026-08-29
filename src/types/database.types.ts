@@ -408,6 +408,57 @@ export interface Database {
           },
         ];
       };
+      lead_documents: {
+        Row: {
+          id: string;
+          lead_id: string;
+          document_type: string;
+          note: string | null;
+          file_path: string;
+          file_name: string;
+          file_type: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          document_type: string;
+          note?: string | null;
+          file_path: string;
+          file_name: string;
+          file_type?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          lead_id?: string;
+          document_type?: string;
+          note?: string | null;
+          file_path?: string;
+          file_name?: string;
+          file_type?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lead_documents_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lead_documents_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       saved_queries: {
         Row: {
           id: string;

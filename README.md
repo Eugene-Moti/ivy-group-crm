@@ -121,7 +121,12 @@ these in order:
    reason lists for Direct Client vs Real Estate Agent leads). `not valid` — any agent lead
    already Closed - Lost today used the old client-oriented list, so it won't retroactively
    satisfy the new one; worth reassigning those by hand if you want a reason that fits.
-18. [`supabase/seed.sql`](supabase/seed.sql) —
+18. [`supabase/migrations/20260811000000_lead_documents.sql`](supabase/migrations/20260811000000_lead_documents.sql) —
+   adds a `lead_documents` table + private `lead-documents` storage bucket for actual
+   paperwork (contracts, ID copies, offer letters, proof of payment, title deeds) — the
+   same pattern as `lead_evidence`/`lead-evidence`, kept as a separate table so uploading a
+   document doesn't quietly count toward the "Won leads with evidence" reporting metric.
+19. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

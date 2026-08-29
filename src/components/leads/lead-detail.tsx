@@ -14,9 +14,12 @@ import { AddActivityForm } from "@/components/leads/add-activity-form";
 import { ActivityTimeline } from "@/components/leads/activity-timeline";
 import { EvidenceUploadForm } from "@/components/leads/evidence-upload-form";
 import { EvidenceTimeline } from "@/components/leads/evidence-timeline";
+import { DocumentUploadForm } from "@/components/leads/document-upload-form";
+import { DocumentList } from "@/components/leads/document-list";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivityWithAuthor } from "@/lib/queries/activities";
 import type { LeadEvidenceWithAuthor } from "@/lib/queries/evidence";
+import type { LeadDocumentWithAuthor } from "@/lib/queries/documents";
 
 type LeadOption = { id: string; name: string };
 type ProjectOption = { id: string; name: string; location: string | null };
@@ -33,6 +36,7 @@ export function LeadDetail({
   campaigns,
   referredLeads,
   evidence,
+  documents,
 }: {
   lead: LeadWithRelations;
   activities: ActivityWithAuthor[];
@@ -43,6 +47,7 @@ export function LeadDetail({
   campaigns: LeadOption[];
   referredLeads: LeadWithRelations[];
   evidence: LeadEvidenceWithAuthor[];
+  documents: LeadDocumentWithAuthor[];
 }) {
   const isAdmin = useIsAdmin();
   const [isEditing, setIsEditing] = useState(false);
@@ -115,6 +120,19 @@ export function LeadDetail({
           <EvidenceUploadForm leadId={lead.id} leadCreatedAt={lead.created_at} />
         )}
         <EvidenceTimeline evidence={evidence} isAdmin={isAdmin} />
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold tracking-tight text-muted-foreground">
+            Documents
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Contracts, ID copies, offer letters, and other paperwork for this deal.
+          </p>
+        </div>
+        {isAdmin && <DocumentUploadForm leadId={lead.id} />}
+        <DocumentList documents={documents} isAdmin={isAdmin} />
       </div>
 
       {lead.lead_type === "Real Estate Agent" && (
