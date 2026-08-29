@@ -6,7 +6,15 @@ import { computeNotifications } from "@/lib/notifications";
 import { groupFollowUps } from "@/lib/follow-ups";
 import { fullName } from "@/lib/format";
 import { LOGGABLE_ACTIVITY_TYPES } from "@/lib/activity";
-import { LEAD_PRIORITIES, LOST_REASONS, LOST_STATUS_KEY, WON_STATUS_KEY, type ActivityType } from "@/lib/constants";
+import {
+  AGENT_LOST_REASONS,
+  CLIENT_LOST_REASONS,
+  LEAD_PRIORITIES,
+  LOST_STATUS_KEY,
+  WON_STATUS_KEY,
+  getLostReasons,
+  type ActivityType,
+} from "@/lib/constants";
 import type { ProposedAction } from "@/lib/assistant-actions";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { PipelineStage } from "@/lib/queries/settings";
@@ -131,7 +139,7 @@ export function buildAssistantTools(ctx: {
             },
             lost_reason: {
               type: "string",
-              description: `Required only when new_status is "${LOST_STATUS_KEY}". One of: ${LOST_REASONS.join(", ")}`,
+              description: `Required only when new_status is "${LOST_STATUS_KEY}". The valid list depends on the lead's type (Direct Client vs Real Estate Agent) — check with get_lead_detail or search_leads first, or just try one and read the error for the exact list. Client reasons: ${CLIENT_LOST_REASONS.join(", ")}. Agent reasons: ${AGENT_LOST_REASONS.join(", ")}.`,
             },
             lost_reason_note: { type: "string", description: "Optional free-text detail on the lost reason" },
           },
@@ -268,11 +276,12 @@ export function buildAssistantTools(ctx: {
 
         let lostReason: { reason: string; note: string } | undefined;
         if (newStatus === LOST_STATUS_KEY) {
+          const validReasons = getLostReasons(lead.lead_type);
           const reason = typeof args.lost_reason === "string" ? args.lost_reason : null;
-          if (!reason || !(LOST_REASONS as readonly string[]).includes(reason)) {
+          if (!reason || !(validReasons as string[]).includes(reason)) {
             return {
-              error: "lost_reason is required when moving a lead to the lost stage.",
-              valid_lost_reasons: LOST_REASONS,
+              error: `lost_reason is required when moving a lead to the lost stage, and must match this lead's type (${lead.lead_type}).`,
+              valid_lost_reasons: validReasons,
             };
           }
           lostReason = { reason, note: typeof args.lost_reason_note === "string" ? args.lost_reason_note : "" };

@@ -9,7 +9,7 @@ import {
   type UseFormSetValue,
   type UseFormWatch,
 } from "react-hook-form";
-import { LEAD_PRIORITIES, LEAD_TYPES, LOST_REASONS, LOST_STATUS_KEY, WON_STATUS_KEY } from "@/lib/constants";
+import { LEAD_PRIORITIES, LEAD_TYPES, LOST_STATUS_KEY, WON_STATUS_KEY, getLostReasons } from "@/lib/constants";
 import { usePipelineStages } from "@/components/providers/status-labels-provider";
 import { fullName } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
@@ -418,7 +418,7 @@ export function LeadFormFields({
                       <SelectValue placeholder="Select a reason" />
                     </SelectTrigger>
                     <SelectContent>
-                      {LOST_REASONS.map((reason) => (
+                      {getLostReasons(watch("lead_type")).map((reason) => (
                         <SelectItem key={reason} value={reason}>
                           {reason}
                         </SelectItem>

@@ -192,6 +192,7 @@ export function LeadsKanban({
           open={!!pendingLostDrag}
           onOpenChange={(open) => !open && setPendingLostDrag(null)}
           leadName={fullName(pendingLostDrag)}
+          leadType={pendingLostDrag.lead_type}
           onConfirm={async (reason, note) => {
             await commitStatusChange(pendingLostDrag, LOST_STATUS_KEY, { reason, note });
             setPendingLostDrag(null);

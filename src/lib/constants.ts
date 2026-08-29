@@ -47,8 +47,14 @@ export const ACTIVITY_TYPES = [
 ] as const;
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];
 
-/** Why a lead was marked Closed - Lost — captured at the moment it happens, so losses become patterns instead of dead ends. */
-export const LOST_REASONS = [
+/**
+ * Why a lead was marked Closed - Lost — captured at the moment it happens,
+ * so losses become patterns instead of dead ends. Split by lead type: a
+ * client's deal falling through and an agent's referral relationship going
+ * cold are different failure modes, and the client-deal language ("budget
+ * mismatch", "financing fell through") never fit an agent anyway.
+ */
+export const CLIENT_LOST_REASONS = [
   "Budget mismatch",
   "Chose a competitor",
   "Unresponsive",
@@ -56,7 +62,35 @@ export const LOST_REASONS = [
   "Financing fell through",
   "Other",
 ] as const;
-export type LostReason = (typeof LOST_REASONS)[number];
+
+export const AGENT_LOST_REASONS = [
+  "Went unresponsive",
+  "Partnered with a competing agency",
+  "No referrals materialized",
+  "Other",
+] as const;
+
+export type LostReason =
+  | (typeof CLIENT_LOST_REASONS)[number]
+  | (typeof AGENT_LOST_REASONS)[number];
+
+/** Every reason across both lists, deduped — for a selection that mixes lead types. */
+export const ALL_LOST_REASONS: LostReason[] = Array.from(
+  new Set<LostReason>([...CLIENT_LOST_REASONS, ...AGENT_LOST_REASONS])
+);
+
+/**
+ * The reason list for one lead, or — given several leads of possibly mixed
+ * types (e.g. a bulk selection) — the union of whichever lists apply.
+ */
+export function getLostReasons(leadTypeOrTypes: string | string[]): LostReason[] {
+  const types = Array.isArray(leadTypeOrTypes) ? leadTypeOrTypes : [leadTypeOrTypes];
+  const hasAgent = types.includes("Real Estate Agent");
+  const hasNonAgent = types.some((t) => t !== "Real Estate Agent");
+  if (hasAgent && !hasNonAgent) return [...AGENT_LOST_REASONS];
+  if (hasNonAgent && !hasAgent) return [...CLIENT_LOST_REASONS];
+  return ALL_LOST_REASONS;
+}
 
 /** Hex colors for lead priority — used for badges and charts. */
 export const PRIORITY_COLORS: Record<LeadPriority, string> = {

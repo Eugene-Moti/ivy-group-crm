@@ -116,7 +116,12 @@ these in order:
    enforced in the Kanban board, the lead form, and the AI Assistant's propose_status_change
    tool. `not valid` so it doesn't fail on leads that already violate it; find those via
    Reports > Agent Won audit and fix each one by hand.
-17. [`supabase/seed.sql`](supabase/seed.sql) —
+17. [`supabase/migrations/20260810000000_lost_reason_by_lead_type.sql`](supabase/migrations/20260810000000_lost_reason_by_lead_type.sql) —
+   replaces the flat `lost_reason` check constraint with a lead_type-aware one (separate
+   reason lists for Direct Client vs Real Estate Agent leads). `not valid` — any agent lead
+   already Closed - Lost today used the old client-oriented list, so it won't retroactively
+   satisfy the new one; worth reassigning those by hand if you want a reason that fits.
+18. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

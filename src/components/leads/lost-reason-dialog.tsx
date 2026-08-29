@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
-import { LOST_REASONS } from "@/lib/constants";
+import { getLostReasons } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,13 +28,16 @@ export function LostReasonDialog({
   open,
   onOpenChange,
   leadName,
+  leadType,
   onConfirm,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   leadName: string;
+  leadType: string;
   onConfirm: (reason: string, note: string) => void;
 }) {
+  const reasons = getLostReasons(leadType);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +80,7 @@ export function LostReasonDialog({
                   <SelectValue placeholder="Select a reason" />
                 </SelectTrigger>
                 <SelectContent>
-                  {LOST_REASONS.map((r) => (
+                  {reasons.map((r) => (
                     <SelectItem key={r} value={r}>
                       {r}
                     </SelectItem>

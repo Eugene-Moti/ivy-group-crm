@@ -5,7 +5,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
-import { LOST_REASONS, LOST_STATUS_KEY, type LostReason } from "@/lib/constants";
+import { LOST_STATUS_KEY, getLostReasons, type LostReason } from "@/lib/constants";
 import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
@@ -51,6 +51,10 @@ export function BulkSetLostReasonDialog({
 
   const lostLeads = useMemo(() => leads.filter((l) => l.status === LOST_STATUS_KEY), [leads]);
   const notLostLeads = useMemo(() => leads.filter((l) => l.status !== LOST_STATUS_KEY), [leads]);
+  const reasonOptions = useMemo(
+    () => getLostReasons(lostLeads.map((l) => l.lead_type)),
+    [lostLeads]
+  );
 
   function handleOpenChange(next: boolean) {
     onOpenChange(next);
@@ -119,7 +123,7 @@ export function BulkSetLostReasonDialog({
                   <SelectValue placeholder="Select a reason" />
                 </SelectTrigger>
                 <SelectContent>
-                  {LOST_REASONS.map((r) => (
+                  {reasonOptions.map((r) => (
                     <SelectItem key={r} value={r}>
                       {r}
                     </SelectItem>
