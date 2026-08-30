@@ -6,15 +6,20 @@ import { PriorityBadge } from "@/components/badges/priority-badge";
 import { QuickContactActions } from "@/components/leads/quick-contact-actions";
 import { RescheduleFollowUpPopover } from "@/components/leads/reschedule-follow-up-popover";
 import { QuickLogContactMenu } from "@/components/follow-ups/quick-log-contact-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatDateTime, fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export function FollowUpRow({
   lead,
   isAdmin,
+  selected,
+  onToggleSelected,
 }: {
   lead: LeadWithRelations;
   isAdmin: boolean;
+  selected?: boolean;
+  onToggleSelected?: (leadId: string) => void;
 }) {
   const router = useRouter();
 
@@ -23,6 +28,14 @@ export function FollowUpRow({
       onClick={() => router.push(`/leads/${lead.id}`)}
       className="flex cursor-pointer flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-ring/50 sm:flex-nowrap"
     >
+      {isAdmin && onToggleSelected && (
+        <Checkbox
+          checked={!!selected}
+          onCheckedChange={() => onToggleSelected(lead.id)}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Select ${fullName(lead)}`}
+        />
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium hover:text-gold hover:underline">

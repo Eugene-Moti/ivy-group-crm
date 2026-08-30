@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FileDown, Loader2 } from "lucide-react";
+import { CalendarClock, FileDown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useIsAdmin, useProfile } from "@/components/providers/profile-provider";
 import { useRealtimeLeadsRefresh } from "@/hooks/use-realtime-leads-refresh";
 import { FollowUpSection } from "@/components/follow-ups/follow-up-section";
+import { BulkRescheduleDialog } from "@/components/leads/bulk-reschedule-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -41,6 +42,28 @@ export function FollowUpsView({
 
   const [agentFilter, setAgentFilter] = useState(ALL);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkRescheduleOpen, setBulkRescheduleOpen] = useState(false);
+
+  function toggleSelected(leadId: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(leadId)) next.delete(leadId);
+      else next.add(leadId);
+      return next;
+    });
+  }
+
+  function selectMany(leadIds: string[], select: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const id of leadIds) {
+        if (select) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+  }
 
   const filteredOverdue = useMemo(
     () => (agentFilter === ALL ? overdue : overdue.filter((l) => l.assigned_to === agentFilter)),
@@ -115,12 +138,30 @@ export function FollowUpsView({
         )}
       </div>
 
+      {isAdmin && selected.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2">
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
+              Clear selection
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setBulkRescheduleOpen(true)}>
+              <CalendarClock className="size-3.5" />
+              Reschedule
+            </Button>
+          </div>
+        </div>
+      )}
+
       <FollowUpSection
         title="Overdue"
         color={FOLLOW_UP_ALERT_COLORS.Overdue}
         emptyMessage="No overdue follow-ups. Nice work."
         leads={filteredOverdue}
         isAdmin={isAdmin}
+        selected={selected}
+        onToggleSelected={toggleSelected}
+        onSelectAll={selectMany}
       />
       <FollowUpSection
         title="Due today"
@@ -128,6 +169,9 @@ export function FollowUpsView({
         emptyMessage="Nothing due today."
         leads={filteredDueToday}
         isAdmin={isAdmin}
+        selected={selected}
+        onToggleSelected={toggleSelected}
+        onSelectAll={selectMany}
       />
       <FollowUpSection
         title="Upcoming (next 7 days)"
@@ -135,7 +179,19 @@ export function FollowUpsView({
         emptyMessage="Nothing on the horizon this week."
         leads={filteredUpcoming}
         isAdmin={isAdmin}
+        selected={selected}
+        onToggleSelected={toggleSelected}
+        onSelectAll={selectMany}
       />
+
+      {isAdmin && (
+        <BulkRescheduleDialog
+          open={bulkRescheduleOpen}
+          onOpenChange={setBulkRescheduleOpen}
+          leadIds={Array.from(selected)}
+          onChanged={() => setSelected(new Set())}
+        />
+      )}
     </div>
   );
 }

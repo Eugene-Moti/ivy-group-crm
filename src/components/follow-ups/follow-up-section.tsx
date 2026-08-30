@@ -8,13 +8,22 @@ export function FollowUpSection({
   emptyMessage,
   leads,
   isAdmin,
+  selected,
+  onToggleSelected,
+  onSelectAll,
 }: {
   title: string;
   color: string;
   emptyMessage: string;
   leads: LeadWithRelations[];
   isAdmin: boolean;
+  selected?: Set<string>;
+  onToggleSelected?: (leadId: string) => void;
+  onSelectAll?: (leadIds: string[], select: boolean) => void;
 }) {
+  const allSelected =
+    !!selected && leads.length > 0 && leads.every((l) => selected.has(l.id));
+
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-2">
@@ -27,12 +36,32 @@ export function FollowUpSection({
         >
           {leads.length}
         </span>
+        {isAdmin && onSelectAll && leads.length > 0 && (
+          <button
+            type="button"
+            onClick={() =>
+              onSelectAll(
+                leads.map((l) => l.id),
+                !allSelected
+              )
+            }
+            className="text-xs text-muted-foreground hover:text-gold hover:underline"
+          >
+            {allSelected ? "Deselect all" : `Select all ${title.toLowerCase()}`}
+          </button>
+        )}
       </div>
 
       {leads.length ? (
         <div className="space-y-2">
           {leads.map((lead) => (
-            <FollowUpRow key={lead.id} lead={lead} isAdmin={isAdmin} />
+            <FollowUpRow
+              key={lead.id}
+              lead={lead}
+              isAdmin={isAdmin}
+              selected={selected?.has(lead.id)}
+              onToggleSelected={onToggleSelected}
+            />
           ))}
         </div>
       ) : (
