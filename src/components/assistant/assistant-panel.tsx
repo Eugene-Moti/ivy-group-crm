@@ -25,6 +25,8 @@ import {
   applyStatusChange,
   type ProposedAction,
 } from "@/lib/assistant-actions";
+import { celebrateWon } from "@/lib/celebrate";
+import { WON_STATUS_KEY } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type ActionState = ProposedAction & {
@@ -155,6 +157,7 @@ export function AssistantPanel({
 
     patchAction(messageIndex, action.id, { status: "done" });
     toast.success("Applied", { description: action.summary });
+    if (action.kind === "status_change" && action.newStatus === WON_STATUS_KEY) celebrateWon();
     router.refresh();
   }
 

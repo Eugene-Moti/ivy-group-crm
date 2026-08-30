@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CHART_GOLD, CHART_GRID, CHART_INK, chartTooltipStyle } from "@/components/dashboard/chart-theme";
 import { EmptyChartState } from "@/components/dashboard/empty-chart-state";
+import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { useProfile } from "@/components/providers/profile-provider";
 import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
 import { computeFullAnalysis, type ActivitySummary, type EvidenceLeadId, type FullAnalysisInsight } from "@/lib/full-analysis";
@@ -85,24 +86,30 @@ export function FullAnalysisReport({
   }
 
   const { overview } = analysis;
-  const kpis: { label: string; value: string; href?: string }[] = [
-    { label: "Total leads", value: String(overview.totalLeads), href: "/leads" },
-    { label: "Open pipeline", value: String(overview.openLeads) },
+  const pct1 = (n: number) => `${n.toFixed(1)}%`;
+  const pct0 = (n: number) => `${n.toFixed(0)}%`;
+  const kpis: { label: string; value: number; formatter?: (n: number) => string; href?: string }[] = [
+    { label: "Total leads", value: overview.totalLeads, href: "/leads" },
+    { label: "Open pipeline", value: overview.openLeads },
     {
       label: "Leads Won",
-      value: String(overview.wonLeads),
+      value: overview.wonLeads,
       href: `/leads?status=${encodeURIComponent(WON_STATUS_KEY)}`,
     },
     {
       label: "Leads Lost",
-      value: String(overview.lostLeads),
+      value: overview.lostLeads,
       href: `/leads?status=${encodeURIComponent(LOST_STATUS_KEY)}`,
     },
-    { label: "Conversion rate", value: `${overview.conversionRate.toFixed(1)}%` },
-    { label: "Overdue follow-ups", value: String(overview.overdueFollowUps), href: "/follow-ups" },
-    { label: "Median open-lead age", value: `${overview.medianOpenLeadAgeDays.toFixed(0)}d` },
-    { label: "Notes coverage", value: `${overview.noteCoverage.toFixed(0)}%` },
-    { label: "Won leads with evidence", value: `${overview.evidenceCoverageOnWon.toFixed(0)}%` },
+    { label: "Conversion rate", value: overview.conversionRate, formatter: pct1 },
+    { label: "Overdue follow-ups", value: overview.overdueFollowUps, href: "/follow-ups" },
+    {
+      label: "Median open-lead age",
+      value: overview.medianOpenLeadAgeDays,
+      formatter: (n) => `${n.toFixed(0)}d`,
+    },
+    { label: "Notes coverage", value: overview.noteCoverage, formatter: pct0 },
+    { label: "Won leads with evidence", value: overview.evidenceCoverageOnWon, formatter: pct0 },
   ];
 
   return (
@@ -142,7 +149,9 @@ export function FullAnalysisReport({
               )}
             >
               <p className="text-xs text-muted-foreground">{kpi.label}</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{kpi.value}</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums">
+                <AnimatedCounter value={kpi.value} formatter={kpi.formatter} />
+              </p>
             </div>
           );
           return kpi.href ? (

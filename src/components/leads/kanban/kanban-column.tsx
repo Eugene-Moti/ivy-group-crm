@@ -1,6 +1,7 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { hexToRgba } from "@/lib/color";
 import type { LeadStatus } from "@/lib/constants";
@@ -45,9 +46,20 @@ export function KanbanColumn({
         className="max-h-[70vh] flex-1 space-y-2 overflow-y-auto p-2"
         style={{ minHeight: 120 }}
       >
-        {leads.map((lead) => (
-          <KanbanCard key={lead.id} lead={lead} isAdmin={isAdmin} />
-        ))}
+        <AnimatePresence initial={false}>
+          {leads.map((lead) => (
+            <motion.div
+              key={lead.id}
+              layout
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ type: "spring", stiffness: 500, damping: 40 }}
+            >
+              <KanbanCard lead={lead} isAdmin={isAdmin} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {leads.length === 0 && (
           <div className="rounded-lg border border-dashed border-border/60 py-6 text-center text-xs text-muted-foreground">
             No leads

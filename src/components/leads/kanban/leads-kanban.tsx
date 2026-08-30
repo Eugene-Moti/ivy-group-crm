@@ -18,6 +18,7 @@ import { useProfile } from "@/components/providers/profile-provider";
 import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
 import { LOST_STATUS_KEY, WON_STATUS_KEY, type LeadStatus } from "@/lib/constants";
 import { fullName } from "@/lib/format";
+import { celebrateWon } from "@/lib/celebrate";
 import { KanbanColumn } from "@/components/leads/kanban/kanban-column";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
 import { LostReasonDialog } from "@/components/leads/lost-reason-dialog";
@@ -134,6 +135,7 @@ export function LeadsKanban({
     });
 
     toast.success(`${fullName(lead)} moved to ${statusLabels[newStatus] ?? newStatus}`);
+    if (newStatus === WON_STATUS_KEY) celebrateWon();
     router.refresh();
   }
 
@@ -179,9 +181,9 @@ export function LeadsKanban({
           />
         ))}
       </div>
-      <DragOverlay>
+      <DragOverlay dropAnimation={{ duration: 200, easing: "cubic-bezier(0.2, 0, 0, 1)" }}>
         {activeLead ? (
-          <div className="w-72 rotate-2 opacity-90">
+          <div className="w-72 rotate-2 scale-105 opacity-95 drop-shadow-xl">
             <KanbanCard lead={activeLead} isAdmin={false} />
           </div>
         ) : null}

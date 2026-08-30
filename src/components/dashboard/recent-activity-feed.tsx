@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyChartState } from "@/components/dashboard/empty-chart-state";
 import { ACTIVITY_TYPE_META } from "@/lib/activity";
@@ -21,11 +24,23 @@ export function RecentActivityFeed({
       <CardContent className="h-96 overflow-y-auto">
         {activities.length ? (
           <ol className="space-y-4">
+            <AnimatePresence initial={false}>
             {activities.map((activity) => {
               const meta = ACTIVITY_TYPE_META[activity.type];
               const Icon = meta.icon;
               return (
-                <li key={activity.id} className="flex gap-3">
+                <motion.li
+                  key={activity.id}
+                  layout
+                  initial={{ opacity: 0, x: -12, backgroundColor: "rgba(201, 165, 74, 0.12)" }}
+                  animate={{ opacity: 1, x: 0, backgroundColor: "rgba(201, 165, 74, 0)" }}
+                  transition={{
+                    opacity: { duration: 0.3 },
+                    x: { type: "spring", stiffness: 400, damping: 35 },
+                    backgroundColor: { duration: 1.6, ease: "easeOut" },
+                  }}
+                  className="flex gap-3 rounded-lg"
+                >
                   <div
                     className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full"
                     style={{ backgroundColor: hexToRgba(meta.color, 0.15), color: meta.color }}
@@ -56,9 +71,10 @@ export function RecentActivityFeed({
                       {activity.body ? ` — ${activity.body}` : ""}
                     </p>
                   </div>
-                </li>
+                </motion.li>
               );
             })}
+            </AnimatePresence>
           </ol>
         ) : (
           <EmptyChartState message="No activity yet." />

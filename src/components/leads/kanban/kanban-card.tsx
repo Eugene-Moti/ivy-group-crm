@@ -36,13 +36,15 @@ export function KanbanCard({
       }}
       style={
         transform
-          ? { transform: `translate(${transform.x}px, ${transform.y}px)` }
+          ? {
+              transform: `translate(${transform.x}px, ${transform.y}px)${isDragging ? " scale(1.03)" : ""}`,
+            }
           : undefined
       }
       className={cn(
-        "space-y-2 rounded-xl border border-border bg-card p-3 shadow-sm transition-shadow hover:shadow-md",
+        "space-y-2 rounded-xl border border-border bg-card p-3 shadow-sm transition-[box-shadow,opacity] duration-150 hover:shadow-md",
         isAdmin && "cursor-grab active:cursor-grabbing",
-        isDragging && "z-10 opacity-50"
+        isDragging && "z-10 opacity-40 shadow-lg"
       )}
     >
       <div className="flex items-start justify-between gap-2">

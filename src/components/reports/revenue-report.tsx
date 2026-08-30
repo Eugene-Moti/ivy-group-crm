@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { WON_STATUS_KEY } from "@/lib/constants";
 import { formatKES, fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -57,10 +58,10 @@ export function RevenueReport({ leads }: { leads: LeadWithRelations[] }) {
   );
 
   const kpis = [
-    { label: "Total deal value", value: formatKES(totals.dealValue) },
-    { label: "Total commission earned", value: formatKES(totals.commission) },
-    { label: "Referral fees paid", value: formatKES(totals.referralPaid) },
-    { label: "Referral fees owed (unpaid)", value: formatKES(totals.referralUnpaid) },
+    { label: "Total deal value", value: totals.dealValue },
+    { label: "Total commission earned", value: totals.commission },
+    { label: "Referral fees paid", value: totals.referralPaid },
+    { label: "Referral fees owed (unpaid)", value: totals.referralUnpaid },
   ];
 
   return (
@@ -75,7 +76,9 @@ export function RevenueReport({ leads }: { leads: LeadWithRelations[] }) {
         {kpis.map((k) => (
           <div key={k.label} className="rounded-xl border border-border bg-card p-3">
             <p className="text-xs text-muted-foreground">{k.label}</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{k.value}</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums">
+              <AnimatedCounter value={k.value} formatter={formatKES} />
+            </p>
           </div>
         ))}
       </div>

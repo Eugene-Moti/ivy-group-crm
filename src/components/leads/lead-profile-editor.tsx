@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/client";
 import { leadFormSchema, type LeadFormValues } from "@/lib/validations/lead";
 import { buildLeadPayload, leadFormDefaults } from "@/lib/leads-form";
 import { logStatusChange } from "@/lib/activity-log";
+import { celebrateWon } from "@/lib/celebrate";
+import { WON_STATUS_KEY } from "@/lib/constants";
 import { useProfile } from "@/components/providers/profile-provider";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -70,6 +72,7 @@ export function LeadProfileEditor({
     await logStatusChange(supabase, lead.id, lead.status, values.status, statusLabels, profile?.id ?? null);
 
     toast.success("Lead updated");
+    if (values.status === WON_STATUS_KEY && lead.status !== WON_STATUS_KEY) celebrateWon();
     onDone();
     router.refresh();
   });

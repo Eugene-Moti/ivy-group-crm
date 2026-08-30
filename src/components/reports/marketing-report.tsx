@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useProfile } from "@/components/providers/profile-provider";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
+import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { computeMarketingReport, type MarketingLeadRow } from "@/lib/marketing-report";
 import { generateMarketingReport } from "@/lib/marketing-pdf-report";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -49,9 +50,9 @@ export function MarketingReportView({ leads }: { leads: LeadWithRelations[] }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Negotiating" value={String(report.negotiatingCount)} />
-        <Stat label="At offer stage" value={String(report.offerStageCount)} />
-        <Stat label="Site visits booked" value={String(report.siteVisitCount)} />
+        <Stat label="Negotiating" value={report.negotiatingCount} />
+        <Stat label="At offer stage" value={report.offerStageCount} />
+        <Stat label="Site visits booked" value={report.siteVisitCount} />
         <Stat label="Best-converting source" value={report.topSource?.source ?? "—"} />
       </div>
 
@@ -130,11 +131,13 @@ export function MarketingReportView({ leads }: { leads: LeadWithRelations[] }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-xl font-semibold tabular-nums">{value}</p>
+      <p className="mt-1 text-xl font-semibold tabular-nums">
+        {typeof value === "number" ? <AnimatedCounter value={value} /> : value}
+      </p>
     </div>
   );
 }

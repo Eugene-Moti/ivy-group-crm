@@ -13,6 +13,7 @@ import { QuickContactActions } from "@/components/leads/quick-contact-actions";
 import { DeleteLeadDialog } from "@/components/leads/delete-lead-dialog";
 import { SendToAgentMenu } from "@/components/leads/send-to-agent-menu";
 import { GenerateOwnershipReportButton } from "@/components/leads/generate-ownership-report-button";
+import { LeadPresence } from "@/components/leads/lead-presence";
 import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivityWithAuthor } from "@/lib/queries/activities";
@@ -63,7 +64,8 @@ export function LeadDetailHeader({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-end gap-1">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <LeadPresence leadId={lead.id} />
           <QuickContactActions phone={lead.phone} email={lead.email} />
           {isAdmin && (
             <>

@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/client";
 import { leadFormSchema, type LeadFormValues } from "@/lib/validations/lead";
 import { buildLeadPayload, leadFormDefaults } from "@/lib/leads-form";
 import { logStatusChange } from "@/lib/activity-log";
+import { celebrateWon } from "@/lib/celebrate";
+import { WON_STATUS_KEY } from "@/lib/constants";
 import { useProfile } from "@/components/providers/profile-provider";
 import { useStatusLabels } from "@/components/providers/status-labels-provider";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -92,6 +94,9 @@ export function LeadFormDialog({
     }
 
     toast.success(isEdit ? "Lead updated" : "Lead created");
+    if (values.status === WON_STATUS_KEY && (!isEdit || lead?.status !== WON_STATUS_KEY)) {
+      celebrateWon();
+    }
     onOpenChange(false);
     onSaved();
   });
