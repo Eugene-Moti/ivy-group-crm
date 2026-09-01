@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
@@ -33,52 +33,92 @@ export function EvidenceUploadForm({
   const profile = useProfile();
   const [occurredAt, setOccurredAt] = useState(todayLocal());
   const [note, setNote] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function addFiles(newFiles: FileList | null) {
+    if (!newFiles) return;
+    setFiles((prev) => [...prev, ...Array.from(newFiles)]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!note.trim() && !file) {
-      toast.error("Add a note or attach a file before saving.");
+    if (!note.trim() && files.length === 0) {
+      toast.error("Add a note or attach at least one file before saving.");
       return;
     }
-    if (file && file.size > MAX_FILE_BYTES) {
-      toast.error("File is too large", { description: "Max 10MB per file." });
+    const oversized = files.find((f) => f.size > MAX_FILE_BYTES);
+    if (oversized) {
+      toast.error("A file is too large", {
+        description: `"${oversized.name}" is over 10MB — max 10MB per file.`,
+      });
       return;
     }
 
     setIsSubmitting(true);
     const supabase = createClient();
 
-    let filePath: string | null = null;
-    if (file) {
-      const path = `${leadId}/${crypto.randomUUID()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("lead-evidence")
-        .upload(path, file);
+    // One evidence row per file (all sharing this same date/note — they're
+    // proof of the same conversation), or a single note-only row if nothing
+    // was attached. Best-effort: one failed upload shouldn't lose the rest.
+    let saved = 0;
+    let failed = 0;
 
-      if (uploadError) {
-        setIsSubmitting(false);
-        toast.error("Failed to upload file", { description: uploadError.message });
-        return;
+    if (files.length === 0) {
+      const { error } = await supabase.from("lead_evidence").insert({
+        lead_id: leadId,
+        occurred_at: new Date(occurredAt).toISOString(),
+        note: note.trim() || null,
+        file_path: null,
+        file_name: null,
+        file_type: null,
+        created_by: profile?.id ?? null,
+      });
+      if (error) failed++;
+      else saved++;
+    } else {
+      for (const file of files) {
+        const path = `${leadId}/${crypto.randomUUID()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("lead-evidence")
+          .upload(path, file);
+
+        if (uploadError) {
+          failed++;
+          continue;
+        }
+
+        const { error } = await supabase.from("lead_evidence").insert({
+          lead_id: leadId,
+          occurred_at: new Date(occurredAt).toISOString(),
+          note: note.trim() || null,
+          file_path: path,
+          file_name: file.name,
+          file_type: file.type || null,
+          created_by: profile?.id ?? null,
+        });
+
+        if (error) {
+          failed++;
+          await supabase.storage.from("lead-evidence").remove([path]);
+        } else {
+          saved++;
+        }
       }
-      filePath = path;
     }
-
-    const { error } = await supabase.from("lead_evidence").insert({
-      lead_id: leadId,
-      occurred_at: new Date(occurredAt).toISOString(),
-      note: note.trim() || null,
-      file_path: filePath,
-      file_name: file?.name ?? null,
-      file_type: file?.type ?? null,
-      created_by: profile?.id ?? null,
-    });
 
     setIsSubmitting(false);
 
-    if (error) {
-      toast.error("Failed to save evidence", { description: error.message });
+    if (saved === 0) {
+      toast.error("Failed to save evidence", {
+        description: failed > 0 ? `${failed} file${failed === 1 ? "" : "s"} failed to upload.` : undefined,
+      });
       return;
     }
 
@@ -94,13 +134,16 @@ export function EvidenceUploadForm({
       backdated = !backdateError;
     }
 
-    toast.success(
-      backdated
-        ? `Evidence saved — inquiry date moved back to ${occurredAt}`
-        : "Evidence saved"
-    );
+    const summary =
+      saved > 1 ? `${saved} pieces of evidence saved` : "Evidence saved";
+    if (failed > 0) {
+      toast.warning(`${summary}, but ${failed} file${failed === 1 ? "" : "s"} failed`);
+    } else {
+      toast.success(backdated ? `${summary} — inquiry date moved back to ${occurredAt}` : summary);
+    }
+
     setNote("");
-    setFile(null);
+    setFiles([]);
     setOccurredAt(todayLocal());
     router.refresh();
   }
@@ -125,18 +168,42 @@ export function EvidenceUploadForm({
         </Field>
         <Field className="min-w-48 flex-1">
           <FieldLabel htmlFor="evidence-file">
-            Attach screenshot/file (optional)
+            Attach screenshots/files (optional) — select multiple at once
           </FieldLabel>
           <FieldContent>
             <Input
+              ref={fileInputRef}
               id="evidence-file"
               type="file"
+              multiple
               accept="image/*,application/pdf"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => addFiles(e.target.files)}
             />
           </FieldContent>
         </Field>
       </div>
+
+      {files.length > 0 && (
+        <ul className="flex flex-wrap gap-1.5">
+          {files.map((f, i) => (
+            <li
+              key={`${f.name}-${f.lastModified}-${i}`}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-muted/50 py-1 pr-1 pl-2.5 text-xs"
+            >
+              <span className="max-w-48 truncate">{f.name}</span>
+              <button
+                type="button"
+                onClick={() => removeFile(i)}
+                aria-label={`Remove ${f.name}`}
+                className="flex size-4 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              >
+                <X className="size-3" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       <Textarea
         placeholder="What happened, and with whom (call, WhatsApp, email)…"
         rows={2}
@@ -146,7 +213,7 @@ export function EvidenceUploadForm({
       <div className="flex justify-end">
         <Button type="submit" size="sm" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="animate-spin" /> : <Upload />}
-          Save evidence
+          {files.length > 1 ? `Save ${files.length} files` : "Save evidence"}
         </Button>
       </div>
     </form>
