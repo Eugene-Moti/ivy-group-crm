@@ -8,8 +8,10 @@ import { LeadProfileEditor } from "@/components/leads/lead-profile-editor";
 import { ReferredLeadsList } from "@/components/leads/referred-leads-list";
 import { GenerateReferralReportButton } from "@/components/leads/generate-referral-report-button";
 import { ConvertAgentToClientDialog } from "@/components/leads/convert-agent-to-client-dialog";
+import { RecordUnitSaleDialog } from "@/components/leads/record-unit-sale-dialog";
 import { Button } from "@/components/ui/button";
-import { UserPlus } from "lucide-react";
+import { Building2, UserPlus } from "lucide-react";
+import { WON_STATUS_KEY } from "@/lib/constants";
 import { AddActivityForm } from "@/components/leads/add-activity-form";
 import { ActivityTimeline } from "@/components/leads/activity-timeline";
 import { EvidenceUploadForm } from "@/components/leads/evidence-upload-form";
@@ -52,6 +54,9 @@ export function LeadDetail({
   const isAdmin = useIsAdmin();
   const [isEditing, setIsEditing] = useState(false);
   const [convertOpen, setConvertOpen] = useState(false);
+  const [recordSaleOpen, setRecordSaleOpen] = useState(false);
+  const canRecordUnitSale =
+    isAdmin && lead.status === WON_STATUS_KEY && lead.lead_type === "Direct Client";
 
   return (
     <div className="space-y-6">
@@ -78,6 +83,14 @@ export function LeadDetail({
             />
           ) : (
             <LeadProfileView lead={lead} isAdmin={isAdmin} />
+          )}
+          {canRecordUnitSale && (
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => setRecordSaleOpen(true)}>
+                <Building2 className="size-3.5" />
+                Record unit sale
+              </Button>
+            </div>
           )}
           {lead.lead_type === "Real Estate Agent" && (
             <div className="mt-4 space-y-2">
@@ -140,6 +153,16 @@ export function LeadDetail({
           open={convertOpen}
           onOpenChange={setConvertOpen}
           agentLead={lead}
+        />
+      )}
+
+      {canRecordUnitSale && (
+        <RecordUnitSaleDialog
+          open={recordSaleOpen}
+          onOpenChange={setRecordSaleOpen}
+          leads={[lead]}
+          lockedLead={lead}
+          onSaved={() => {}}
         />
       )}
     </div>

@@ -21,7 +21,7 @@ import { PipelineVelocityReport } from "@/components/reports/pipeline-velocity-r
 import { ConversionTimelineReport } from "@/components/reports/conversion-timeline-report";
 import { DuplicateLeadsReport } from "@/components/reports/duplicate-leads-report";
 import { AgentWonAuditReport } from "@/components/reports/agent-won-audit-report";
-import { RevenueReport } from "@/components/reports/revenue-report";
+import { UnitsSoldReport } from "@/components/reports/units-sold-report";
 import { MarketingReportView } from "@/components/reports/marketing-report";
 import { LostLeadsReport } from "@/components/reports/lost-leads-report";
 import { FullAnalysisReport } from "@/components/reports/full-analysis-report";
@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { SavedQueryRow } from "@/lib/queries/saved-queries";
 import type { ActivitySummary, EvidenceLeadId } from "@/lib/full-analysis";
+import type { UnitSoldRow } from "@/lib/queries/units-sold";
 
 type LeadOption = { id: string; name: string };
 type ProjectOption = { id: string; name: string; location: string | null };
@@ -43,6 +44,7 @@ export function ReportsView({
   savedQueries,
   activitySummaries,
   evidenceLeadIds,
+  unitsSold,
 }: {
   leads: LeadWithRelations[];
   leadSources: LeadOption[];
@@ -51,6 +53,7 @@ export function ReportsView({
   savedQueries: SavedQueryRow[];
   activitySummaries: ActivitySummary[];
   evidenceLeadIds: EvidenceLeadId[];
+  unitsSold: UnitSoldRow[];
 }) {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
@@ -101,8 +104,8 @@ export function ReportsView({
         return <DuplicateLeadsReport leads={leads} />;
       case "agent-won-audit":
         return <AgentWonAuditReport leads={leads} />;
-      case "revenue":
-        return <RevenueReport leads={leads} />;
+      case "units-sold":
+        return <UnitsSoldReport units={unitsSold} leads={leads} />;
       case "marketing":
         return <MarketingReportView leads={leads} />;
       case "lost-leads":

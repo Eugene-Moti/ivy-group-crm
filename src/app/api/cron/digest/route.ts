@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LEAD_SELECT, type LeadWithRelations } from "@/lib/queries/leads";
+import type { UnitSoldRow } from "@/lib/queries/units-sold";
 import { buildAssistantTools } from "@/lib/assistant-tools";
 import { runGroqAssistant } from "@/lib/groq";
 import { renderDigestEmail } from "@/lib/digest-email";
@@ -12,7 +13,7 @@ Use your tools (get_notifications, get_full_analysis, get_follow_ups) to ground 
 
 Structure the briefing as:
 - A one-line headline sense of where things stand today.
-- "Needs attention" — the most urgent items (overdue follow-ups, Hot leads gone quiet, Won leads missing a deal value, any agent incorrectly marked Won), as a short bullet list. Name specific leads where it helps, but don't dump a huge list — mention counts and the 2-3 most important individually.
+- "Needs attention" — the most urgent items (overdue follow-ups, Hot leads gone quiet, Won leads without a recorded unit sale, any agent incorrectly marked Won), as a short bullet list. Name specific leads where it helps, but don't dump a huge list — mention counts and the 2-3 most important individually.
 - "Snapshot" — a couple of the most notable numbers from the full analysis (conversion rate, notable trend, a standout manager/source).
 - One short closing suggestion for what to prioritize today.
 
@@ -34,21 +35,23 @@ export async function GET(request: Request) {
   try {
     const supabase = createAdminClient();
 
-    const [leadsRes, activitiesRes, evidenceRes, stagesRes, profilesRes] = await Promise.all([
+    const [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes] = await Promise.all([
       supabase.from("leads").select(LEAD_SELECT).order("created_at", { ascending: false }),
       supabase.from("activities").select("lead_id, type, created_at, body"),
       supabase.from("lead_evidence").select("lead_id"),
+      supabase.from("units_sold").select("*").order("sold_at", { ascending: false }),
       supabase.from("pipeline_stages").select("*").order("sort_order"),
       supabase.from("profiles").select("email").eq("role", "admin"),
     ]);
 
-    for (const res of [leadsRes, activitiesRes, evidenceRes, stagesRes, profilesRes]) {
+    for (const res of [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes]) {
       if (res.error) throw new Error(res.error.message);
     }
 
     const leads = (leadsRes.data ?? []) as unknown as LeadWithRelations[];
     const activitySummaries = activitiesRes.data ?? [];
     const evidenceLeadIds = evidenceRes.data ?? [];
+    const unitsSold = (unitsSoldRes.data ?? []) as UnitSoldRow[];
     const stages = stagesRes.data ?? [];
     const statusLabels = Object.fromEntries(stages.map((s) => [s.key, s.label]));
 
@@ -64,6 +67,7 @@ export async function GET(request: Request) {
       leads,
       activitySummaries,
       evidenceLeadIds,
+      unitsSold,
       stages,
       statusLabels,
       isAdminUser: true,

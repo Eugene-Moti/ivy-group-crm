@@ -62,10 +62,10 @@ export const REPORT_GROUPS: ReportGroup[] = [
     icon: Wallet,
     reports: [
       {
-        id: "revenue",
-        label: "Revenue & commissions",
+        id: "units-sold",
+        label: "Units sold & bonuses",
         description:
-          "Deal value, agency commission, and referral fees owed/paid on Won deals, by sales manager.",
+          "Every unit sold, unit and client details, and the marketing team's bonus — by sales manager.",
         icon: Wallet,
       },
     ],

@@ -103,6 +103,17 @@ export const DOCUMENT_TYPES = [
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
+/**
+ * How a unit sale earns commission — derived from whether the buying lead
+ * has a referring agent, never a free choice at entry time: a referred
+ * lead can only ever be an "Agent Referral" sale.
+ */
+export const SALE_TYPES = ["Direct Client", "Agent Referral"] as const;
+export type SaleType = (typeof SALE_TYPES)[number];
+
+/** A direct-client sale earns the marketing team 1% of the unit amount — an agent-referred sale's bonus has no fixed formula and is set by hand. */
+export const DIRECT_SALE_BONUS_RATE = 0.01;
+
 /** Hex colors for lead priority — used for badges and charts. */
 export const PRIORITY_COLORS: Record<LeadPriority, string> = {
   Hot: "#E4572E",

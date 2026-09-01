@@ -144,12 +144,20 @@ these in order:
    same pattern as `lead_evidence`/`lead-evidence`, kept as a separate table so uploading a
    document doesn't quietly count toward the "Won leads with evidence" reporting metric.
 19. [`supabase/migrations/20260812000000_deal_commission_tracking.sql`](supabase/migrations/20260812000000_deal_commission_tracking.sql) —
-   adds `deal_value`, `commission_amount`, `referral_fee_amount`, and `referral_fee_paid`
-   to `leads` — the actual closing figures a Won deal produces, separate from the
-   budget_min/budget_max range captured going in. All nullable and never required to mark
-   a lead Won; powers the new Reports > Revenue & commissions tab and a notification-bell
-   nudge for Won leads still missing a deal value.
-20. [`supabase/seed.sql`](supabase/seed.sql) —
+   adds `deal_value`, `commission_amount`, `referral_fee_amount`, and `referral_fee_paid` to
+   `leads`. **Superseded by migration 20 below** — the marketing team's real commission
+   structure turned out to need its own `units_sold` table instead, and migration 20 drops
+   these four columns again. Still run this one first; 20 depends on it having existed.
+20. [`supabase/migrations/20260813000000_units_sold.sql`](supabase/migrations/20260813000000_units_sold.sql) —
+   adds a `units_sold` table (unit number/size, sale type, unit amount, bonus amount/paid
+   status, sold date — one row per unit, several possible per lead) and drops the four
+   `leads` columns from migration 19. Client name, sales manager, and (for an agent-referred
+   sale) the referring agent are deliberately not columns here — they're joined from the
+   linked lead wherever units_sold is read, so there's one place that data can drift out of
+   sync: nowhere. Powers Reports > Units sold & bonuses, a per-unit downloadable PDF, a
+   notification-bell nudge for Won Direct Client leads with no unit sale on file yet, and
+   the AI Assistant's get_units_sold tool.
+21. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

@@ -18,7 +18,6 @@ export type NotificationLead = {
   priority: string;
   lead_type: string;
   next_follow_up_at: string | null;
-  deal_value: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -42,7 +41,9 @@ export type NotificationItem = {
 export function computeNotifications(
   leads: NotificationLead[],
   activities: NotificationActivity[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  /** lead_ids that already have at least one units_sold record. */
+  soldLeadIds: Set<string> = new Set()
 ): NotificationItem[] {
   // Excludes closed deals and resolved agents (their referral moved to an
   // active client record, so their own card isn't the one to chase anymore).
@@ -75,16 +76,17 @@ export function computeNotifications(
     });
   }
 
-  const wonMissingDealValue = leads.filter(
-    (l) => l.status === WON_STATUS_KEY && l.deal_value == null
+  const wonWithoutUnitSale = leads.filter(
+    (l) =>
+      l.status === WON_STATUS_KEY && l.lead_type === "Direct Client" && !soldLeadIds.has(l.id)
   );
-  if (wonMissingDealValue.length > 0) {
+  if (wonWithoutUnitSale.length > 0) {
     items.push({
-      id: "won-missing-deal-value",
+      id: "won-without-unit-sale",
       severity: "warning",
-      title: `${wonMissingDealValue.length} Won lead${wonMissingDealValue.length === 1 ? "" : "s"} missing a deal value`,
-      detail: "Revenue reporting undercounts until the actual closing figures are filled in.",
-      href: "/reports?tab=revenue",
+      title: `${wonWithoutUnitSale.length} Won lead${wonWithoutUnitSale.length === 1 ? "" : "s"} without a recorded unit sale`,
+      detail: "No unit sale on file yet — the bonus for these deals isn't being tracked.",
+      href: "/reports?tab=units-sold",
     });
   }
 

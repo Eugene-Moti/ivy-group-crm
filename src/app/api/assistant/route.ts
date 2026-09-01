@@ -3,6 +3,7 @@ import { getCurrentProfile } from "@/lib/auth";
 import { getLeads } from "@/lib/queries/leads";
 import { getAllActivitySummaries } from "@/lib/queries/activities";
 import { getAllEvidenceLeadIds } from "@/lib/queries/evidence";
+import { getUnitsSold } from "@/lib/queries/units-sold";
 import { getPipelineStages } from "@/lib/queries/settings";
 import { buildAssistantTools } from "@/lib/assistant-tools";
 import { runGroqAssistant, type ChatMessage } from "@/lib/groq";
@@ -20,8 +21,9 @@ Domain model:
 - Leads move through admin-configurable pipeline stages; two are structurally protected: a "new lead" starting stage and closed-won/closed-lost ending stages.
 - When an agent's referral converts, the agent's own card moves to a "Referred — Client Active" stage — that agent isn't the active deal anymore, the client they referred is.
 - Lost leads carry a lost_reason and optional note.
+- A "unit sold" record (get_units_sold) is created against a Won, Direct Client lead once a specific unit closes — it's what tracks the marketing team's bonus (1% of the unit amount for a direct sale, a manually-set amount for an agent-referred one), separate from the lead's own status.
 
-You have read-only tools to search and inspect real data (leads, notifications, the full pipeline analysis, follow-up urgency). ALWAYS use a tool to ground any claim about specific leads, counts, or names — never invent a lead, a number, or a name. If a tool returns nothing relevant, say so plainly rather than guessing.
+You have read-only tools to search and inspect real data (leads, notifications, the full pipeline analysis, follow-up urgency, units sold). ALWAYS use a tool to ground any claim about specific leads, counts, or names — never invent a lead, a number, or a name. If a tool returns nothing relevant, say so plainly rather than guessing.
 
 ${
   isAdminUser
@@ -71,10 +73,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const [leads, activitySummaries, evidenceLeadIds, stages] = await Promise.all([
+    const [leads, activitySummaries, evidenceLeadIds, unitsSold, stages] = await Promise.all([
       getLeads(),
       getAllActivitySummaries(),
       getAllEvidenceLeadIds(),
+      getUnitsSold(),
       getPipelineStages(),
     ]);
     const statusLabels = Object.fromEntries(stages.map((s) => [s.key, s.label]));
@@ -84,6 +87,7 @@ export async function POST(request: Request) {
       leads,
       activitySummaries,
       evidenceLeadIds,
+      unitsSold,
       stages,
       statusLabels,
       isAdminUser,

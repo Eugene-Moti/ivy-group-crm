@@ -18,8 +18,6 @@ import type { LeadFormValues } from "@/lib/validations/lead";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -103,9 +101,6 @@ export function LeadFormFields({
    */
   const isAgentLead = watch("lead_type") === "Real Estate Agent";
   const availableStages = stages.filter((s) => !(isAgentLead && s.key === WON_STATUS_KEY));
-  const isWon = watch("status") === WON_STATUS_KEY;
-  const referredByAgentId = watch("referred_by_lead_id");
-  const isReferred = !!referredByAgentId && referredByAgentId !== "none";
 
   return (
     <FieldGroup>
@@ -441,73 +436,6 @@ export function LeadFormFields({
               <Input id="lost_reason_note" {...register("lost_reason_note")} />
             </FieldContent>
           </Field>
-        </div>
-      )}
-
-      {isWon && (
-        <div className="space-y-3 rounded-lg border border-[#3A8C5C]/30 bg-[#3A8C5C]/5 p-3">
-          <p className="text-xs font-medium text-muted-foreground">
-            Deal details — optional, fill in when the numbers are confirmed.
-          </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field>
-              <FieldLabel htmlFor="deal_value">Deal value (KES)</FieldLabel>
-              <FieldContent>
-                <Input id="deal_value" type="number" min={0} {...register("deal_value")} />
-                <FieldError errors={[errors.deal_value]} />
-              </FieldContent>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="commission_amount">Agency commission (KES)</FieldLabel>
-              <FieldContent>
-                <Input
-                  id="commission_amount"
-                  type="number"
-                  min={0}
-                  {...register("commission_amount")}
-                />
-                <FieldError errors={[errors.commission_amount]} />
-              </FieldContent>
-            </Field>
-          </div>
-
-          {isReferred && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="referral_fee_amount">Referral fee owed (KES)</FieldLabel>
-                <FieldContent>
-                  <Input
-                    id="referral_fee_amount"
-                    type="number"
-                    min={0}
-                    {...register("referral_fee_amount")}
-                  />
-                  <FieldError errors={[errors.referral_fee_amount]} />
-                </FieldContent>
-              </Field>
-              <Controller
-                control={control}
-                name="referral_fee_paid"
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel>Payout status</FieldLabel>
-                    <FieldContent>
-                      <div className="flex h-9 items-center gap-2">
-                        <Checkbox
-                          id="referral_fee_paid"
-                          checked={!!field.value}
-                          onCheckedChange={(checked) => field.onChange(checked === true)}
-                        />
-                        <Label htmlFor="referral_fee_paid" className="font-normal">
-                          Referral fee has been paid out
-                        </Label>
-                      </div>
-                    </FieldContent>
-                  </Field>
-                )}
-              />
-            </div>
-          )}
         </div>
       )}
 

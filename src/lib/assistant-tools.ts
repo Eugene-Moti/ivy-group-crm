@@ -17,6 +17,7 @@ import {
 } from "@/lib/constants";
 import type { ProposedAction } from "@/lib/assistant-actions";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { UnitSoldRow } from "@/lib/queries/units-sold";
 import type { PipelineStage } from "@/lib/queries/settings";
 import type { ToolDefinition, ToolExecutor } from "@/lib/groq";
 
@@ -41,10 +42,6 @@ function summarizeLead(lead: LeadWithRelations, statusLabels: Record<string, str
     created_at: lead.created_at,
     lost_reason: lead.lost_reason,
     referred_by: lead.referred_by ? fullName(lead.referred_by) : null,
-    deal_value: lead.deal_value,
-    commission_amount: lead.commission_amount,
-    referral_fee_amount: lead.referral_fee_amount,
-    referral_fee_paid: lead.referral_fee_paid,
   };
 }
 
@@ -66,12 +63,15 @@ export function buildAssistantTools(ctx: {
   leads: LeadWithRelations[];
   activitySummaries: ActivitySummary[];
   evidenceLeadIds: EvidenceLeadId[];
+  unitsSold: UnitSoldRow[];
   stages: PipelineStage[];
   statusLabels: Record<string, string>;
   isAdminUser: boolean;
 }): { tools: ToolDefinition[]; executors: Record<string, ToolExecutor>; proposedActions: ProposedAction[] } {
-  const { leads, activitySummaries, evidenceLeadIds, stages, statusLabels, isAdminUser } = ctx;
+  const { leads, activitySummaries, evidenceLeadIds, unitsSold, stages, statusLabels, isAdminUser } = ctx;
   const evidenceSet = new Set(evidenceLeadIds.map((e) => e.lead_id));
+  const soldLeadIds = new Set(unitsSold.map((u) => u.lead_id));
+  const leadsById = new Map(leads.map((l) => [l.id, l]));
   const proposedActions: ProposedAction[] = [];
 
   const tools: ToolDefinition[] = [
@@ -123,6 +123,12 @@ export function buildAssistantTools(ctx: {
     {
       name: "get_follow_ups",
       description: "Leads grouped by follow-up urgency: overdue, due today, and due within the next 7 days.",
+      parameters: { type: "object", properties: {} },
+    },
+    {
+      name: "get_units_sold",
+      description:
+        "Every unit sold: unit number/size, client, sales manager, sale type (Direct Client or Agent Referral), unit amount, and the marketing team's bonus (1% of unit amount for a direct sale, a set amount for an agent-referred one).",
       parameters: { type: "object", properties: {} },
     },
   ];
@@ -240,7 +246,7 @@ export function buildAssistantTools(ctx: {
     },
 
     get_notifications() {
-      return computeNotifications(leads, activitySummaries);
+      return computeNotifications(leads, activitySummaries, new Date(), soldLeadIds);
     },
 
     get_full_analysis() {
@@ -255,6 +261,25 @@ export function buildAssistantTools(ctx: {
         due_today: compact(grouped.dueToday),
         upcoming_this_week: compact(grouped.upcoming),
       };
+    },
+
+    get_units_sold() {
+      return unitsSold.map((u) => {
+        const lead = leadsById.get(u.lead_id);
+        return {
+          unit_number: u.unit_number,
+          unit_size: u.unit_size,
+          project: lead?.property_type?.name ?? null,
+          client: lead ? fullName(lead) : "Unknown lead",
+          sale_type: u.sale_type,
+          referred_by: lead?.referred_by ? fullName(lead.referred_by) : null,
+          sales_manager: lead?.assigned_agent?.name ?? "Unassigned",
+          unit_amount: u.unit_amount,
+          bonus_amount: u.bonus_amount,
+          bonus_paid: u.bonus_paid,
+          sold_at: u.sold_at,
+        };
+      });
     },
   };
 

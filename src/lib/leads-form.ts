@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { LOST_STATUS_KEY, NEW_LEAD_STATUS_KEY, WON_STATUS_KEY } from "@/lib/constants";
+import { LOST_STATUS_KEY, NEW_LEAD_STATUS_KEY } from "@/lib/constants";
 import type { LeadFormValues } from "@/lib/validations/lead";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { Database } from "@/types/database.types";
@@ -44,11 +44,6 @@ export function leadFormDefaults(
     notes: lead.notes ?? undefined,
     lost_reason: lead.lost_reason ?? undefined,
     lost_reason_note: lead.lost_reason_note ?? undefined,
-    deal_value: lead.deal_value != null ? String(lead.deal_value) : undefined,
-    commission_amount: lead.commission_amount != null ? String(lead.commission_amount) : undefined,
-    referral_fee_amount:
-      lead.referral_fee_amount != null ? String(lead.referral_fee_amount) : undefined,
-    referral_fee_paid: lead.referral_fee_paid,
   };
 }
 
@@ -83,13 +78,5 @@ export function buildLeadPayload(values: LeadFormValues): LeadInsertOrUpdate {
     // Clear any stale reason if the lead isn't (or is no longer) Closed - Lost.
     lost_reason: values.status === LOST_STATUS_KEY ? blankToNull(values.lost_reason) : null,
     lost_reason_note: values.status === LOST_STATUS_KEY ? blankToNull(values.lost_reason_note) : null,
-    // Deal numbers only mean anything once a lead is Won — cleared otherwise
-    // so a lead moved off Won-and-back-to-open doesn't carry stale figures.
-    deal_value: values.status === WON_STATUS_KEY ? numberOrNull(values.deal_value) : null,
-    commission_amount:
-      values.status === WON_STATUS_KEY ? numberOrNull(values.commission_amount) : null,
-    referral_fee_amount:
-      values.status === WON_STATUS_KEY ? numberOrNull(values.referral_fee_amount) : null,
-    referral_fee_paid: values.status === WON_STATUS_KEY ? !!values.referral_fee_paid : false,
   };
 }

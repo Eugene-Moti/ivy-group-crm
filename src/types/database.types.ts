@@ -215,10 +215,6 @@ export interface Database {
           referred_by_lead_id: string | null;
           lost_reason: string | null;
           lost_reason_note: string | null;
-          deal_value: number | null;
-          commission_amount: number | null;
-          referral_fee_amount: number | null;
-          referral_fee_paid: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -245,10 +241,6 @@ export interface Database {
           referred_by_lead_id?: string | null;
           lost_reason?: string | null;
           lost_reason_note?: string | null;
-          deal_value?: number | null;
-          commission_amount?: number | null;
-          referral_fee_amount?: number | null;
-          referral_fee_paid?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -275,10 +267,6 @@ export interface Database {
           referred_by_lead_id?: string | null;
           lost_reason?: string | null;
           lost_reason_note?: string | null;
-          deal_value?: number | null;
-          commission_amount?: number | null;
-          referral_fee_amount?: number | null;
-          referral_fee_paid?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -464,6 +452,69 @@ export interface Database {
           },
           {
             foreignKeyName: "lead_documents_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      units_sold: {
+        Row: {
+          id: string;
+          lead_id: string;
+          unit_number: string;
+          unit_size: string | null;
+          sale_type: string;
+          unit_amount: number;
+          bonus_amount: number;
+          bonus_paid: boolean;
+          sold_at: string;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          unit_number: string;
+          unit_size?: string | null;
+          sale_type: string;
+          unit_amount: number;
+          bonus_amount?: number;
+          bonus_paid?: boolean;
+          sold_at?: string;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          lead_id?: string;
+          unit_number?: string;
+          unit_size?: string | null;
+          sale_type?: string;
+          unit_amount?: number;
+          bonus_amount?: number;
+          bonus_paid?: boolean;
+          sold_at?: string;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "units_sold_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "units_sold_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
