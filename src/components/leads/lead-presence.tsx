@@ -21,27 +21,50 @@ export function LeadPresence({ leadId }: { leadId: string }) {
   useEffect(() => {
     if (!profile) return;
 
-    const supabase = createClient();
-    const channel = supabase.channel(`lead-presence-${leadId}`, {
-      config: { presence: { key: profile.id } },
-    });
+    // Presence is a nice-to-have, never something that should be able to
+    // take the whole lead page down — any failure here (a Realtime hiccup,
+    // an unexpected SDK error) is swallowed rather than thrown.
+    let supabase: ReturnType<typeof createClient>;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState<{ name: string }>();
-        const others = Object.entries(state)
-          .filter(([key]) => key !== profile.id)
-          .map(([key, entries]) => ({ id: key, name: entries[0]?.name ?? "A teammate" }));
-        setViewers(others);
-      })
-      .subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.track({ name: profile.full_name ?? "A teammate" });
-        }
+    try {
+      supabase = createClient();
+      channel = supabase.channel(`lead-presence-${leadId}`, {
+        config: { presence: { key: profile.id } },
       });
 
+      channel
+        .on("presence", { event: "sync" }, () => {
+          try {
+            const state = channel!.presenceState<{ name: string }>();
+            const others = Object.entries(state)
+              .filter(([key]) => key !== profile.id)
+              .map(([key, entries]) => ({ id: key, name: entries[0]?.name ?? "A teammate" }));
+            setViewers(others);
+          } catch (err) {
+            console.error("Lead presence: failed to read presence state", err);
+          }
+        })
+        .subscribe(async (status) => {
+          if (status === "SUBSCRIBED") {
+            try {
+              await channel!.track({ name: profile.full_name ?? "A teammate" });
+            } catch (err) {
+              console.error("Lead presence: failed to track", err);
+            }
+          }
+        });
+    } catch (err) {
+      console.error("Lead presence: failed to set up channel", err);
+      return;
+    }
+
     return () => {
-      supabase.removeChannel(channel);
+      try {
+        supabase.removeChannel(channel!);
+      } catch {
+        // Already gone — nothing to clean up.
+      }
     };
   }, [leadId, profile]);
 
