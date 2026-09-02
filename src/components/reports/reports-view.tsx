@@ -153,8 +153,12 @@ export function ReportsView({
         </Select>
       </div>
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        {/* Desktop: grouped nav rail. */}
+      <div className="flex flex-col gap-4 lg:flex-row">
+        {/* Desktop: grouped nav rail. lg:items-start deliberately omitted —
+            without it, this column and the content column stretch to equal
+            height (the flexbox default), which is what gives the sticky
+            rail below room to actually stay stuck while the (usually much
+            taller) content column scrolls past it. */}
         <nav className="hidden shrink-0 lg:block lg:w-64">
           <div className="sticky top-4 space-y-4 rounded-2xl border border-border bg-card p-3">
             {REPORT_GROUPS.map((group) => (
@@ -170,10 +174,10 @@ export function ReportsView({
                       type="button"
                       onClick={() => setActiveTab(r.id)}
                       className={cn(
-                        "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm font-medium transition-colors",
+                        "flex items-center gap-2.5 rounded-lg border-l-2 px-2.5 py-2 text-left text-sm font-medium transition-colors",
                         activeTab === r.id
-                          ? "bg-accent text-gold"
-                          : "text-foreground/70 hover:bg-accent/60 hover:text-foreground"
+                          ? "border-gold bg-gold/10 text-gold"
+                          : "border-transparent text-foreground/70 hover:bg-accent/60 hover:text-foreground"
                       )}
                     >
                       <r.icon className="size-4 shrink-0" />

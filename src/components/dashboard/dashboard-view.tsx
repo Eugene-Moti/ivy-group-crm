@@ -21,6 +21,7 @@ import { LeadsOverTimeChart } from "@/components/dashboard/leads-over-time-chart
 import { PrioritySplitChart } from "@/components/dashboard/priority-split-chart";
 import { AgentLeaderboard } from "@/components/dashboard/agent-leaderboard";
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
+import { NeedsAttentionCard } from "@/components/dashboard/needs-attention-card";
 import type {
   computeAgentLeaderboard,
   computeKpis,
@@ -65,6 +66,8 @@ export function DashboardView({
           Live overview of the Ivy Group buyer pipeline.
         </p>
       </div>
+
+      <NeedsAttentionCard />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard
