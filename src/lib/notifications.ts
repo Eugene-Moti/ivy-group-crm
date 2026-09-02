@@ -1,6 +1,7 @@
-import { differenceInCalendarDays, endOfDay } from "date-fns";
+import { differenceInCalendarDays, endOfDay, format, isSameDay } from "date-fns";
 import { FOLLOW_UP_EXCLUDED_STATUS_KEYS, LOST_STATUS_KEY, WON_STATUS_KEY } from "@/lib/constants";
 import { findAllDuplicateClusters } from "@/lib/duplicate-leads";
+import { fullName } from "@/lib/format";
 
 const STALE_OPEN_DAYS = 30;
 const HOT_UNCONTACTED_DAYS = 7;
@@ -24,19 +25,26 @@ export type NotificationLead = {
 
 export type NotificationActivity = { lead_id: string; created_at: string };
 
+/** One exact lead behind a notification count, plus a one-line reason specific to that lead — not just "9 hot leads," but which nine and why. */
+export type NotificationLeadRef = { id: string; name: string; reason: string };
+
 export type NotificationItem = {
   id: string;
   severity: "critical" | "warning";
   title: string;
   detail: string;
   href: string;
+  leads?: NotificationLeadRef[];
 };
 
 /**
  * The same categories of "needs attention" the Full Analysis report surfaces
  * — overdue follow-ups, hot leads gone quiet, possible duplicates, stale
  * open leads — condensed to one item per category for a notification
- * dropdown rather than a detailed report.
+ * dropdown/card rather than a detailed report. Every category also carries
+ * the exact leads behind its count, each with its own reason, so "9 Hot
+ * leads without contact" can be expanded to see which nine and why, without
+ * a trip to a filtered table.
  */
 export function computeNotifications(
   leads: NotificationLead[],
@@ -60,6 +68,8 @@ export function computeNotifications(
   }
 
   const items: NotificationItem[] = [];
+  const refs = (leadsAndReasons: [NotificationLead, string][]): NotificationLeadRef[] =>
+    leadsAndReasons.map(([l, reason]) => ({ id: l.id, name: fullName(l), reason }));
 
   // An agent's own card should never be Won — it means a completed deal has
   // no client record at all (see the leads_agent_not_closed_won constraint).
@@ -73,6 +83,7 @@ export function computeNotifications(
       title: `${agentsMarkedWon.length} agent${agentsMarkedWon.length === 1 ? "" : "s"} marked Won without a client record`,
       detail: "An agent isn't the client — convert their referral with \"Add client details\" instead.",
       href: "/reports?tab=agent-won-audit",
+      leads: refs(agentsMarkedWon.map((l) => [l, "Marked Won directly — no client record exists for this deal."])),
     });
   }
 
@@ -87,6 +98,7 @@ export function computeNotifications(
       title: `${wonWithoutUnitSale.length} Won lead${wonWithoutUnitSale.length === 1 ? "" : "s"} without a recorded unit sale`,
       detail: "No unit sale on file yet — the bonus for these deals isn't being tracked.",
       href: "/reports?tab=units-sold",
+      leads: refs(wonWithoutUnitSale.map((l) => [l, "Won, but no unit sale recorded yet."])),
     });
   }
 
@@ -100,6 +112,12 @@ export function computeNotifications(
       title: `${overdue.length} overdue follow-up${overdue.length === 1 ? "" : "s"}`,
       detail: "Open leads whose next follow-up date has already passed.",
       href: "/follow-ups",
+      leads: refs(
+        overdue.map((l) => [
+          l,
+          `Follow-up was due ${format(new Date(l.next_follow_up_at!), "d MMM yyyy")}.`,
+        ])
+      ),
     });
   }
 
@@ -116,6 +134,15 @@ export function computeNotifications(
       title: `${siteVisitsDue.length} site visit${siteVisitsDue.length === 1 ? "" : "s"} due`,
       detail: "Scheduled viewings due today or already passed.",
       href: "/leads?status=viewing_scheduled",
+      leads: refs(
+        siteVisitsDue.map((l) => {
+          const at = new Date(l.next_follow_up_at!);
+          const reason = isSameDay(at, now)
+            ? `Visit scheduled for today, ${format(at, "h:mm a")}.`
+            : `Visit was scheduled for ${format(at, "d MMM yyyy")} — already passed.`;
+          return [l, reason];
+        })
+      ),
     });
   }
 
@@ -132,6 +159,15 @@ export function computeNotifications(
       title: `${hotGoneQuiet.length} Hot lead${hotGoneQuiet.length === 1 ? "" : "s"} without contact in ${HOT_UNCONTACTED_DAYS}+ days`,
       detail: "Hot-priority leads are the closest to converting — and the fastest to lose through inaction.",
       href: "/leads?priority=Hot",
+      leads: refs(
+        hotGoneQuiet.map((l) => {
+          const lastActivity = lastActivityAtByLead.get(l.id);
+          const reason = lastActivity
+            ? `No contact in ${differenceInCalendarDays(now, new Date(lastActivity))} days — last on ${format(new Date(lastActivity), "d MMM yyyy")}.`
+            : "Never contacted since being added.";
+          return [l, reason];
+        })
+      ),
     });
   }
 
@@ -139,12 +175,23 @@ export function computeNotifications(
     leads.map((l) => ({ ...l, assigned_agent: null }))
   );
   if (duplicateClusters.length > 0) {
+    const duplicateRefs: NotificationLeadRef[] = duplicateClusters.flatMap((cluster) =>
+      cluster.leads.map((l) => {
+        const others = cluster.leads.filter((other) => other.id !== l.id).map(fullName);
+        return {
+          id: l.id,
+          name: fullName(l),
+          reason: `Shares a ${cluster.field} with ${others.join(", ")}.`,
+        };
+      })
+    );
     items.push({
       id: "possible-duplicates",
       severity: "warning",
       title: `${duplicateClusters.length} possible duplicate lead${duplicateClusters.length === 1 ? "" : "s"}`,
       detail: "Leads sharing a phone number or email — worth a quick review.",
       href: "/reports?tab=duplicates",
+      leads: duplicateRefs,
     });
   }
 
@@ -159,6 +206,12 @@ export function computeNotifications(
       title: `${staleOpen.length} open lead${staleOpen.length === 1 ? "" : "s"} older than ${STALE_OPEN_DAYS} days with no notes`,
       detail: "No recorded contact history at all — either gone cold, or activity isn't being logged.",
       href: "/reports?tab=full-analysis",
+      leads: refs(
+        staleOpen.map((l) => [
+          l,
+          `${differenceInCalendarDays(now, new Date(l.created_at))} days old, no activity logged.`,
+        ])
+      ),
     });
   }
 
@@ -178,6 +231,12 @@ export function computeNotifications(
       title: `${winBackCandidates.length} lost lead${winBackCandidates.length === 1 ? "" : "s"} untouched for ${WIN_BACK_MONTHS}+ months`,
       detail: "Worth a re-engagement touch — budgets, financing, and the market all change over time.",
       href: `/leads?status=${LOST_STATUS_KEY}`,
+      leads: refs(
+        winBackCandidates.map((l) => [
+          l,
+          `Lost on ${format(new Date(l.updated_at), "d MMM yyyy")}, untouched since.`,
+        ])
+      ),
     });
   }
 

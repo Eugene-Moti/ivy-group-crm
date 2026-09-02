@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Bell, CheckCircle2, OctagonAlert, Sparkles } from "lucide-react";
+import { Bell, CheckCircle2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { useIsAdmin } from "@/components/providers/profile-provider";
 import { useAssistant } from "@/components/providers/assistant-provider";
 import { useNotifications } from "@/hooks/use-notifications";
+import { NotificationItemCard } from "@/components/shared/notification-item-card";
 import type { NotificationItem } from "@/lib/notifications";
 import {
   Popover,
@@ -118,30 +119,12 @@ export function NotificationBell() {
             <p className="text-sm text-muted-foreground">All caught up. Nothing urgent right now.</p>
           </div>
         ) : (
-          <ul className="space-y-2">
-            {notifications.map((item) => {
-              const Icon = item.severity === "critical" ? OctagonAlert : AlertTriangle;
-              const color = item.severity === "critical" ? "text-destructive" : "text-gold";
-              const border = item.severity === "critical" ? "border-l-destructive" : "border-l-gold";
-              return (
-                <li key={item.id}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex gap-2.5 rounded-lg border border-border border-l-4 bg-card p-3 transition-colors hover:border-ring/50",
-                      border
-                    )}
-                  >
-                    <Icon className={cn("mt-0.5 size-4 shrink-0", color)} />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground">{item.title}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{item.detail}</p>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+          <ul className="max-h-96 space-y-2 overflow-y-auto">
+            {notifications.map((item) => (
+              <li key={item.id}>
+                <NotificationItemCard item={item} onNavigate={() => setOpen(false)} />
+              </li>
+            ))}
           </ul>
         )}
 

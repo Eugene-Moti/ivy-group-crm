@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { AlertTriangle, Bell, CheckCircle2, OctagonAlert, Sparkles } from "lucide-react";
+import { Bell, CheckCircle2, Sparkles } from "lucide-react";
 import { useIsAdmin } from "@/components/providers/profile-provider";
 import { useAssistant } from "@/components/providers/assistant-provider";
 import { useNotifications } from "@/hooks/use-notifications";
+import { NotificationItemCard } from "@/components/shared/notification-item-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 /**
  * Everything the notification bell knows, surfaced right on the dashboard
@@ -55,28 +54,10 @@ export function NeedsAttentionCard() {
         </button>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {notifications.map((item) => {
-            const Icon = item.severity === "critical" ? OctagonAlert : AlertTriangle;
-            const color = item.severity === "critical" ? "text-destructive" : "text-gold";
-            const border = item.severity === "critical" ? "border-l-destructive" : "border-l-gold";
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={cn(
-                  "flex gap-2.5 rounded-lg border border-border border-l-4 bg-background p-3 transition-colors hover:border-ring/50",
-                  border
-                )}
-              >
-                <Icon className={cn("mt-0.5 size-4 shrink-0", color)} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">{item.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{item.detail}</p>
-                </div>
-              </Link>
-            );
-          })}
+        <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-2">
+          {notifications.map((item) => (
+            <NotificationItemCard key={item.id} item={item} />
+          ))}
         </div>
       </CardContent>
     </Card>
