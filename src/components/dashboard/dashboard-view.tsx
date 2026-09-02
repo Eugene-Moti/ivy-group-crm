@@ -67,8 +67,6 @@ export function DashboardView({
         </p>
       </div>
 
-      <NeedsAttentionCard />
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           icon={Users}
@@ -116,6 +114,8 @@ export function DashboardView({
           href="/leads"
         />
       </div>
+
+      <NeedsAttentionCard />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <LeadsOverTimeChart createdDates={leadCreatedDates} />
