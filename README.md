@@ -38,6 +38,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 GROQ_API_KEY=your-groq-api-key
 RESEND_API_KEY=your-resend-api-key
 CRON_SECRET=your-random-secret
+LEAD_WEBHOOK_SECRET=your-random-secret
 ```
 
 `.env.local` is gitignored — never commit real keys.
@@ -61,6 +62,51 @@ and only runs once deployed to Vercel — there's no local equivalent, though
 you can trigger it manually with
 `curl -H "Authorization: Bearer $CRON_SECRET" https://your-deployment.vercel.app/api/cron/digest`
 to test it.
+
+**Inbound lead capture** (`POST /api/webhooks/leads`) creates a new lead
+automatically instead of someone typing it in by hand — for a website
+contact form or a Facebook/Instagram Lead Ads bridge. Protected by
+`LEAD_WEBHOOK_SECRET`, sent as `Authorization: Bearer <secret>`. Body:
+
+```json
+{
+  "first_name": "Jane",
+  "last_name": "Wanjiru",
+  "phone": "+254712345678",
+  "email": "jane@example.com",
+  "source": "Facebook Ads",
+  "project": "Ivy Heights",
+  "message": "Interested in a 2-bedroom, budget around 8M"
+}
+```
+
+`first_name` is required, and at least one of `phone`/`email`. `source` is
+matched case-insensitively against existing lead sources and created if it
+doesn't exist yet (ad campaigns come and go); `project` is matched against
+existing projects only — never auto-created, since that would invent
+inventory that doesn't exist. The new lead lands in the first pipeline
+stage with priority Warm, and `message` (if given) is logged as its first
+activity note.
+
+**Never call this endpoint directly from client-side JavaScript on a public
+website** — that exposes `LEAD_WEBHOOK_SECRET` to every visitor, defeating
+the point of it being a secret. Two safe patterns instead:
+- Your website's own server-side form handler receives the submission and
+  makes the authenticated call itself (secret lives only in that server's
+  environment).
+- A no-code bridge like Zapier, Make, or n8n — connect its Facebook/
+  Instagram Lead Ads trigger (or a generic webhook trigger for your own
+  form) to a "webhook/HTTP request" action, with the `Authorization` header
+  and this URL. The secret lives in that tool's stored credentials, never
+  in a browser.
+
+Test it directly with:
+```bash
+curl -X POST https://your-deployment.vercel.app/api/webhooks/leads \
+  -H "Authorization: Bearer $LEAD_WEBHOOK_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{"first_name":"Jane","phone":"+254712345678","source":"Website"}'
+```
 
 ## 3. Run the database migrations + seed data
 
