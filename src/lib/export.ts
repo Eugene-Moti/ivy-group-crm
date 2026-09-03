@@ -37,8 +37,25 @@ export function exportToCSV<T>(data: T[], columns: ExportColumn<T>[], filename: 
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), `${filename}.csv`);
 }
 
+const EXCEL_COL_MIN_WIDTH = 10;
+const EXCEL_COL_MAX_WIDTH = 40;
+
 export function exportToExcel<T>(data: T[], columns: ExportColumn<T>[], filename: string) {
-  const worksheet = XLSX.utils.json_to_sheet(toRows(data, columns));
+  const rows = toRows(data, columns);
+  const worksheet = XLSX.utils.json_to_sheet(rows);
+
+  // Auto-fit column widths from the actual content — a flat, default-width
+  // sheet is the one thing that makes an otherwise-branded set of reports
+  // still look like a raw data dump the moment someone opens it in Excel.
+  worksheet["!cols"] = columns.map((col) => {
+    const headerWidth = col.label.length;
+    const contentWidth = rows.reduce((max, row) => {
+      const cell = row[col.label];
+      return Math.max(max, cell == null ? 0 : String(cell).length);
+    }, 0);
+    return { wch: Math.min(EXCEL_COL_MAX_WIDTH, Math.max(EXCEL_COL_MIN_WIDTH, headerWidth, contentWidth) + 2) };
+  });
+
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
   XLSX.writeFile(workbook, `${filename}.xlsx`);

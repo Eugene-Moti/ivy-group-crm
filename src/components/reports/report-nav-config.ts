@@ -1,5 +1,6 @@
 import {
   CalendarClock,
+  CalendarRange,
   Copy,
   Gauge,
   Handshake,
@@ -47,6 +48,13 @@ export const REPORT_GROUPS: ReportGroup[] = [
         description:
           "Every lead, sales manager, project, and source rolled into one summary, with data-driven suggestions on where to focus next.",
         icon: LayoutDashboard,
+      },
+      {
+        id: "period-review",
+        label: "Weekly / Monthly review",
+        description:
+          "How a specific week or month went, measured against the one before it — where to put more effort, and what the setbacks were.",
+        icon: CalendarRange,
       },
       {
         id: "marketing",

@@ -22,6 +22,7 @@ import { ConversionTimelineReport } from "@/components/reports/conversion-timeli
 import { DuplicateLeadsReport } from "@/components/reports/duplicate-leads-report";
 import { AgentWonAuditReport } from "@/components/reports/agent-won-audit-report";
 import { UnitsSoldReport } from "@/components/reports/units-sold-report";
+import { PeriodReport } from "@/components/reports/period-report";
 import { MarketingReportView } from "@/components/reports/marketing-report";
 import { LostLeadsReport } from "@/components/reports/lost-leads-report";
 import { FullAnalysisReport } from "@/components/reports/full-analysis-report";
@@ -117,6 +118,10 @@ export function ReportsView({
             activitySummaries={activitySummaries}
             evidenceLeadIds={evidenceLeadIds}
           />
+        );
+      case "period-review":
+        return (
+          <PeriodReport leads={leads} activitySummaries={activitySummaries} unitsSold={unitsSold} />
         );
       default:
         return null;
