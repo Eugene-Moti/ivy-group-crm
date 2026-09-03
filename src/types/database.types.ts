@@ -34,6 +34,9 @@ export interface Database {
           email: string | null;
           avatar_url: string | null;
           role: UserRole;
+          display_name: string | null;
+          job_title: string | null;
+          is_active: boolean;
           created_at: string;
         };
         Insert: {
@@ -42,6 +45,9 @@ export interface Database {
           email?: string | null;
           avatar_url?: string | null;
           role?: UserRole;
+          display_name?: string | null;
+          job_title?: string | null;
+          is_active?: boolean;
           created_at?: string;
         };
         Update: {
@@ -50,6 +56,9 @@ export interface Database {
           email?: string | null;
           avatar_url?: string | null;
           role?: UserRole;
+          display_name?: string | null;
+          job_title?: string | null;
+          is_active?: boolean;
           created_at?: string;
         };
         Relationships: [];

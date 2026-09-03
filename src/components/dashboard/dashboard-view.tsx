@@ -22,6 +22,7 @@ import { PrioritySplitChart } from "@/components/dashboard/priority-split-chart"
 import { AgentLeaderboard } from "@/components/dashboard/agent-leaderboard";
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
 import { NeedsAttentionCard } from "@/components/dashboard/needs-attention-card";
+import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting";
 import type {
   computeAgentLeaderboard,
   computeKpis,
@@ -60,12 +61,7 @@ export function DashboardView({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Live overview of the Ivy Group buyer pipeline.
-        </p>
-      </div>
+      <DashboardGreeting />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KpiCard

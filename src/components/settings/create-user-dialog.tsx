@@ -30,16 +30,8 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
+import { generatePassword } from "@/lib/password";
 import type { UserRole } from "@/types/database.types";
-
-const PASSWORD_CHARS =
-  "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
-
-function generatePassword(length = 12) {
-  const values = new Uint32Array(length);
-  crypto.getRandomValues(values);
-  return Array.from(values, (v) => PASSWORD_CHARS[v % PASSWORD_CHARS.length]).join("");
-}
 
 export function CreateUserDialog() {
   const router = useRouter();

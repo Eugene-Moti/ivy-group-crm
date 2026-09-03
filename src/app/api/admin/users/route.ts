@@ -65,6 +65,70 @@ export async function POST(request: Request) {
   return NextResponse.json({ success: true });
 }
 
+const BAN_DURATION_WHEN_DEACTIVATED = "876000h"; // ~100 years — effectively permanent, lifted by setting "none"
+
+/**
+ * Admin-only account maintenance for an existing user: force a new
+ * password (handed off manually, same as account creation), and/or
+ * ban/unban at the Supabase Auth level — the real enforcement for
+ * "deactivated," not just a cosmetic flag. profiles.is_active is kept in
+ * sync in the same call purely so the UI can show status without an extra
+ * admin-only lookup.
+ */
+export async function PATCH(request: Request) {
+  const profile = await getCurrentProfile();
+  if (!isAdmin(profile)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const body = await request.json().catch(() => null);
+  const userId = typeof body?.userId === "string" ? body.userId : "";
+  if (!userId) {
+    return NextResponse.json({ error: "userId is required" }, { status: 400 });
+  }
+
+  const adminClient = createAdminClient();
+
+  if (typeof body?.password === "string") {
+    if (body.password.length < 8) {
+      return NextResponse.json(
+        { error: "Password must be at least 8 characters." },
+        { status: 400 }
+      );
+    }
+    const { error } = await adminClient.auth.admin.updateUserById(userId, {
+      password: body.password,
+    });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+  }
+
+  if (typeof body?.isActive === "boolean") {
+    if (userId === profile!.id) {
+      return NextResponse.json(
+        { error: "You can't deactivate your own account." },
+        { status: 400 }
+      );
+    }
+    const { error: banError } = await adminClient.auth.admin.updateUserById(userId, {
+      ban_duration: body.isActive ? "none" : BAN_DURATION_WHEN_DEACTIVATED,
+    });
+    if (banError) {
+      return NextResponse.json({ error: banError.message }, { status: 400 });
+    }
+    const { error: profileError } = await adminClient
+      .from("profiles")
+      .update({ is_active: body.isActive })
+      .eq("id", userId);
+    if (profileError) {
+      return NextResponse.json({ error: profileError.message }, { status: 400 });
+    }
+  }
+
+  return NextResponse.json({ success: true });
+}
+
 export async function DELETE(request: Request) {
   const profile = await getCurrentProfile();
   if (!isAdmin(profile)) {

@@ -4,6 +4,7 @@ import {
   CalendarClock,
   BarChart3,
   Upload,
+  IdCard,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -20,6 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
   { title: "Leads", href: "/leads", icon: Users },
   { title: "Follow-ups", href: "/follow-ups", icon: CalendarClock },
   { title: "Reports", href: "/reports", icon: BarChart3 },
+  { title: "Team & Users", href: "/team", icon: IdCard },
   { title: "Import", href: "/leads/import", icon: Upload, adminOnly: true },
   { title: "Settings", href: "/settings", icon: Settings, adminOnly: true },
 ];

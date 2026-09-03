@@ -203,7 +203,14 @@ these in order:
    sync: nowhere. Powers Reports > Units sold & bonuses, a per-unit downloadable PDF, a
    notification-bell nudge for Won Direct Client leads with no unit sale on file yet, and
    the AI Assistant's get_units_sold tool.
-21. [`supabase/seed.sql`](supabase/seed.sql) —
+21. [`supabase/migrations/20260814000000_profile_details.sql`](supabase/migrations/20260814000000_profile_details.sql) —
+   adds `display_name`, `job_title`, and `is_active` to `profiles`. `display_name` is what
+   the system calls someone (dashboard greeting, Team & Users) without touching `full_name`,
+   which stays the untouched record used for activity attribution; `is_active` mirrors
+   whether an admin has banned the account via Supabase Auth (the real enforcement — this
+   column just lets the UI show status without an extra admin-only lookup). Both new text
+   fields fall under the existing `profiles_update_own_or_admin` policy.
+22. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
