@@ -10,6 +10,7 @@ import { useProfile } from "@/components/providers/profile-provider";
 import { DIRECT_SALE_BONUS_RATE, WON_STATUS_KEY, type SaleType } from "@/lib/constants";
 import { formatKES, fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { UnitSoldRow } from "@/lib/queries/units-sold";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,36 +52,51 @@ export function RecordUnitSaleDialog({
   onOpenChange,
   leads,
   lockedLead,
+  editingUnit,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Won, Direct Client leads to pick from — ignored when lockedLead is given. */
+  /** Won, Direct Client leads to pick from — ignored when lockedLead or editingUnit is given. */
   leads: LeadWithRelations[];
   /** Skips the picker — used when launched from that lead's own detail page. */
   lockedLead?: LeadWithRelations;
+  /** Editing an existing record instead of creating one — prefills every field and updates in place on save. The lead a unit is sold against never changes once recorded; to fix that, delete and re-record. */
+  editingUnit?: UnitSoldRow;
   onSaved: () => void;
 }) {
   const router = useRouter();
   const profile = useProfile();
+  const isEditing = !!editingUnit;
 
   const eligibleLeads = useMemo(
     () => leads.filter((l) => l.status === WON_STATUS_KEY && l.lead_type === "Direct Client"),
     [leads]
   );
 
-  const [leadId, setLeadId] = useState(lockedLead?.id ?? "");
-  const [unitNumber, setUnitNumber] = useState("");
-  const [unitSize, setUnitSize] = useState("");
-  const [unitAmount, setUnitAmount] = useState("");
-  const [bonusAmount, setBonusAmount] = useState("");
-  const [bonusManuallyEdited, setBonusManuallyEdited] = useState(false);
-  const [bonusPaid, setBonusPaid] = useState(false);
-  const [soldAt, setSoldAt] = useState(todayLocal());
-  const [notes, setNotes] = useState("");
+  // Prefilled straight from editingUnit rather than synced in via an effect
+  // — the caller keys this component by editingUnit?.id (see
+  // units-sold-report.tsx), so switching which record is being edited (or
+  // between edit and create) remounts this component fresh instead of
+  // needing an effect to re-sync state into an existing instance.
+  const [leadId, setLeadId] = useState(editingUnit?.lead_id ?? lockedLead?.id ?? "");
+  const [unitNumber, setUnitNumber] = useState(editingUnit?.unit_number ?? "");
+  const [unitSize, setUnitSize] = useState(editingUnit?.unit_size ?? "");
+  const [unitAmount, setUnitAmount] = useState(
+    editingUnit ? String(editingUnit.unit_amount) : ""
+  );
+  const [bonusAmount, setBonusAmount] = useState(
+    editingUnit ? String(editingUnit.bonus_amount) : ""
+  );
+  // Never auto-recalculate over an already-set bonus when editing.
+  const [bonusManuallyEdited, setBonusManuallyEdited] = useState(isEditing);
+  const [bonusPaid, setBonusPaid] = useState(editingUnit?.bonus_paid ?? false);
+  const [soldAt, setSoldAt] = useState(editingUnit?.sold_at ?? todayLocal());
+  const [notes, setNotes] = useState(editingUnit?.notes ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const selectedLead = lockedLead ?? eligibleLeads.find((l) => l.id === leadId);
+  const selectedLead =
+    lockedLead ?? leads.find((l) => l.id === (editingUnit ? editingUnit.lead_id : leadId));
   const saleType: SaleType | null = selectedLead
     ? selectedLead.referred_by_lead_id
       ? "Agent Referral"
@@ -132,26 +148,43 @@ export function RecordUnitSaleDialog({
 
     setIsSubmitting(true);
     const supabase = createClient();
-    const { error } = await supabase.from("units_sold").insert({
-      lead_id: selectedLead.id,
-      unit_number: unitNumber.trim(),
-      unit_size: unitSize.trim() || null,
-      sale_type: saleType,
-      unit_amount: Number(unitAmount),
-      bonus_amount: bonusAmount.trim() ? Number(bonusAmount) : 0,
-      bonus_paid: bonusPaid,
-      sold_at: soldAt,
-      notes: notes.trim() || null,
-      created_by: profile?.id ?? null,
-    });
+
+    const { error } = editingUnit
+      ? await supabase
+          .from("units_sold")
+          .update({
+            unit_number: unitNumber.trim(),
+            unit_size: unitSize.trim() || null,
+            unit_amount: Number(unitAmount),
+            bonus_amount: bonusAmount.trim() ? Number(bonusAmount) : 0,
+            bonus_paid: bonusPaid,
+            sold_at: soldAt,
+            notes: notes.trim() || null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", editingUnit.id)
+      : await supabase.from("units_sold").insert({
+          lead_id: selectedLead.id,
+          unit_number: unitNumber.trim(),
+          unit_size: unitSize.trim() || null,
+          sale_type: saleType,
+          unit_amount: Number(unitAmount),
+          bonus_amount: bonusAmount.trim() ? Number(bonusAmount) : 0,
+          bonus_paid: bonusPaid,
+          sold_at: soldAt,
+          notes: notes.trim() || null,
+          created_by: profile?.id ?? null,
+        });
     setIsSubmitting(false);
 
     if (error) {
-      toast.error("Failed to record unit sale", { description: error.message });
+      toast.error(`Failed to ${editingUnit ? "update" : "record"} unit sale`, {
+        description: error.message,
+      });
       return;
     }
 
-    toast.success(`${unitNumber.trim()} recorded as sold`);
+    toast.success(`${unitNumber.trim()} ${editingUnit ? "updated" : "recorded as sold"}`);
     handleOpenChange(false);
     onSaved();
     router.refresh();
@@ -161,15 +194,16 @@ export function RecordUnitSaleDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Record a unit sale</DialogTitle>
+          <DialogTitle>{isEditing ? "Edit unit sale" : "Record a unit sale"}</DialogTitle>
           <DialogDescription>
-            Client, sales manager, and referring agent (if any) are read from the lead — only
-            the unit and money details need entering here.
+            {isEditing
+              ? "The linked client can't be changed here — delete and re-record if it's the wrong lead."
+              : "Client, sales manager, and referring agent (if any) are read from the lead — only the unit and money details need entering here."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {!lockedLead && (
+          {!lockedLead && !editingUnit && (
             <Field>
               <FieldLabel>Client</FieldLabel>
               <FieldContent>
@@ -320,7 +354,7 @@ export function RecordUnitSaleDialog({
             </Button>
             <Button type="submit" disabled={!canSubmit || isSubmitting}>
               {isSubmitting && <Loader2 className="animate-spin" />}
-              Save
+              {isEditing ? "Save changes" : "Save"}
             </Button>
           </DialogFooter>
         </form>

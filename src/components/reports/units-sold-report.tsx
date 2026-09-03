@@ -1,16 +1,28 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FileDown, Plus } from "lucide-react";
+import { FileDown, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { RecordUnitSaleDialog } from "@/components/leads/record-unit-sale-dialog";
+import { createClient } from "@/lib/supabase/client";
 import { generateUnitSalePdf } from "@/lib/unit-sale-pdf";
 import { formatDate, formatKES, fullName } from "@/lib/format";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
@@ -31,8 +43,23 @@ export function UnitsSoldReport({
   units: UnitSoldRow[];
   leads: LeadWithRelations[];
 }) {
-  const [recordOpen, setRecordOpen] = useState(false);
+  const router = useRouter();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<UnitSoldRow | null>(null);
+  const [deletingUnit, setDeletingUnit] = useState<UnitSoldRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  function openCreate() {
+    setEditingUnit(null);
+    setDialogOpen(true);
+  }
+
+  function openEdit(unit: UnitSoldRow) {
+    setEditingUnit(unit);
+    setDialogOpen(true);
+  }
 
   const leadsById = useMemo(() => new Map(leads.map((l) => [l.id, l])), [leads]);
 
@@ -111,6 +138,39 @@ export function UnitsSoldReport({
     sold_at: formatDate(r.sold_at),
   }));
 
+  async function handleTogglePaid(unit: (typeof rows)[number]) {
+    setTogglingId(unit.id);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("units_sold")
+      .update({ bonus_paid: !unit.bonus_paid, updated_at: new Date().toISOString() })
+      .eq("id", unit.id);
+    setTogglingId(null);
+
+    if (error) {
+      toast.error("Failed to update payout status", { description: error.message });
+      return;
+    }
+    toast.success(unit.bonus_paid ? "Marked as owed" : "Marked as paid");
+    router.refresh();
+  }
+
+  async function handleDelete() {
+    if (!deletingUnit) return;
+    setIsDeleting(true);
+    const supabase = createClient();
+    const { error } = await supabase.from("units_sold").delete().eq("id", deletingUnit.id);
+    setIsDeleting(false);
+
+    if (error) {
+      toast.error("Failed to delete unit sale", { description: error.message });
+      return;
+    }
+    toast.success(`${deletingUnit.unit_number} deleted`);
+    setDeletingUnit(null);
+    router.refresh();
+  }
+
   async function handleDownloadOne(row: (typeof rows)[number]) {
     setDownloadingId(row.id);
     try {
@@ -145,7 +205,7 @@ export function UnitsSoldReport({
           team&apos;s bonus — 1% of the unit amount for a direct sale, a set amount for an
           agent-referred one.
         </p>
-        <Button size="sm" onClick={() => setRecordOpen(true)}>
+        <Button size="sm" onClick={openCreate}>
           <Plus className="size-4" />
           Record unit sale
         </Button>
@@ -259,7 +319,7 @@ export function UnitsSoldReport({
                 <TableHead>Bonus</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Sold</TableHead>
-                <TableHead className="text-right">Download</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -291,21 +351,56 @@ export function UnitsSoldReport({
                     <TableCell>{formatKES(r.unit_amount)}</TableCell>
                     <TableCell>{formatKES(r.bonus_amount)}</TableCell>
                     <TableCell>
-                      <Badge variant={r.bonus_paid ? "outline" : "default"}>
-                        {r.bonus_paid ? "Paid" : "Owed"}
-                      </Badge>
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePaid(r)}
+                        disabled={togglingId === r.id}
+                        aria-label={`Mark ${r.unit_number} bonus as ${r.bonus_paid ? "owed" : "paid"}`}
+                        title="Click to toggle payout status"
+                      >
+                        <Badge
+                          variant={r.bonus_paid ? "outline" : "default"}
+                          className="cursor-pointer"
+                        >
+                          {togglingId === r.id ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : r.bonus_paid ? (
+                            "Paid"
+                          ) : (
+                            "Owed"
+                          )}
+                        </Badge>
+                      </button>
                     </TableCell>
                     <TableCell>{formatDate(r.sold_at)}</TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Download ${r.unit_number} sale record`}
-                        onClick={() => handleDownloadOne(r)}
-                        disabled={downloadingId === r.id}
-                      >
-                        <FileDown className="size-3.5" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Edit ${r.unit_number}`}
+                          onClick={() => openEdit(r)}
+                        >
+                          <Pencil className="size-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Download ${r.unit_number} sale record`}
+                          onClick={() => handleDownloadOne(r)}
+                          disabled={downloadingId === r.id}
+                        >
+                          <FileDown className="size-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={`Delete ${r.unit_number}`}
+                          onClick={() => setDeletingUnit(r)}
+                        >
+                          <Trash2 className="size-3.5 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -322,11 +417,39 @@ export function UnitsSoldReport({
       </div>
 
       <RecordUnitSaleDialog
-        open={recordOpen}
-        onOpenChange={setRecordOpen}
+        key={editingUnit?.id ?? "create"}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
         leads={leads}
+        editingUnit={editingUnit ?? undefined}
         onSaved={() => {}}
       />
+
+      <AlertDialog open={!!deletingUnit} onOpenChange={(open) => !open && setDeletingUnit(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this unit sale?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes the record for &quot;{deletingUnit?.unit_number}&quot;,
+              including its bonus figures. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
+              {isDeleting && <Loader2 className="animate-spin" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
