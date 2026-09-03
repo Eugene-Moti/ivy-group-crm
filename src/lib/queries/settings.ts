@@ -32,6 +32,36 @@ export async function getAllProfiles(): Promise<ProfileRow[]> {
   return data ?? [];
 }
 
+/**
+ * How many activities (calls, notes, status changes, …) each team member
+ * has logged so far this calendar month — keyed by profile id. Deliberately
+ * *not* "deals closed": sales_agents (who a lead is assigned to) are a
+ * separate lookup table for people who never log into the CRM at all, so
+ * the only honest per-login-user performance signal is what they've
+ * actually done in the system.
+ */
+export async function getMonthlyActivityCounts(): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+
+  const { data, error } = await supabase
+    .from("activities")
+    .select("created_by")
+    .gte("created_at", monthStart.toISOString())
+    .not("created_by", "is", null);
+
+  if (error) throw new Error(error.message);
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    if (!row.created_by) continue;
+    counts[row.created_by] = (counts[row.created_by] ?? 0) + 1;
+  }
+  return counts;
+}
+
 export type LeadColumnLabels = Record<LeadColumnId, string>;
 
 export async function getLeadColumnLabels(): Promise<LeadColumnLabels> {

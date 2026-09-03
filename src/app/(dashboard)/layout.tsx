@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { getPipelineStages } from "@/lib/queries/settings";
 import { ProfileProvider } from "@/components/providers/profile-provider";
+import { OnlinePresenceProvider } from "@/components/providers/online-presence-provider";
 import { StatusLabelsProvider } from "@/components/providers/status-labels-provider";
 import { AssistantProvider } from "@/components/providers/assistant-provider";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -25,21 +26,23 @@ export default async function DashboardLayout({
 
   return (
     <ProfileProvider profile={profile}>
-      <StatusLabelsProvider stages={pipelineStages}>
-        <AssistantProvider>
-          <Suspense fallback={null}>
-            <RouteProgressBar />
-          </Suspense>
-          <IdleSessionGuard />
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Topbar />
-              <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+      <OnlinePresenceProvider>
+        <StatusLabelsProvider stages={pipelineStages}>
+          <AssistantProvider>
+            <Suspense fallback={null}>
+              <RouteProgressBar />
+            </Suspense>
+            <IdleSessionGuard />
+            <div className="flex h-screen overflow-hidden">
+              <Sidebar />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <Topbar />
+                <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+              </div>
             </div>
-          </div>
-        </AssistantProvider>
-      </StatusLabelsProvider>
+          </AssistantProvider>
+        </StatusLabelsProvider>
+      </OnlinePresenceProvider>
     </ProfileProvider>
   );
 }

@@ -210,7 +210,13 @@ these in order:
    whether an admin has banned the account via Supabase Auth (the real enforcement — this
    column just lets the UI show status without an extra admin-only lookup). Both new text
    fields fall under the existing `profiles_update_own_or_admin` policy.
-22. [`supabase/seed.sql`](supabase/seed.sql) —
+22. [`supabase/migrations/20260815000000_avatars_bucket.sql`](supabase/migrations/20260815000000_avatars_bucket.sql) —
+   creates a public `avatars` storage bucket (profile photos aren't sensitive the way contracts
+   are, so no signed-URL plumbing) with self-or-admin write policies keyed by a per-user folder.
+   `profiles.avatar_url` has existed since the initial schema; this is what finally lets Team &
+   Users, the top-bar user menu, and Settings > Users & roles show a real photo instead of just
+   initials.
+23. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

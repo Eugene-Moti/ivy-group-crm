@@ -1,8 +1,11 @@
-import { getAllProfiles } from "@/lib/queries/settings";
+import { getAllProfiles, getMonthlyActivityCounts } from "@/lib/queries/settings";
 import { TeamView } from "@/components/team/team-view";
 
 export default async function TeamPage() {
-  const profiles = await getAllProfiles();
+  const [profiles, activityCounts] = await Promise.all([
+    getAllProfiles(),
+    getMonthlyActivityCounts(),
+  ]);
 
-  return <TeamView profiles={profiles} />;
+  return <TeamView profiles={profiles} activityCounts={activityCounts} />;
 }

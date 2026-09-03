@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/components/providers/profile-provider";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,6 +94,7 @@ export function UsersPanel({ profiles }: { profiles: ProfileRow[] }) {
               <div key={profile.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar className="size-8">
+                    <AvatarImage src={profile.avatar_url ?? undefined} alt={label} />
                     <AvatarFallback className="bg-gold text-xs font-semibold text-ink">
                       {label.slice(0, 2).toUpperCase()}
                     </AvatarFallback>

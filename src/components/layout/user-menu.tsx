@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/components/providers/profile-provider";
 import { COMPANY_CONTACT } from "@/lib/company";
 import { SetPasswordDialog } from "@/components/account/set-password-dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +46,7 @@ export function UserMenu() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="gap-2 px-1.5">
             <Avatar className="size-7">
+              <AvatarImage src={profile?.avatar_url ?? undefined} alt={label} />
               <AvatarFallback className="bg-gold text-xs font-semibold text-ink">
                 {initialsFor(label)}
               </AvatarFallback>

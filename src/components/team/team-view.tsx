@@ -1,14 +1,29 @@
 "use client";
 
+import { useMemo } from "react";
 import { useIsAdmin, useProfile } from "@/components/providers/profile-provider";
 import { UserCard } from "@/components/team/user-card";
 import { CreateUserDialog } from "@/components/settings/create-user-dialog";
 import { InviteUserDialog } from "@/components/settings/invite-user-dialog";
 import type { ProfileRow } from "@/lib/queries/settings";
 
-export function TeamView({ profiles }: { profiles: ProfileRow[] }) {
+export function TeamView({
+  profiles,
+  activityCounts,
+}: {
+  profiles: ProfileRow[];
+  activityCounts: Record<string, number>;
+}) {
   const isAdmin = useIsAdmin();
   const currentProfile = useProfile();
+
+  // The top logger(s) this month, only once there's a real signal — a lone
+  // "leader" out of one logged activity isn't worth a trophy.
+  const topActivityIds = useMemo(() => {
+    const max = Math.max(0, ...Object.values(activityCounts));
+    if (max < 3) return new Set<string>();
+    return new Set(Object.entries(activityCounts).filter(([, n]) => n === max).map(([id]) => id));
+  }, [activityCounts]);
 
   return (
     <div className="space-y-4">
@@ -34,6 +49,8 @@ export function TeamView({ profiles }: { profiles: ProfileRow[] }) {
             profile={profile}
             isSelf={profile.id === currentProfile?.id}
             viewerIsAdmin={isAdmin}
+            activityThisMonth={activityCounts[profile.id] ?? 0}
+            isTopThisMonth={topActivityIds.has(profile.id)}
           />
         ))}
       </div>

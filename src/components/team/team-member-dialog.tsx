@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { generatePassword } from "@/lib/password";
 import { SetPasswordDialog } from "@/components/account/set-password-dialog";
+import { AvatarUpload } from "@/components/team/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -157,6 +158,8 @@ export function TeamMemberDialog({
                 : "Team member details and account controls."}
             </DialogDescription>
           </DialogHeader>
+
+          <AvatarUpload profile={profile} displayLabel={displayLabel} />
 
           <FieldGroup>
             <Field>
