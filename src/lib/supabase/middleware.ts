@@ -2,7 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database.types";
 
-const PUBLIC_PATHS = ["/login", "/auth/callback"];
+// /api/webhooks and /api/cron authenticate themselves with a Bearer secret
+// (an external service or Vercel Cron, never a logged-in browser session) —
+// without this, the session gate below 307s every call of theirs to /login
+// before the route handler ever runs.
+const PUBLIC_PATHS = ["/login", "/auth/callback", "/api/webhooks", "/api/cron"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
