@@ -219,7 +219,13 @@ these in order:
    `profiles.avatar_url` has existed since the initial schema; this is what finally lets Team &
    Users, the top-bar user menu, and Settings > Users & roles show a real photo instead of just
    initials.
-23. [`supabase/seed.sql`](supabase/seed.sql) —
+23. [`supabase/migrations/20260910000000_referred_deal_done_stage.sql`](supabase/migrations/20260910000000_referred_deal_done_stage.sql) —
+   adds a `referred_deal_done` ("Referred — Deal Done") pipeline stage and a trigger on the
+   *client's* status: when a lead's referred buyer closes Won (and no other referral from that
+   agent is still open), the agent advances from "Referred — Client Active" to this terminal
+   success stage — agents can't be Closed - Won themselves. Reopening the buyer's deal moves the
+   agent back to "Client Active"; a fresh referral does too, via the existing referral trigger.
+24. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

@@ -1,10 +1,18 @@
-import { CLOSED_STATUS_KEYS, REFERRED_CLIENT_ACTIVE_STATUS_KEY } from "@/lib/constants";
+import {
+  CLOSED_STATUS_KEYS,
+  REFERRED_CLIENT_ACTIVE_STATUS_KEY,
+  REFERRED_DEAL_DONE_STATUS_KEY,
+} from "@/lib/constants";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 export { REFERRED_CLIENT_ACTIVE_STATUS_KEY };
 
 const ON_HOLD_STATUS_KEY = "on_hold";
-const RESOLVED_STATUS_KEYS = [ON_HOLD_STATUS_KEY, REFERRED_CLIENT_ACTIVE_STATUS_KEY];
+const RESOLVED_STATUS_KEYS = [
+  ON_HOLD_STATUS_KEY,
+  REFERRED_CLIENT_ACTIVE_STATUS_KEY,
+  REFERRED_DEAL_DONE_STATUS_KEY,
+];
 
 export type DualActivePair = {
   agent: LeadWithRelations;

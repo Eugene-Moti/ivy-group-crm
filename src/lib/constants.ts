@@ -14,6 +14,9 @@ export const CLOSED_STATUS_KEYS: LeadStatus[] = [WON_STATUS_KEY, LOST_STATUS_KEY
 /** Where a resolved agent (referral moved to an active client record) sits — not a deal in progress anymore, but not closed either. */
 export const REFERRED_CLIENT_ACTIVE_STATUS_KEY = "referred_client_active";
 
+/** Terminal stage for an agent whose referred client's deal closed Won — their own positive outcome, since agents can't be Closed - Won themselves. */
+export const REFERRED_DEAL_DONE_STATUS_KEY = "referred_deal_done";
+
 /**
  * Statuses that shouldn't generate a follow-up reminder: closed deals, and
  * resolved agents (their own card isn't the active tracking record for a
@@ -23,6 +26,7 @@ export const REFERRED_CLIENT_ACTIVE_STATUS_KEY = "referred_client_active";
 export const FOLLOW_UP_EXCLUDED_STATUS_KEYS: LeadStatus[] = [
   ...CLOSED_STATUS_KEYS,
   REFERRED_CLIENT_ACTIVE_STATUS_KEY,
+  REFERRED_DEAL_DONE_STATUS_KEY,
 ];
 
 export const LEAD_PRIORITIES = ["Hot", "Warm", "Cold"] as const;
