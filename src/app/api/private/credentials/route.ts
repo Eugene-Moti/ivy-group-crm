@@ -3,9 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePrivateProfile } from "@/lib/private/access";
 import { isUnlocked } from "@/lib/private/unlock";
 import { logPrivate } from "@/lib/private/audit";
+import { withJson } from "@/lib/private/route-helpers";
 
 /** What the current user has set up: PIN yes/no, and their registered devices. */
-export async function GET() {
+export const GET = withJson(async () => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -27,10 +28,10 @@ export async function GET() {
     pinSet: !!pinRow?.pin_set_at,
     devices: devices ?? [],
   });
-}
+});
 
 /** Remove one registered device. Requires an active unlock (you're already inside). */
-export async function DELETE(request: Request) {
+export const DELETE = withJson(async (request: Request) => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!(await isUnlocked(gate.profile.id))) {
@@ -51,4 +52,4 @@ export async function DELETE(request: Request) {
 
   await logPrivate("biometric_removed");
   return NextResponse.json({ ok: true });
-}
+});

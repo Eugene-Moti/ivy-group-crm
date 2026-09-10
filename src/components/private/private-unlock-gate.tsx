@@ -10,6 +10,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 
+/** Pull an error message out of a failed response, whatever shape it came back in. */
+async function errText(res: Response, fallback: string): Promise<string> {
+  try {
+    const body = await res.json();
+    return typeof body?.error === "string" ? body.error : fallback;
+  } catch {
+    return res.status === 401 ? "Your session expired — sign in again." : fallback;
+  }
+}
+
 export function PrivateUnlockGate({
   hasPin,
   hasBiometric,
@@ -31,7 +41,7 @@ export function PrivateUnlockGate({
     setBusy("bio");
     try {
       const optRes = await fetch("/api/private/webauthn/authenticate");
-      if (!optRes.ok) throw new Error((await optRes.json()).error ?? "Could not start");
+      if (!optRes.ok) throw new Error(await errText(optRes, "Could not start"));
       const optionsJSON = await optRes.json();
       const assertion = await startAuthentication({ optionsJSON });
       const verifyRes = await fetch("/api/private/webauthn/authenticate", {
@@ -39,7 +49,7 @@ export function PrivateUnlockGate({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assertion }),
       });
-      if (!verifyRes.ok) throw new Error((await verifyRes.json()).error ?? "Verification failed");
+      if (!verifyRes.ok) throw new Error(await errText(verifyRes, "Verification failed"));
       router.refresh();
     } catch (err) {
       toast.error("Biometric unlock failed", {
@@ -59,7 +69,7 @@ export function PrivateUnlockGate({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin }),
       });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Incorrect PIN");
+      if (!res.ok) throw new Error(await errText(res, "Incorrect PIN"));
       router.refresh();
     } catch (err) {
       toast.error("Couldn't unlock", { description: err instanceof Error ? err.message : undefined });
@@ -81,13 +91,13 @@ export function PrivateUnlockGate({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newPin: pin }),
       });
-      if (!setRes.ok) throw new Error((await setRes.json()).error ?? "Could not set PIN");
+      if (!setRes.ok) throw new Error(await errText(setRes, "Could not set PIN"));
       const unlockRes = await fetch("/api/private/pin", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin }),
       });
-      if (!unlockRes.ok) throw new Error((await unlockRes.json()).error ?? "Could not unlock");
+      if (!unlockRes.ok) throw new Error(await errText(unlockRes, "Could not unlock"));
       router.refresh();
     } catch (err) {
       toast.error("Setup failed", { description: err instanceof Error ? err.message : undefined });
@@ -100,7 +110,7 @@ export function PrivateUnlockGate({
     setBusy("register");
     try {
       const optRes = await fetch("/api/private/webauthn/register");
-      if (!optRes.ok) throw new Error((await optRes.json()).error ?? "Could not start");
+      if (!optRes.ok) throw new Error(await errText(optRes, "Could not start"));
       const optionsJSON = await optRes.json();
       const attestation = await startRegistration({ optionsJSON });
       const verifyRes = await fetch("/api/private/webauthn/register", {
@@ -108,7 +118,7 @@ export function PrivateUnlockGate({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attestation, deviceLabel: "This device" }),
       });
-      if (!verifyRes.ok) throw new Error((await verifyRes.json()).error ?? "Could not register");
+      if (!verifyRes.ok) throw new Error(await errText(verifyRes, "Could not register"));
       toast.success("This device's biometric is registered");
       router.refresh();
     } catch (err) {

@@ -8,9 +8,10 @@ import { requirePrivateProfile } from "@/lib/private/access";
 import { getRpConfig, stashChallenge, readChallenge, clearChallenge } from "@/lib/private/webauthn";
 import { grantUnlock } from "@/lib/private/unlock";
 import { logPrivate } from "@/lib/private/audit";
+import { withJson } from "@/lib/private/route-helpers";
 
 /** Step 1 — challenge for an existing registered device. */
-export async function GET() {
+export const GET = withJson(async () => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -38,10 +39,10 @@ export async function GET() {
 
   await stashChallenge("auth", options.challenge);
   return NextResponse.json(options);
-}
+});
 
 /** Step 2 — verify the assertion, then grant a 15-minute unlock. */
-export async function POST(request: Request) {
+export const POST = withJson(async (request: Request) => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -108,4 +109,4 @@ export async function POST(request: Request) {
   await grantUnlock(gate.profile.id);
   await logPrivate("unlock_biometric");
   return NextResponse.json({ ok: true });
-}
+});

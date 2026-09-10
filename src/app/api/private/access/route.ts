@@ -4,9 +4,10 @@ import { getPrivateAccess } from "@/lib/private/access";
 import { getCurrentProfile } from "@/lib/auth";
 import { isUnlocked } from "@/lib/private/unlock";
 import { logPrivate } from "@/lib/private/audit";
+import { withJson } from "@/lib/private/route-helpers";
 
 /** Owner-only: add someone to the private allowlist. */
-export async function POST(request: Request) {
+export const POST = withJson(async (request: Request) => {
   const [profile, access] = await Promise.all([getCurrentProfile(), getPrivateAccess()]);
   if (!profile || !access.isOwner) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!(await isUnlocked(profile.id))) {
@@ -25,10 +26,10 @@ export async function POST(request: Request) {
 
   await logPrivate("access_granted", { detail: { userId } });
   return NextResponse.json({ ok: true });
-}
+});
 
 /** Owner-only: remove someone from the allowlist (the owner row is trigger-protected). */
-export async function DELETE(request: Request) {
+export const DELETE = withJson(async (request: Request) => {
   const [profile, access] = await Promise.all([getCurrentProfile(), getPrivateAccess()]);
   if (!profile || !access.isOwner) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!(await isUnlocked(profile.id))) {
@@ -45,4 +46,4 @@ export async function DELETE(request: Request) {
 
   await logPrivate("access_revoked", { detail: { userId } });
   return NextResponse.json({ ok: true });
-}
+});

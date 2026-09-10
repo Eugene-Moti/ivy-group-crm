@@ -7,9 +7,10 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePrivateProfile } from "@/lib/private/access";
 import { getRpConfig, stashChallenge, readChallenge, clearChallenge } from "@/lib/private/webauthn";
 import { logPrivate } from "@/lib/private/audit";
+import { withJson } from "@/lib/private/route-helpers";
 
 /** Step 1 — hand the browser a registration challenge for a platform authenticator. */
-export async function GET() {
+export const GET = withJson(async () => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -40,12 +41,12 @@ export async function GET() {
 
   await stashChallenge("reg", options.challenge);
   return NextResponse.json(options);
-}
+});
 
 type AuthenticatorTransportFuture = "ble" | "cable" | "hybrid" | "internal" | "nfc" | "smart-card" | "usb";
 
 /** Step 2 — verify the attestation and store the credential. */
-export async function POST(request: Request) {
+export const POST = withJson(async (request: Request) => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -95,4 +96,4 @@ export async function POST(request: Request) {
 
   await logPrivate("biometric_registered", { detail: { device: deviceLabel } });
   return NextResponse.json({ ok: true });
-}
+});

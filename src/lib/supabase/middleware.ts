@@ -42,6 +42,12 @@ export async function updateSession(request: NextRequest) {
   const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 
   if (!isAuthed && !isPublicPath) {
+    // A fetch() to an API route can't do anything useful with a 307 to an
+    // HTML login page — it just yields "Unexpected end of JSON input" when
+    // the caller tries to read the body. Answer those with a real 401.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirectTo", pathname);

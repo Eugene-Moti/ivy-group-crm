@@ -5,9 +5,10 @@ import { isUnlocked } from "@/lib/private/unlock";
 import { logPrivate } from "@/lib/private/audit";
 import { isAdmin } from "@/lib/auth";
 import { NEW_LEAD_STATUS_KEY } from "@/lib/constants";
+import { withJson } from "@/lib/private/route-helpers";
 
 /** Create a private client. Server-side so it's audit-logged and forced clean (no sales manager). */
-export async function POST(request: Request) {
+export const POST = withJson(async (request: Request) => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!isAdmin(gate.profile)) return NextResponse.json({ error: "Admins only" }, { status: 403 });
@@ -49,10 +50,10 @@ export async function POST(request: Request) {
 
   await logPrivate("create_client", { leadId: data.id });
   return NextResponse.json({ ok: true, id: data.id }, { status: 201 });
-}
+});
 
 /** Move an existing lead into or out of the private area. */
-export async function PATCH(request: Request) {
+export const PATCH = withJson(async (request: Request) => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!isAdmin(gate.profile)) return NextResponse.json({ error: "Admins only" }, { status: 403 });
@@ -75,4 +76,4 @@ export async function PATCH(request: Request) {
 
   await logPrivate(makePrivate ? "move_in" : "move_out", { leadId });
   return NextResponse.json({ ok: true });
-}
+});

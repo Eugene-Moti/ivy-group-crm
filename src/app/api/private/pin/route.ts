@@ -10,9 +10,10 @@ import {
   MAX_PIN_ATTEMPTS,
   PIN_LOCKOUT_MINUTES,
 } from "@/lib/private/pin";
+import { withJson } from "@/lib/private/route-helpers";
 
 /** Set or change the PIN. Changing an existing one needs the old PIN or an active unlock. */
-export async function POST(request: Request) {
+export const POST = withJson(async (request: Request) => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -50,10 +51,10 @@ export async function POST(request: Request) {
 
   await logPrivate("pin_set");
   return NextResponse.json({ ok: true });
-}
+});
 
 /** Verify the PIN and grant a 15-minute unlock, with lockout after repeated failures. */
-export async function PUT(request: Request) {
+export const PUT = withJson(async (request: Request) => {
   const gate = await requirePrivateProfile();
   if (!gate) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -112,4 +113,4 @@ export async function PUT(request: Request) {
   await grantUnlock(gate.profile.id);
   await logPrivate("unlock_pin");
   return NextResponse.json({ ok: true });
-}
+});
