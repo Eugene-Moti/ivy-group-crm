@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { require2faSession } from "@/lib/auth-2fa/guard";
 import { getMy2faStatus } from "@/lib/auth-2fa/status";
 import { AuthStepShell } from "@/components/auth/auth-step-shell";
 import { TwoFactorEnroll } from "@/components/auth/two-factor-enroll";
@@ -6,6 +7,7 @@ import { TwoFactorEnroll } from "@/components/auth/two-factor-enroll";
 export const metadata = { title: "Set up sign-in security · Ivy Group CRM" };
 
 export default async function EnrollPage() {
+  if (!(await require2faSession())) redirect("/login");
   const status = await getMy2faStatus();
   if (status.enrolled) redirect("/login/verify");
 
