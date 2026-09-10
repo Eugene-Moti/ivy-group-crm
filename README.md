@@ -235,7 +235,15 @@ these in order:
    allowlist — admins included. Powers the **Private** tab, which is gated behind a step-up PIN
    or Windows Hello / Touch ID unlock (`PRIVATE_UNLOCK_SECRET` env var required). Private clients
    never appear in the shared pipeline, reports, search, exports, or the daily digest.
-25. [`supabase/seed.sql`](supabase/seed.sql) —
+25. [`supabase/migrations/20260912000000_login_2fa.sql`](supabase/migrations/20260912000000_login_2fa.sql) —
+   mandatory two-factor on the main login for every user. `auth_2fa_webauthn` (passkeys),
+   `auth_2fa_pin` (scrypt-hashed PIN fallback, 5-attempt lockout), `auth_2fa_log`, and a
+   `has_2fa()` helper the proxy calls. After sign-in the session is routed to `/login/enroll`
+   (first time) or `/login/verify` until a passkey / PIN is confirmed; the verification is
+   bound to the Supabase session id and lasts 12 hours. Reuses `PRIVATE_UNLOCK_SECRET`.
+   `DISABLE_LOGIN_2FA=true` is the emergency kill switch. Admins reset a locked-out user from
+   Settings &rarr; Users.
+26. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

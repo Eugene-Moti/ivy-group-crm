@@ -680,6 +680,90 @@ export interface Database {
         };
         Relationships: [];
       };
+      auth_2fa_webauthn: {
+        Row: {
+          credential_id: string;
+          user_id: string;
+          public_key: string;
+          counter: number;
+          transports: string[] | null;
+          device_label: string | null;
+          created_at: string;
+          last_used_at: string | null;
+        };
+        Insert: {
+          credential_id: string;
+          user_id: string;
+          public_key: string;
+          counter?: number;
+          transports?: string[] | null;
+          device_label?: string | null;
+          created_at?: string;
+          last_used_at?: string | null;
+        };
+        Update: {
+          credential_id?: string;
+          user_id?: string;
+          public_key?: string;
+          counter?: number;
+          transports?: string[] | null;
+          device_label?: string | null;
+          created_at?: string;
+          last_used_at?: string | null;
+        };
+        Relationships: [];
+      };
+      auth_2fa_pin: {
+        Row: {
+          user_id: string;
+          pin_hash: string;
+          pin_set_at: string;
+          failed_attempts: number;
+          locked_until: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          pin_hash: string;
+          pin_set_at?: string;
+          failed_attempts?: number;
+          locked_until?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          pin_hash?: string;
+          pin_set_at?: string;
+          failed_attempts?: number;
+          locked_until?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      auth_2fa_log: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          action: string;
+          detail: Json | null;
+          at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          action: string;
+          detail?: Json | null;
+          at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          action?: string;
+          detail?: Json | null;
+          at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -692,6 +776,10 @@ export interface Database {
         Returns: boolean;
       };
       is_private_owner: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+      has_2fa: {
         Args: Record<string, never>;
         Returns: boolean;
       };
