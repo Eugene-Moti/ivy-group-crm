@@ -1,6 +1,6 @@
 import { ACTIVITY_TYPE_META } from "@/lib/activity";
-import { formatDateTime, formatRelative } from "@/lib/format";
 import { hexToRgba } from "@/lib/color";
+import { TimelineTimestamp } from "@/components/shared/timeline-timestamp";
 import type { ActivityWithAuthor } from "@/lib/queries/activities";
 
 export function ActivityTimeline({
@@ -33,14 +33,9 @@ export function ActivityTimeline({
               <Icon className="size-4" />
             </div>
             <div className="min-w-0 flex-1 pb-1">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+              <div className="flex flex-wrap items-start justify-between gap-x-2">
                 <span className="text-sm font-medium">{meta.label}</span>
-                <span
-                  className="text-xs text-muted-foreground"
-                  title={formatDateTime(activity.created_at)}
-                >
-                  {formatRelative(activity.created_at)}
-                </span>
+                <TimelineTimestamp value={activity.created_at} />
               </div>
               {activity.body && (
                 <p className="mt-0.5 text-sm text-muted-foreground whitespace-pre-wrap">

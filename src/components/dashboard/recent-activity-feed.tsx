@@ -5,8 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyChartState } from "@/components/dashboard/empty-chart-state";
 import { ACTIVITY_TYPE_META } from "@/lib/activity";
-import { formatDateTime, formatRelative, fullName } from "@/lib/format";
+import { fullName } from "@/lib/format";
 import { hexToRgba } from "@/lib/color";
+import { TimelineTimestamp } from "@/components/shared/timeline-timestamp";
 import type { ActivityWithLeadAndAuthor } from "@/lib/queries/activities";
 
 export function RecentActivityFeed({
@@ -48,7 +49,7 @@ export function RecentActivityFeed({
                     <Icon className="size-3.5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+                    <div className="flex flex-wrap items-start justify-between gap-x-2">
                       {activity.lead ? (
                         <Link
                           href={`/leads/${activity.lead.id}`}
@@ -59,12 +60,7 @@ export function RecentActivityFeed({
                       ) : (
                         <span className="text-sm font-medium">Unknown lead</span>
                       )}
-                      <span
-                        className="text-xs text-muted-foreground"
-                        title={formatDateTime(activity.created_at)}
-                      >
-                        {formatRelative(activity.created_at)}
-                      </span>
+                      <TimelineTimestamp value={activity.created_at} />
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {meta.label}
