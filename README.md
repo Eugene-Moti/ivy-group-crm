@@ -236,13 +236,13 @@ these in order:
    or Windows Hello / Touch ID unlock (`PRIVATE_UNLOCK_SECRET` env var required). Private clients
    never appear in the shared pipeline, reports, search, exports, or the daily digest.
 25. [`supabase/migrations/20260912000000_login_2fa.sql`](supabase/migrations/20260912000000_login_2fa.sql) —
-   mandatory two-factor on the main login for every user. `auth_2fa_webauthn` (passkeys),
-   `auth_2fa_pin` (scrypt-hashed PIN fallback, 5-attempt lockout), `auth_2fa_log`, and a
-   `has_2fa()` helper the proxy calls. After sign-in the session is routed to `/login/enroll`
-   (first time) or `/login/verify` until a passkey / PIN is confirmed; the verification is
-   bound to the Supabase session id and lasts 12 hours. Reuses `PRIVATE_UNLOCK_SECRET`.
-   `DISABLE_LOGIN_2FA=true` is the emergency kill switch. Admins reset a locked-out user from
-   Settings &rarr; Users.
+   mandatory two-factor on the main login for every user: after email + password, a 6-digit
+   code is emailed (Resend) and must be entered at `/login/verify`. `auth_2fa_codes` (one row
+   per user, scrypt-hashed code, 10-min expiry, 5 wrong tries, 5 sends per 15 min) + an
+   `auth_2fa_log`. The verification is a signed cookie bound to the Supabase session id (a
+   fresh sign-in re-verifies), 12-hour lifetime; reuses `PRIVATE_UNLOCK_SECRET` to sign it.
+   **Needs a verified Resend sending domain** (set `AUTH_2FA_FROM`) or only the Resend account
+   owner receives codes. `DISABLE_LOGIN_2FA=true` is the emergency kill switch.
 26. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 

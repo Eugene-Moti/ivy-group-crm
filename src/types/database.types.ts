@@ -680,63 +680,33 @@ export interface Database {
         };
         Relationships: [];
       };
-      auth_2fa_webauthn: {
-        Row: {
-          credential_id: string;
-          user_id: string;
-          public_key: string;
-          counter: number;
-          transports: string[] | null;
-          device_label: string | null;
-          created_at: string;
-          last_used_at: string | null;
-        };
-        Insert: {
-          credential_id: string;
-          user_id: string;
-          public_key: string;
-          counter?: number;
-          transports?: string[] | null;
-          device_label?: string | null;
-          created_at?: string;
-          last_used_at?: string | null;
-        };
-        Update: {
-          credential_id?: string;
-          user_id?: string;
-          public_key?: string;
-          counter?: number;
-          transports?: string[] | null;
-          device_label?: string | null;
-          created_at?: string;
-          last_used_at?: string | null;
-        };
-        Relationships: [];
-      };
-      auth_2fa_pin: {
+      auth_2fa_codes: {
         Row: {
           user_id: string;
-          pin_hash: string;
-          pin_set_at: string;
-          failed_attempts: number;
-          locked_until: string | null;
-          updated_at: string;
+          code_hash: string;
+          expires_at: string;
+          attempts: number;
+          last_sent_at: string;
+          sends_in_window: number;
+          window_start: string;
         };
         Insert: {
           user_id: string;
-          pin_hash: string;
-          pin_set_at?: string;
-          failed_attempts?: number;
-          locked_until?: string | null;
-          updated_at?: string;
+          code_hash: string;
+          expires_at: string;
+          attempts?: number;
+          last_sent_at?: string;
+          sends_in_window?: number;
+          window_start?: string;
         };
         Update: {
           user_id?: string;
-          pin_hash?: string;
-          pin_set_at?: string;
-          failed_attempts?: number;
-          locked_until?: string | null;
-          updated_at?: string;
+          code_hash?: string;
+          expires_at?: string;
+          attempts?: number;
+          last_sent_at?: string;
+          sends_in_window?: number;
+          window_start?: string;
         };
         Relationships: [];
       };
@@ -776,10 +746,6 @@ export interface Database {
         Returns: boolean;
       };
       is_private_owner: {
-        Args: Record<string, never>;
-        Returns: boolean;
-      };
-      has_2fa: {
         Args: Record<string, never>;
         Returns: boolean;
       };

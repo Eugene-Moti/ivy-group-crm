@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { InviteUserDialog } from "@/components/settings/invite-user-dialog";
 import { CreateUserDialog } from "@/components/settings/create-user-dialog";
-import { TwoFactorResetButton } from "@/components/settings/two-factor-reset-button";
 import type { ProfileRow } from "@/lib/queries/settings";
 import type { UserRole } from "@/types/database.types";
 
@@ -135,16 +134,13 @@ export function UsersPanel({ profiles }: { profiles: ProfileRow[] }) {
                       That&apos;s you
                     </Badge>
                   ) : (
-                    <>
-                      <TwoFactorResetButton userId={profile.id} label={label} />
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setRemoving(profile)}
-                      >
-                        <Trash2 className="size-3.5 text-destructive" />
-                      </Button>
-                    </>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setRemoving(profile)}
+                    >
+                      <Trash2 className="size-3.5 text-destructive" />
+                    </Button>
                   )}
                 </div>
               </div>

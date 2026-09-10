@@ -1,22 +1,28 @@
 import { redirect } from "next/navigation";
 import { require2faSession } from "@/lib/auth-2fa/guard";
-import { getMy2faStatus } from "@/lib/auth-2fa/status";
 import { AuthStepShell } from "@/components/auth/auth-step-shell";
 import { TwoFactorVerify } from "@/components/auth/two-factor-verify";
 
 export const metadata = { title: "Verify it's you · Ivy Group CRM" };
 
+function maskEmail(email: string | null): string {
+  if (!email) return "your email";
+  const [name, domain] = email.split("@");
+  if (!domain) return "your email";
+  const shown = name.slice(0, 2);
+  return `${shown}${"•".repeat(Math.max(1, name.length - 2))}@${domain}`;
+}
+
 export default async function VerifyPage() {
-  if (!(await require2faSession())) redirect("/login");
-  const status = await getMy2faStatus();
-  if (!status.enrolled) redirect("/login/enroll");
+  const session = await require2faSession();
+  if (!session) redirect("/login");
 
   return (
     <AuthStepShell
       title="Verify it's you"
-      subtitle="One more step — confirm with your passkey or PIN."
+      subtitle={`Enter the 6-digit code we just emailed to ${maskEmail(session.email)}.`}
     >
-      <TwoFactorVerify hasPasskey={status.devices.length > 0} hasPin={status.pinSet} />
+      <TwoFactorVerify />
     </AuthStepShell>
   );
 }
