@@ -35,9 +35,16 @@ export async function GET(request: Request) {
   try {
     const supabase = createAdminClient();
 
+    // Runs on the service-role client (no user session), which bypasses RLS
+    // — so private clients must be excluded explicitly here, or they'd land
+    // in the digest email to every admin.
     const [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes] = await Promise.all([
-      supabase.from("leads").select(LEAD_SELECT).order("created_at", { ascending: false }),
-      supabase.from("activities").select("lead_id, type, created_at, body"),
+      supabase
+        .from("leads")
+        .select(LEAD_SELECT)
+        .eq("is_private", false)
+        .order("created_at", { ascending: false }),
+      supabase.from("activities").select("lead_id, type, created_at, body, leads!inner(is_private)").eq("leads.is_private", false),
       supabase.from("lead_evidence").select("lead_id"),
       supabase.from("units_sold").select("*").order("sold_at", { ascending: false }),
       supabase.from("pipeline_stages").select("*").order("sort_order"),
@@ -49,7 +56,12 @@ export async function GET(request: Request) {
     }
 
     const leads = (leadsRes.data ?? []) as unknown as LeadWithRelations[];
-    const activitySummaries = activitiesRes.data ?? [];
+    const activitySummaries = (activitiesRes.data ?? []).map((a) => ({
+      lead_id: a.lead_id,
+      type: a.type,
+      created_at: a.created_at,
+      body: a.body,
+    }));
     const evidenceLeadIds = evidenceRes.data ?? [];
     const unitsSold = (unitsSoldRes.data ?? []) as UnitSoldRow[];
     const stages = stagesRes.data ?? [];

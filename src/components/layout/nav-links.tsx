@@ -5,11 +5,15 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/nav";
 import { useIsAdmin } from "@/components/providers/profile-provider";
+import { usePrivateAccess } from "@/components/providers/private-access-provider";
 
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const isAdmin = useIsAdmin();
-  const items = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+  const { hasAccess: hasPrivateAccess } = usePrivateAccess();
+  const items = NAV_ITEMS.filter(
+    (item) => (!item.adminOnly || isAdmin) && (!item.privateOnly || hasPrivateAccess)
+  );
 
   return (
     <nav className="flex flex-col gap-1">

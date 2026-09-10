@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
+import { getPrivateAccess } from "@/lib/private/access";
 import { getPipelineStages } from "@/lib/queries/settings";
 import { ProfileProvider } from "@/components/providers/profile-provider";
+import { PrivateAccessProvider } from "@/components/providers/private-access-provider";
 import { OnlinePresenceProvider } from "@/components/providers/online-presence-provider";
 import { StatusLabelsProvider } from "@/components/providers/status-labels-provider";
 import { AssistantProvider } from "@/components/providers/assistant-provider";
@@ -22,27 +24,32 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const pipelineStages = await getPipelineStages();
+  const [pipelineStages, privateAccess] = await Promise.all([
+    getPipelineStages(),
+    getPrivateAccess(),
+  ]);
 
   return (
     <ProfileProvider profile={profile}>
-      <OnlinePresenceProvider>
-        <StatusLabelsProvider stages={pipelineStages}>
-          <AssistantProvider>
-            <Suspense fallback={null}>
-              <RouteProgressBar />
-            </Suspense>
-            <IdleSessionGuard />
-            <div className="flex h-screen overflow-hidden">
-              <Sidebar />
-              <div className="flex min-w-0 flex-1 flex-col">
-                <Topbar />
-                <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+      <PrivateAccessProvider value={privateAccess}>
+        <OnlinePresenceProvider>
+          <StatusLabelsProvider stages={pipelineStages}>
+            <AssistantProvider>
+              <Suspense fallback={null}>
+                <RouteProgressBar />
+              </Suspense>
+              <IdleSessionGuard />
+              <div className="flex h-screen overflow-hidden">
+                <Sidebar />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <Topbar />
+                  <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+                </div>
               </div>
-            </div>
-          </AssistantProvider>
-        </StatusLabelsProvider>
-      </OnlinePresenceProvider>
+            </AssistantProvider>
+          </StatusLabelsProvider>
+        </OnlinePresenceProvider>
+      </PrivateAccessProvider>
     </ProfileProvider>
   );
 }

@@ -225,7 +225,17 @@ these in order:
    agent is still open), the agent advances from "Referred — Client Active" to this terminal
    success stage — agents can't be Closed - Won themselves. Reopening the buyer's deal moves the
    agent back to "Client Active"; a fresh referral does too, via the existing referral trigger.
-24. [`supabase/seed.sql`](supabase/seed.sql) —
+24. [`supabase/migrations/20260911000000_private_clients.sql`](supabase/migrations/20260911000000_private_clients.sql) —
+   adds a confidential-client tier: `leads.is_private` / `codename` / `confidential_brief`, an
+   allowlist table (`private_lead_access`, with an owner bootstrapped from the
+   `erickmoti3609@gmail.com` profile), PIN + WebAuthn credential tables, an append-only
+   `private_access_log`, and `has_private_access()` / `is_private_owner()` helpers. Rewrites RLS
+   on `leads`, `activities`, `lead_evidence`, `lead_documents`, `units_sold`, and the two storage
+   buckets so a private row (and its notes / files / unit sales) is invisible to anyone off the
+   allowlist — admins included. Powers the **Private** tab, which is gated behind a step-up PIN
+   or Windows Hello / Touch ID unlock (`PRIVATE_UNLOCK_SECRET` env var required). Private clients
+   never appear in the shared pipeline, reports, search, exports, or the daily digest.
+25. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

@@ -39,9 +39,13 @@ async function maskForViewer<T extends LeadWithRelations | LeadWithRelations[]>(
 
 export async function getLeads(): Promise<LeadWithRelations[]> {
   const supabase = await createClient();
+  // Private clients are walled off from every shared view — they live only
+  // under /private, for allowlisted users. RLS already hides them from
+  // everyone else; this keeps them out for the allowlisted too.
   const { data, error } = await supabase
     .from("leads")
     .select(LEAD_SELECT)
+    .eq("is_private", false)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -54,6 +58,7 @@ export async function getLead(id: string): Promise<LeadWithRelations | null> {
     .from("leads")
     .select(LEAD_SELECT)
     .eq("id", id)
+    .eq("is_private", false)
     .maybeSingle();
 
   if (error) throw new Error(error.message);
@@ -114,6 +119,7 @@ export async function getReferredLeads(agentLeadId: string): Promise<LeadWithRel
     .from("leads")
     .select(LEAD_SELECT)
     .eq("referred_by_lead_id", agentLeadId)
+    .eq("is_private", false)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);

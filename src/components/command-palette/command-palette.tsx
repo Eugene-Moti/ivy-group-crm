@@ -44,6 +44,7 @@ export function CommandPalette({
       const { data } = await supabase
         .from("leads")
         .select("id, first_name, last_name")
+        .eq("is_private", false)
         .or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%`)
         .limit(8);
       setLeadHits(data ?? []);

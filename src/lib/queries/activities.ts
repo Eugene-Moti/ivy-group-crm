@@ -19,8 +19,9 @@ export async function getRecentActivities(
   const { data, error } = await supabase
     .from("activities")
     .select(
-      "*, author:profiles!activities_created_by_fkey(id, full_name), lead:leads(id, first_name, last_name)"
+      "*, author:profiles!activities_created_by_fkey(id, full_name), lead:leads!inner(id, first_name, last_name, is_private)"
     )
+    .eq("lead.is_private", false)
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -51,8 +52,14 @@ export async function getAllActivitySummaries(): Promise<
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("activities")
-    .select("lead_id, type, created_at, body");
+    .select("lead_id, type, created_at, body, lead:leads!inner(is_private)")
+    .eq("lead.is_private", false);
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return (data ?? []).map((a) => ({
+    lead_id: a.lead_id,
+    type: a.type,
+    created_at: a.created_at,
+    body: a.body,
+  }));
 }
