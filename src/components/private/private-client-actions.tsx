@@ -35,7 +35,7 @@ export function PrivateClientActions({ leadId, isAdmin }: { leadId: string; isAd
       toast.error("Couldn't move", { description: (await res.json().catch(() => ({}))).error });
       return;
     }
-    toast.success("Client returned to the shared pipeline");
+    toast.success("Client is now public");
     router.push("/private");
   }
 
@@ -53,21 +53,21 @@ export function PrivateClientActions({ leadId, isAdmin }: { leadId: string; isAd
           <AlertDialogTrigger asChild>
             <Button variant="outline" size="sm" disabled={moving}>
               {moving ? <Loader2 className="size-3.5 animate-spin" /> : <Undo2 className="size-3.5" />}
-              Return to shared pipeline
+              Make public
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Make this client visible again?</AlertDialogTitle>
+              <AlertDialogTitle>Make this client public?</AlertDialogTitle>
               <AlertDialogDescription>
-                They&apos;ll reappear in the main pipeline, reports, search, and the digest for
-                everyone with normal access. Their history stays intact. You can make them private
-                again later.
+                They reappear in the main pipeline, reports, search, and the digest for everyone
+                with normal access — exactly the reverse of &quot;Make private&quot;. Their history
+                stays intact, and you can make them private again later.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={moveOut}>Return to pipeline</AlertDialogAction>
+              <AlertDialogAction onClick={moveOut}>Make public</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

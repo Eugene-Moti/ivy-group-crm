@@ -44,6 +44,7 @@ export function LeadsDirectory({
   const initialPriorityFilter = searchParams.get("priority") ?? undefined;
   const initialAgentFilter = searchParams.get("agent") ?? undefined;
   const initialSinceDate = searchParams.get("since") ?? undefined;
+  const initialLeadTypeFilter = searchParams.get("type") ?? undefined;
 
   useEffect(() => {
     if (shouldAutoOpenCreate) {
@@ -82,6 +83,7 @@ export function LeadsDirectory({
           initialPriorityFilter={initialPriorityFilter}
           initialAgentFilter={initialAgentFilter}
           initialSinceDate={initialSinceDate}
+          initialLeadTypeFilter={initialLeadTypeFilter}
           columnLabels={columnLabels}
         />
       ) : (

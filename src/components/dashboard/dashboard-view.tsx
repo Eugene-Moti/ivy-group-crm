@@ -55,7 +55,14 @@ export function DashboardView({
   useRealtimeLeadsRefresh();
 
   const newThisWeekHref = useMemo(
-    () => `/leads?since=${encodeURIComponent(subWeeks(new Date(), 1).toISOString().slice(0, 10))}`,
+    () =>
+      // Scoped to Direct Client to match the KPI, which — like every metric
+      // on this dashboard — excludes Real Estate Agent leads (a referral
+      // channel, not client intake). Without the type filter the linked list
+      // shows agent leads the count deliberately left out.
+      `/leads?since=${encodeURIComponent(
+        subWeeks(new Date(), 1).toISOString().slice(0, 10)
+      )}&type=${encodeURIComponent("Direct Client")}`,
     []
   );
 

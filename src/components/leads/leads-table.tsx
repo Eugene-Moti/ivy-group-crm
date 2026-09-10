@@ -95,6 +95,7 @@ export function LeadsTable({
   initialPriorityFilter,
   initialAgentFilter,
   initialSinceDate,
+  initialLeadTypeFilter,
   columnLabels = DEFAULT_LEAD_COLUMN_LABELS,
 }: {
   leads: LeadWithRelations[];
@@ -108,6 +109,7 @@ export function LeadsTable({
   initialPriorityFilter?: string;
   initialAgentFilter?: string;
   initialSinceDate?: string;
+  initialLeadTypeFilter?: string;
   columnLabels?: LeadColumnLabels;
 }) {
   const router = useRouter();
@@ -122,7 +124,7 @@ export function LeadsTable({
   const [sourceFilter, setSourceFilter] = useState(ALL);
   const [priorityFilter, setPriorityFilter] = useState(initialPriorityFilter ?? ALL);
   const [agentFilter, setAgentFilter] = useState(initialAgentFilter ?? ALL);
-  const [leadTypeFilter, setLeadTypeFilter] = useState(ALL);
+  const [leadTypeFilter, setLeadTypeFilter] = useState(initialLeadTypeFilter ?? ALL);
   const [areaFilter, setAreaFilter] = useState("");
   const [budgetMin, setBudgetMin] = useState("");
   const [budgetMax, setBudgetMax] = useState("");
