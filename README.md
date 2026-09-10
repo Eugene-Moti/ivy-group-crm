@@ -181,9 +181,12 @@ these in order:
    Reports > Agent Won audit and fix each one by hand.
 17. [`supabase/migrations/20260810000000_lost_reason_by_lead_type.sql`](supabase/migrations/20260810000000_lost_reason_by_lead_type.sql) —
    replaces the flat `lost_reason` check constraint with a lead_type-aware one (separate
-   reason lists for Direct Client vs Real Estate Agent leads). `not valid` — any agent lead
-   already Closed - Lost today used the old client-oriented list, so it won't retroactively
-   satisfy the new one; worth reassigning those by hand if you want a reason that fits.
+   reason lists for Direct Client vs Real Estate Agent leads). Drops the old constraint,
+   normalizes any agent lead already Closed - Lost (old client reason → nearest agent one:
+   "Unresponsive" → "Went unresponsive", anything else → "Other"), then adds the new
+   constraint `not valid`. Without this, dragging a Real Estate Agent card to "Sale lost"
+   fails with `leads_lost_reason_check` — the agent reasons the UI offers aren't in the old
+   constraint.
 18. [`supabase/migrations/20260811000000_lead_documents.sql`](supabase/migrations/20260811000000_lead_documents.sql) —
    adds a `lead_documents` table + private `lead-documents` storage bucket for actual
    paperwork (contracts, ID copies, offer letters, proof of payment, title deeds) — the

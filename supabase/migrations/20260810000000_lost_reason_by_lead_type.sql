@@ -5,14 +5,26 @@
 -- ("Budget mismatch", "Financing fell through", ...) never fit an agent.
 -- Replaces the flat CHECK constraint with a lead_type-aware one.
 --
--- NOT VALID: any agent lead already Closed - Lost today was necessarily
--- given a reason from the old client-oriented list (it was the only list
--- that existed), which won't satisfy the new agent branch below. This
--- doesn't fail the migration on that — it just means those specific rows
--- are worth a quick look afterward (Reports, or just open the lead) to
--- reassign a reason from the new agent list if you want one that fits.
+-- Order matters here: drop the old constraint first, then normalize any
+-- agent lead that was already Closed - Lost (it could only ever have been
+-- given a reason from the old client list, since that was the only list
+-- that existed) onto the new agent list, THEN add the new constraint —
+-- otherwise those rows can't be re-saved from the lead form afterward.
+-- "Unresponsive" is the one clean mapping; anything else an agent somehow
+-- ended up with becomes "Other".
 
 alter table public.leads drop constraint if exists leads_lost_reason_check;
+
+update public.leads
+set lost_reason = case
+  when lost_reason = 'Unresponsive' then 'Went unresponsive'
+  else 'Other'
+end
+where lead_type = 'Real Estate Agent'
+  and lost_reason is not null
+  and lost_reason not in (
+    'Went unresponsive', 'Partnered with a competing agency', 'No referrals materialized', 'Other'
+  );
 
 alter table public.leads
   add constraint leads_lost_reason_check
