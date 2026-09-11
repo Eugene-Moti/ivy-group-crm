@@ -236,9 +236,8 @@ these in order:
    or Windows Hello / Touch ID unlock (`PRIVATE_UNLOCK_SECRET` env var required). Private clients
    never appear in the shared pipeline, reports, search, exports, or the daily digest. The tab
    itself has no nav link and is never listed anywhere, including the command palette (which
-   otherwise lists every page) — the only way in is typing `PRIVATE_ENTRY_PHRASE` into
-   Ctrl/Cmd+K (checked server-side, matched silently, nothing shown if it's wrong) or navigating
-   to `/private` directly.
+   otherwise lists every page) — the only way in is typing your own entry phrase into Ctrl/Cmd+K
+   (set from Private → Security, see migration 26) or navigating to `/private` directly.
 25. [`supabase/migrations/20260912000000_login_2fa.sql`](supabase/migrations/20260912000000_login_2fa.sql) —
    mandatory two-factor on the main login for every user: after email + password, a PIN each
    user sets once (`auth_2fa_pin` — scrypt-hashed, 5-attempt lockout, admin-resettable) is asked
@@ -248,7 +247,12 @@ these in order:
    re-verifies), 12-hour lifetime; reuses `PRIVATE_UNLOCK_SECRET` to sign it. Change your own
    PIN from Team & Users → your card → "Sign-in PIN"; admins reset someone else's from Settings
    → Users. `DISABLE_LOGIN_2FA=true` is the emergency kill switch.
-26. [`supabase/seed.sql`](supabase/seed.sql) —
+26. [`supabase/migrations/20260913000000_private_entry_phrase.sql`](supabase/migrations/20260913000000_private_entry_phrase.sql) —
+   `private_entry_phrase`: each allowlisted user's own Ctrl/Cmd+K entry phrase (scrypt-hashed,
+   4–60 chars), set from Private → Security. Replaces an earlier single shared
+   `PRIVATE_ENTRY_PHRASE` env var — no team-wide secret, no redeploy to add or change one, and
+   the owner never has to hand a new allowlisted user a password out of band.
+27. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

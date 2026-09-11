@@ -620,6 +620,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      private_entry_phrase: {
+        Row: {
+          user_id: string;
+          phrase_hash: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          phrase_hash: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          phrase_hash?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       private_webauthn_credentials: {
         Row: {
           credential_id: string;

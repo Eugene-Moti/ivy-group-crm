@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Fingerprint, KeyRound, Loader2, Plus, Trash2 } from "lucide-react";
+import { Fingerprint, KeyRound, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 import { toast } from "sonner";
 
@@ -30,18 +30,31 @@ export function PrivateSecurityPanel() {
   const [registering, setRegistering] = useState(false);
   const [deviceLabel, setDeviceLabel] = useState("");
 
+  const [phraseSet, setPhraseSet] = useState(false);
+  const [currentPhrase, setCurrentPhrase] = useState("");
+  const [newPhrase, setNewPhrase] = useState("");
+  const [savingPhrase, setSavingPhrase] = useState(false);
+
   const reload = () => setRefreshKey((k) => k + 1);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const res = await fetch("/api/private/credentials");
+      const [credRes, phraseRes] = await Promise.all([
+        fetch("/api/private/credentials"),
+        fetch("/api/private/entry-phrase"),
+      ]);
       if (cancelled) return;
-      if (res.ok) {
-        const data = await res.json();
+      if (credRes.ok) {
+        const data = await credRes.json();
         if (cancelled) return;
         setPinSet(data.pinSet);
         setDevices(data.devices);
+      }
+      if (phraseRes.ok) {
+        const data = await phraseRes.json();
+        if (cancelled) return;
+        setPhraseSet(data.set);
       }
       setLoading(false);
     })();
@@ -70,6 +83,31 @@ export function PrivateSecurityPanel() {
     toast.success(pinSet ? "PIN changed" : "PIN set");
     setCurrentPin("");
     setNewPin("");
+    reload();
+  }
+
+  async function savePhrase(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPhrase.trim().length < 4) {
+      toast.error("Phrase must be at least 4 characters");
+      return;
+    }
+    setSavingPhrase(true);
+    const res = await fetch("/api/private/entry-phrase", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newPhrase, currentPhrase }),
+    });
+    setSavingPhrase(false);
+    if (!res.ok) {
+      toast.error("Couldn't save phrase", {
+        description: (await res.json().catch(() => ({}))).error,
+      });
+      return;
+    }
+    toast.success(phraseSet ? "Entry phrase changed" : "Entry phrase set");
+    setCurrentPhrase("");
+    setNewPhrase("");
     reload();
   }
 
@@ -123,7 +161,56 @@ export function PrivateSecurityPanel() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <Card className="rounded-2xl">
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Search className="size-4 text-gold" />
+            <h2 className="font-semibold">Search entry phrase</h2>
+            <span className="text-xs text-muted-foreground">
+              {phraseSet ? "Set" : "Not set"}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Type this into Ctrl/Cmd+K anywhere in the app to jump straight here — nothing shows
+            up in the search results, it just opens. Only you have this one.
+          </p>
+          <form onSubmit={savePhrase} className="space-y-3">
+            {phraseSet && (
+              <Field>
+                <FieldLabel htmlFor="cur-phrase">Current phrase</FieldLabel>
+                <FieldContent>
+                  <Input
+                    id="cur-phrase"
+                    type="password"
+                    value={currentPhrase}
+                    onChange={(e) => setCurrentPhrase(e.target.value)}
+                    placeholder="Leave blank if already unlocked"
+                  />
+                </FieldContent>
+              </Field>
+            )}
+            <Field>
+              <FieldLabel htmlFor="new-phrase">{phraseSet ? "New phrase" : "Create a phrase"}</FieldLabel>
+              <FieldContent>
+                <Input
+                  id="new-phrase"
+                  type="text"
+                  value={newPhrase}
+                  onChange={(e) => setNewPhrase(e.target.value)}
+                  placeholder="e.g. a short phrase only you'd type"
+                  maxLength={60}
+                />
+              </FieldContent>
+            </Field>
+            <Button type="submit" size="sm" disabled={savingPhrase || newPhrase.trim().length < 4}>
+              {savingPhrase && <Loader2 className="animate-spin" />}
+              {phraseSet ? "Change phrase" : "Set phrase"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
       <Card className="rounded-2xl">
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2">
