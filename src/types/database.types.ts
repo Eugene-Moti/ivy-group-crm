@@ -680,33 +680,30 @@ export interface Database {
         };
         Relationships: [];
       };
-      auth_2fa_codes: {
+      auth_2fa_pin: {
         Row: {
           user_id: string;
-          code_hash: string;
-          expires_at: string;
-          attempts: number;
-          last_sent_at: string;
-          sends_in_window: number;
-          window_start: string;
+          pin_hash: string;
+          pin_set_at: string;
+          failed_attempts: number;
+          locked_until: string | null;
+          updated_at: string;
         };
         Insert: {
           user_id: string;
-          code_hash: string;
-          expires_at: string;
-          attempts?: number;
-          last_sent_at?: string;
-          sends_in_window?: number;
-          window_start?: string;
+          pin_hash: string;
+          pin_set_at?: string;
+          failed_attempts?: number;
+          locked_until?: string | null;
+          updated_at?: string;
         };
         Update: {
           user_id?: string;
-          code_hash?: string;
-          expires_at?: string;
-          attempts?: number;
-          last_sent_at?: string;
-          sends_in_window?: number;
-          window_start?: string;
+          pin_hash?: string;
+          pin_set_at?: string;
+          failed_attempts?: number;
+          locked_until?: string | null;
+          updated_at?: string;
         };
         Relationships: [];
       };

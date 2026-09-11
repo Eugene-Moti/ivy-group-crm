@@ -236,13 +236,14 @@ these in order:
    or Windows Hello / Touch ID unlock (`PRIVATE_UNLOCK_SECRET` env var required). Private clients
    never appear in the shared pipeline, reports, search, exports, or the daily digest.
 25. [`supabase/migrations/20260912000000_login_2fa.sql`](supabase/migrations/20260912000000_login_2fa.sql) —
-   mandatory two-factor on the main login for every user: after email + password, a 6-digit
-   code is emailed (Resend) and must be entered at `/login/verify`. `auth_2fa_codes` (one row
-   per user, scrypt-hashed code, 10-min expiry, 5 wrong tries, 5 sends per 15 min) + an
-   `auth_2fa_log`. The verification is a signed cookie bound to the Supabase session id (a
-   fresh sign-in re-verifies), 12-hour lifetime; reuses `PRIVATE_UNLOCK_SECRET` to sign it.
-   **Needs a verified Resend sending domain** (set `AUTH_2FA_FROM`) or only the Resend account
-   owner receives codes. `DISABLE_LOGIN_2FA=true` is the emergency kill switch.
+   mandatory two-factor on the main login for every user: after email + password, a PIN each
+   user sets once (`auth_2fa_pin` — scrypt-hashed, 5-attempt lockout, admin-resettable) is asked
+   for at `/login/enroll` (first time) or `/login/verify` (after). Fully self-contained — no
+   email service or domain dependency, unlike an earlier version of this that used emailed
+   codes. The verification is a signed cookie bound to the Supabase session id (a fresh sign-in
+   re-verifies), 12-hour lifetime; reuses `PRIVATE_UNLOCK_SECRET` to sign it. Change your own
+   PIN from Team & Users → your card → "Sign-in PIN"; admins reset someone else's from Settings
+   → Users. `DISABLE_LOGIN_2FA=true` is the emergency kill switch.
 26. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 

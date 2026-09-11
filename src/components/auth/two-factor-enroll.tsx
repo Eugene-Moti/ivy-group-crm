@@ -18,27 +18,33 @@ async function errText(res: Response, fallback: string): Promise<string> {
   }
 }
 
-export function TwoFactorVerify() {
+export function TwoFactorEnroll() {
   const router = useRouter();
   const [pin, setPin] = useState("");
-  const [busy, setBusy] = useState<null | "verify" | "out">(null);
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState<null | "save" | "out">(null);
 
-  async function verify(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (pin.length < 6) return;
-    setBusy("verify");
+    if (pin.length < 6 || pin !== confirm) {
+      toast.error(pin !== confirm ? "PINs don't match" : "PIN must be at least 6 digits");
+      return;
+    }
+    setBusy("save");
     try {
       const res = await fetch("/api/2fa/pin", {
-        method: "PUT",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin }),
+        body: JSON.stringify({ newPin: pin }),
       });
-      if (!res.ok) throw new Error(await errText(res, "Incorrect PIN"));
+      if (!res.ok) throw new Error(await errText(res, "Could not set PIN"));
+      toast.success("PIN set");
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      toast.error("Couldn't verify", { description: err instanceof Error ? err.message : undefined });
-      setPin("");
+      toast.error("Couldn't set your PIN", {
+        description: err instanceof Error ? err.message : undefined,
+      });
     } finally {
       setBusy(null);
     }
@@ -53,21 +59,34 @@ export function TwoFactorVerify() {
 
   return (
     <div className="space-y-4">
-      <form className="space-y-3" onSubmit={verify}>
+      <form className="space-y-3" onSubmit={submit}>
         <Input
           type="password"
           inputMode="numeric"
-          autoComplete="off"
+          autoComplete="new-password"
           autoFocus
-          placeholder="Enter your PIN"
+          placeholder="New PIN (6–12 digits)"
           value={pin}
           onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 12))}
         />
+        <Input
+          type="password"
+          inputMode="numeric"
+          autoComplete="new-password"
+          placeholder="Confirm PIN"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value.replace(/\D/g, "").slice(0, 12))}
+        />
         <Button type="submit" className="w-full" disabled={busy !== null || pin.length < 6}>
-          {busy === "verify" ? <Loader2 className="animate-spin" /> : <KeyRound />}
-          Verify
+          {busy === "save" ? <Loader2 className="animate-spin" /> : <KeyRound />}
+          Set PIN &amp; continue
         </Button>
       </form>
+
+      <p className="text-xs text-muted-foreground">
+        You&apos;ll be asked for this after your password each time you sign in. An admin can
+        reset it for you if you ever forget it.
+      </p>
 
       <button
         type="button"

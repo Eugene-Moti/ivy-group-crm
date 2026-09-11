@@ -1,28 +1,28 @@
--- Ivy Group CRM — mandatory two-factor on the main login (email code)
+-- Ivy Group CRM — mandatory two-factor on the main login (PIN)
 --
--- Everyone signs in with email + password, then a 6-digit code is emailed
--- to their address; entering it clears the second factor for that session
--- (12 hours, bound to the Supabase session id). No enrolment — every user
--- already has an email.
---
--- NOTE: codes are sent via Resend. Without a verified sending domain in
--- Resend, only the Resend account owner's address actually receives mail —
--- verify a domain and set AUTH_2FA_FROM before relying on this for the
--- whole team, or use DISABLE_LOGIN_2FA=true meanwhile.
+-- Everyone signs in with email + password, then a PIN they set once —
+-- entirely self-contained, no email service or domain needed. First login
+-- after this ships forces a PIN to be set; after that, every sign-in (or
+-- every 12 hours / new session) asks for it.
 
-create table if not exists public.auth_2fa_codes (
+create table if not exists public.auth_2fa_pin (
   user_id uuid primary key references public.profiles (id) on delete cascade,
-  code_hash text not null,
-  expires_at timestamptz not null,
-  attempts integer not null default 0,
-  last_sent_at timestamptz not null default now(),
-  sends_in_window integer not null default 1,
-  window_start timestamptz not null default now()
+  pin_hash text not null,
+  pin_set_at timestamptz not null default now(),
+  failed_attempts integer not null default 0,
+  locked_until timestamptz,
+  updated_at timestamptz not null default now()
 );
-alter table public.auth_2fa_codes enable row level security;
--- No policies: only the service-role client (the /api/2fa routes) ever
--- touches this table. RLS on with zero policies = deny all for anon/auth,
--- which is what we want.
+alter table public.auth_2fa_pin enable row level security;
+
+-- A user manages only their own PIN; an admin can also read/delete rows —
+-- the "reset" escape hatch for someone who's forgotten their PIN, since
+-- there's no email fallback with this method.
+drop policy if exists "auth_2fa_pin_self_or_admin" on public.auth_2fa_pin;
+create policy "auth_2fa_pin_self_or_admin" on public.auth_2fa_pin
+  for all to authenticated
+  using (user_id = auth.uid() or public.is_admin())
+  with check (user_id = auth.uid());
 
 create table if not exists public.auth_2fa_log (
   id uuid primary key default gen_random_uuid(),
@@ -42,4 +42,5 @@ create policy "auth_2fa_log_select" on public.auth_2fa_log
 drop policy if exists "auth_2fa_log_insert_own" on public.auth_2fa_log;
 create policy "auth_2fa_log_insert_own" on public.auth_2fa_log
   for insert to authenticated
-  with check (user_id = auth.uid());
+  -- self, or an admin logging an action they took on someone else (e.g. a reset)
+  with check (user_id = auth.uid() or public.is_admin());

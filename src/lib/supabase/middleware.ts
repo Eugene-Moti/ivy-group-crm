@@ -9,8 +9,8 @@ import { TWO_FA_COOKIE, verifyTwoFaToken } from "@/lib/auth-2fa/verified";
 // before the route handler ever runs.
 const PUBLIC_PATHS = ["/login", "/auth/callback", "/api/webhooks", "/api/cron"];
 
-// Reachable with a session but BEFORE the emailed code has been entered.
-const TWO_FA_VERIFY_PATH = "/login/verify";
+// Reachable with a session but BEFORE the second factor is cleared.
+const TWO_FA_PATHS = ["/login/verify", "/login/enroll"];
 const TWO_FA_EXEMPT_PREFIXES = ["/api/2fa/", "/api/webhooks", "/api/cron", "/auth/callback"];
 
 export async function updateSession(request: NextRequest) {
@@ -58,7 +58,13 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (isAuthed) {
-    const twoFaResult = resolveTwoFa(request, claims, pathname);
+    const twoFaResult = await resolveTwoFa(request, supabase, claims, pathname).catch((err) => {
+      // Never let a 2FA hiccup take the whole app down — a broken check
+      // falls back to password-only (still authenticated), and the
+      // DISABLE_LOGIN_2FA kill switch is the deliberate override.
+      console.error("2FA middleware check failed, passing through:", err);
+      return null;
+    });
     if (twoFaResult) return twoFaResult;
   }
 
@@ -67,30 +73,29 @@ export async function updateSession(request: NextRequest) {
 
 type Claims = { sub?: unknown; session_id?: unknown };
 
-function resolveTwoFa(
+async function resolveTwoFa(
   request: NextRequest,
+  supabase: ReturnType<typeof createServerClient<Database>>,
   claims: Claims,
   pathname: string
-): NextResponse | null {
-  if (process.env.DISABLE_LOGIN_2FA === "true") return null;
-
+): Promise<NextResponse | null> {
+  const disabled = process.env.DISABLE_LOGIN_2FA === "true";
+  const onTwoFaPath = TWO_FA_PATHS.includes(pathname);
   const onLoginRoot = pathname === "/login";
-  const onVerify = pathname === TWO_FA_VERIFY_PATH;
   const exempt =
-    onLoginRoot || onVerify || TWO_FA_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p));
+    onLoginRoot || onTwoFaPath || TWO_FA_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p));
 
   const userId = typeof claims.sub === "string" ? claims.sub : "";
   const sessionId = typeof claims.session_id === "string" ? claims.session_id : "";
-  if (!userId || !sessionId) return null; // odd token — don't gate, password already held
 
-  const verified = verifyTwoFaToken(
-    request.cookies.get(TWO_FA_COOKIE)?.value,
-    userId,
-    sessionId
-  );
+  const verified =
+    disabled ||
+    (!!userId &&
+      !!sessionId &&
+      verifyTwoFaToken(request.cookies.get(TWO_FA_COOKIE)?.value, userId, sessionId));
 
   if (verified) {
-    if (onLoginRoot || onVerify) {
+    if (onLoginRoot || onTwoFaPath) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
       url.search = "";
@@ -99,13 +104,30 @@ function resolveTwoFa(
     return null;
   }
 
-  if (exempt) return null;
+  // Not verified — figure out enrol (no PIN yet) vs verify (PIN already set).
+  const { data: pinRow, error } = await supabase
+    .from("auth_2fa_pin")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`auth_2fa_pin lookup: ${error.message}`);
+  const wantPath = pinRow ? "/login/verify" : "/login/enroll";
+
+  if (exempt) {
+    if (onTwoFaPath && pathname !== wantPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = wantPath;
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return null;
+  }
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Second factor required" }, { status: 401 });
   }
   const url = request.nextUrl.clone();
-  url.pathname = TWO_FA_VERIFY_PATH;
+  url.pathname = wantPath;
   url.search = "";
   return NextResponse.redirect(url);
 }

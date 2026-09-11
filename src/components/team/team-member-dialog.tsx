@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { generatePassword } from "@/lib/password";
 import { SetPasswordDialog } from "@/components/account/set-password-dialog";
+import { ChangeLoginPinDialog } from "@/components/auth/change-login-pin-dialog";
 import { AvatarUpload } from "@/components/team/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +61,7 @@ export function TeamMemberDialog({
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingActive, setIsTogglingActive] = useState(false);
   const [setPasswordOpen, setSetPasswordOpen] = useState(false);
+  const [pinDialogOpen, setPinDialogOpen] = useState(false);
   const [isGeneratingPassword, setIsGeneratingPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -220,16 +222,28 @@ export function TeamMemberDialog({
 
           <div className="space-y-3 border-t border-border pt-4">
             {isSelf ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={() => setSetPasswordOpen(true)}
-              >
-                <KeyRound className="size-3.5" />
-                Change password
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setSetPasswordOpen(true)}
+                >
+                  <KeyRound className="size-3.5" />
+                  Change password
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setPinDialogOpen(true)}
+                >
+                  <ShieldCheck className="size-3.5" />
+                  Sign-in PIN
+                </Button>
+              </>
             ) : (
               canEditRoleAndStatus &&
               (generatedPassword ? (
@@ -294,6 +308,7 @@ export function TeamMemberDialog({
       </Dialog>
 
       {isSelf && <SetPasswordDialog open={setPasswordOpen} onOpenChange={setSetPasswordOpen} />}
+      {isSelf && <ChangeLoginPinDialog open={pinDialogOpen} onOpenChange={setPinDialogOpen} />}
     </>
   );
 }
