@@ -6,6 +6,7 @@ import { Plus, User } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { useIsAdmin } from "@/components/providers/profile-provider";
+import { usePrivateAccess } from "@/components/providers/private-access-provider";
 import { NAV_ITEMS } from "@/lib/nav";
 import { fullName } from "@/lib/format";
 
@@ -30,6 +31,7 @@ export function CommandPalette({
 }) {
   const router = useRouter();
   const isAdmin = useIsAdmin();
+  const { hasAccess: hasPrivateAccess } = usePrivateAccess();
   const [query, setQuery] = useState("");
   const [leadHits, setLeadHits] = useState<LeadHit[]>([]);
 
@@ -52,6 +54,33 @@ export function CommandPalette({
 
     return () => clearTimeout(timeout);
   }, [term, canSearchLeads]);
+
+  // Hidden entry to the Private area — an exact phrase, checked server-side,
+  // never rendered as a result. Only even attempted for someone already on
+  // the allowlist, so it's a silent no-op for everyone else. Auto-navigates
+  // the instant it matches, rather than showing a selectable item — nothing
+  // ever flashes on screen for a phrase mid-typo.
+  useEffect(() => {
+    const phrase = query.trim();
+    if (!hasPrivateAccess || phrase.length < 3) return;
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/private/entry", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phrase }),
+        });
+        const data = await res.json().catch(() => null);
+        if (data?.match) go("/private");
+      } catch {
+        // Silent — this is an obscurity layer, not a feature anyone should see fail.
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- go() is stable for this component's lifetime
+  }, [query, hasPrivateAccess]);
 
   function handleOpenChange(next: boolean) {
     if (!next) setQuery("");

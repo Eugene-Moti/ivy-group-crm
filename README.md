@@ -234,7 +234,11 @@ these in order:
    buckets so a private row (and its notes / files / unit sales) is invisible to anyone off the
    allowlist — admins included. Powers the **Private** tab, which is gated behind a step-up PIN
    or Windows Hello / Touch ID unlock (`PRIVATE_UNLOCK_SECRET` env var required). Private clients
-   never appear in the shared pipeline, reports, search, exports, or the daily digest.
+   never appear in the shared pipeline, reports, search, exports, or the daily digest. The tab
+   itself has no nav link and is never listed anywhere, including the command palette (which
+   otherwise lists every page) — the only way in is typing `PRIVATE_ENTRY_PHRASE` into
+   Ctrl/Cmd+K (checked server-side, matched silently, nothing shown if it's wrong) or navigating
+   to `/private` directly.
 25. [`supabase/migrations/20260912000000_login_2fa.sql`](supabase/migrations/20260912000000_login_2fa.sql) —
    mandatory two-factor on the main login for every user: after email + password, a PIN each
    user sets once (`auth_2fa_pin` — scrypt-hashed, 5-attempt lockout, admin-resettable) is asked
