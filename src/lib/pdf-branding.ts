@@ -80,7 +80,11 @@ export function drawBrandHeader(
   if (logo) {
     const h = 16;
     const w = h * (logo.width / logo.height);
-    doc.addImage(logo.dataUrl, "PNG", centerX - w / 2, y, w, h);
+    // "FAST" compression: jsPDF embeds PNGs uncompressed by default, which
+    // bloated a briefing PDF from ~60KB to several MB for no visual gain at
+    // this display size — matters doubly here since this one gets emailed
+    // out daily as an attachment, not just downloaded on demand.
+    doc.addImage(logo.dataUrl, "PNG", centerX - w / 2, y, w, h, undefined, "FAST");
     y += h + 5;
   }
 
@@ -144,7 +148,7 @@ export function drawWatermarkOnAllPages(doc: jsPDF, icon: ImageAsset | null) {
 
     doc.saveGraphicsState();
     doc.setGState(new GState({ opacity: 0.06 }));
-    doc.addImage(icon.dataUrl, "PNG", x, y, w, h);
+    doc.addImage(icon.dataUrl, "PNG", x, y, w, h, undefined, "FAST");
     doc.restoreGraphicsState();
   }
 }

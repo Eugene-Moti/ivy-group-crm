@@ -25,10 +25,12 @@ export async function sendMail({
   to,
   subject,
   html,
+  attachments,
 }: {
-  to: string[];
+  to: string | string[];
   subject: string;
   html: string;
+  attachments?: { filename: string; content: Buffer; contentType?: string }[];
 }): Promise<{ error: string | null }> {
   try {
     await getTransporter().sendMail({
@@ -36,6 +38,7 @@ export async function sendMail({
       to,
       subject,
       html,
+      attachments,
     });
     return { error: null };
   } catch (err) {

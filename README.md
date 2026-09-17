@@ -264,7 +264,12 @@ these in order:
    table and helper function migrations 24 and 26 added. Nothing to reassign first — there were
    zero private leads when this ran. A confidential client goes back to being an ordinary lead
    with a trusted sales manager (e.g. one of the admins) assigned to it, same as any other.
-28. [`supabase/seed.sql`](supabase/seed.sql) —
+28. [`supabase/migrations/20260918000000_notification_email_and_reminders.sql`](supabase/migrations/20260918000000_notification_email_and_reminders.sql) —
+   adds `profiles.notification_email` (where an admin wants Orion's daily briefing sent, if
+   different from their login email — set from Team & Users → your card) and the
+   `lead_reminders` table (site-visit/meeting reminders tied to a lead, surfaced in the
+   briefing the day they're due — see Team & Users → a lead's page).
+29. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

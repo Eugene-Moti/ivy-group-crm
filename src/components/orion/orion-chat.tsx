@@ -15,6 +15,7 @@ import {
   applyFollowUp,
   applyNote,
   applyPriorityChange,
+  applyReminder,
   applyStatusChange,
   type ProposedAction,
 } from "@/lib/assistant-actions";
@@ -132,6 +133,9 @@ export function OrionChat() {
         break;
       case "note":
         result = await applyNote(supabase, action, userId);
+        break;
+      case "reminder":
+        result = await applyReminder(supabase, action, userId);
         break;
     }
 

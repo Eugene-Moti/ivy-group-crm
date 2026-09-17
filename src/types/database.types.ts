@@ -32,6 +32,7 @@ export interface Database {
           id: string;
           full_name: string | null;
           email: string | null;
+          notification_email: string | null;
           avatar_url: string | null;
           role: UserRole;
           display_name: string | null;
@@ -43,6 +44,7 @@ export interface Database {
           id: string;
           full_name?: string | null;
           email?: string | null;
+          notification_email?: string | null;
           avatar_url?: string | null;
           role?: UserRole;
           display_name?: string | null;
@@ -54,6 +56,7 @@ export interface Database {
           id?: string;
           full_name?: string | null;
           email?: string | null;
+          notification_email?: string | null;
           avatar_url?: string | null;
           role?: UserRole;
           display_name?: string | null;
@@ -359,6 +362,51 @@ export interface Database {
           },
           {
             foreignKeyName: "activities_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lead_reminders: {
+        Row: {
+          id: string;
+          lead_id: string;
+          title: string;
+          notes: string | null;
+          remind_at: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          lead_id: string;
+          title: string;
+          notes?: string | null;
+          remind_at: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          lead_id?: string;
+          title?: string;
+          notes?: string | null;
+          remind_at?: string;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lead_reminders_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lead_reminders_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";

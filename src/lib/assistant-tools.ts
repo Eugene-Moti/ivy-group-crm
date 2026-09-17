@@ -205,6 +205,24 @@ export function buildAssistantTools(ctx: {
           },
           required: ["lead_id", "body"],
         },
+      },
+      {
+        name: "propose_reminder",
+        description:
+          "Draft a reminder for a site visit or meeting appointment tied to a lead — surfaced in Orion's daily briefing email on the day it's due, not a real-time push. Does not apply it — prepares a proposal to confirm.",
+        parameters: {
+          type: "object",
+          properties: {
+            lead_id: { type: "string", description: "The lead's id, from search_leads" },
+            title: { type: "string", description: "Short label, e.g. \"Site visit\" or \"Client meeting\"" },
+            remind_at: {
+              type: "string",
+              description: "ISO date or datetime for the visit/meeting, e.g. 2026-09-20T14:00:00",
+            },
+            notes: { type: "string", description: "Optional extra detail" },
+          },
+          required: ["lead_id", "title", "remind_at"],
+        },
       }
     );
   }
@@ -411,6 +429,36 @@ export function buildAssistantTools(ctx: {
           activityType,
           body,
           summary: `Log a ${activityType} on ${leadName}: "${body.length > 80 ? body.slice(0, 80) + "…" : body}"`,
+        };
+        proposedActions.push(action);
+        return { proposed: true, summary: action.summary, note: "Waiting on the user to confirm this in the panel." };
+      },
+
+      propose_reminder(args: Record<string, unknown>) {
+        const leadId = typeof args.lead_id === "string" ? args.lead_id : null;
+        const lead = leadId ? leads.find((l) => l.id === leadId) : undefined;
+        if (!lead) return { error: "No lead found with that id. Use search_leads first." };
+
+        const title = typeof args.title === "string" ? args.title.trim() : "";
+        if (!title) return { error: "title is required." };
+
+        const raw = typeof args.remind_at === "string" ? args.remind_at : null;
+        const parsed = raw ? new Date(raw) : null;
+        if (!parsed || Number.isNaN(parsed.getTime())) {
+          return { error: "Invalid remind_at — provide a parseable ISO date or datetime." };
+        }
+
+        const notes = typeof args.notes === "string" ? args.notes.trim() : "";
+        const leadName = fullName(lead);
+        const action: ProposedAction = {
+          id: randomUUID(),
+          kind: "reminder",
+          leadId: lead.id,
+          leadName,
+          title,
+          notes: notes || undefined,
+          remindAt: parsed.toISOString(),
+          summary: `Remind about "${title}" for ${leadName} on ${parsed.toLocaleString()}`,
         };
         proposedActions.push(action);
         return { proposed: true, summary: action.summary, note: "Waiting on the user to confirm this in the panel." };

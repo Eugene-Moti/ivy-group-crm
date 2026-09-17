@@ -49,6 +49,16 @@ export type ProposedAction =
       activityType: ActivityType;
       body: string;
       summary: string;
+    }
+  | {
+      id: string;
+      kind: "reminder";
+      leadId: string;
+      leadName: string;
+      title: string;
+      notes?: string;
+      remindAt: string;
+      summary: string;
     };
 
 export async function applyStatusChange(
@@ -131,4 +141,19 @@ export async function applyNote(
       .eq("id", action.leadId);
   }
   return { error: null };
+}
+
+export async function applyReminder(
+  supabase: SupabaseClient,
+  action: Extract<ProposedAction, { kind: "reminder" }>,
+  userId: string | null
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from("lead_reminders").insert({
+    lead_id: action.leadId,
+    title: action.title,
+    notes: action.notes ?? null,
+    remind_at: action.remindAt,
+    created_by: userId,
+  });
+  return { error: error?.message ?? null };
 }

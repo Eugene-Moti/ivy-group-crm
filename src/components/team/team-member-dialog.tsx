@@ -57,6 +57,7 @@ export function TeamMemberDialog({
   const router = useRouter();
   const [displayName, setDisplayName] = useState(profile.display_name ?? "");
   const [jobTitle, setJobTitle] = useState(profile.job_title ?? "");
+  const [notificationEmail, setNotificationEmail] = useState(profile.notification_email ?? "");
   const [role, setRole] = useState<UserRole>(profile.role);
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingActive, setIsTogglingActive] = useState(false);
@@ -71,6 +72,7 @@ export function TeamMemberDialog({
   function reset() {
     setDisplayName(profile.display_name ?? "");
     setJobTitle(profile.job_title ?? "");
+    setNotificationEmail(profile.notification_email ?? "");
     setRole(profile.role);
     setGeneratedPassword(null);
     setCopied(false);
@@ -84,9 +86,15 @@ export function TeamMemberDialog({
   async function handleSaveProfile() {
     setIsSaving(true);
     const supabase = createClient();
-    const payload: { display_name: string | null; job_title: string | null; role?: UserRole } = {
+    const payload: {
+      display_name: string | null;
+      job_title: string | null;
+      notification_email: string | null;
+      role?: UserRole;
+    } = {
       display_name: displayName.trim() || null,
       job_title: jobTitle.trim() || null,
+      notification_email: notificationEmail.trim() || null,
     };
     if (canEditRoleAndStatus && role !== profile.role) {
       payload.role = role;
@@ -191,6 +199,25 @@ export function TeamMemberDialog({
                 />
               </FieldContent>
             </Field>
+
+            {profile.role === "admin" && (
+              <Field>
+                <FieldLabel htmlFor="notification-email">Orion&apos;s daily briefing goes to</FieldLabel>
+                <FieldContent>
+                  <Input
+                    id="notification-email"
+                    type="email"
+                    value={notificationEmail}
+                    onChange={(e) => setNotificationEmail(e.target.value)}
+                    placeholder={profile.email ?? "e.g. name@example.com"}
+                  />
+                  <FieldDescription>
+                    Where Orion&apos;s 9am daily briefing email is sent. Leave blank to use{" "}
+                    {profile.email ?? "the login email"}.
+                  </FieldDescription>
+                </FieldContent>
+              </Field>
+            )}
 
             {canEditRoleAndStatus && (
               <Field>

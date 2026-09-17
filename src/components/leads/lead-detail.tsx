@@ -18,10 +18,12 @@ import { EvidenceUploadForm } from "@/components/leads/evidence-upload-form";
 import { EvidenceTimeline } from "@/components/leads/evidence-timeline";
 import { DocumentUploadForm } from "@/components/leads/document-upload-form";
 import { DocumentList } from "@/components/leads/document-list";
+import { LeadReminders } from "@/components/leads/lead-reminders";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivityWithAuthor } from "@/lib/queries/activities";
 import type { LeadEvidenceWithAuthor } from "@/lib/queries/evidence";
 import type { LeadDocumentWithAuthor } from "@/lib/queries/documents";
+import type { LeadReminderRow } from "@/lib/queries/reminders";
 
 type LeadOption = { id: string; name: string };
 type ProjectOption = { id: string; name: string; location: string | null };
@@ -39,6 +41,7 @@ export function LeadDetail({
   referredLeads,
   evidence,
   documents,
+  reminders,
 }: {
   lead: LeadWithRelations;
   activities: ActivityWithAuthor[];
@@ -50,6 +53,7 @@ export function LeadDetail({
   referredLeads: LeadWithRelations[];
   evidence: LeadEvidenceWithAuthor[];
   documents: LeadDocumentWithAuthor[];
+  reminders: LeadReminderRow[];
 }) {
   const isAdmin = useIsAdmin();
   const [isEditing, setIsEditing] = useState(false);
@@ -147,6 +151,8 @@ export function LeadDetail({
         {isAdmin && <DocumentUploadForm leadId={lead.id} />}
         <DocumentList documents={documents} isAdmin={isAdmin} />
       </div>
+
+      <LeadReminders leadId={lead.id} reminders={reminders} isAdmin={isAdmin} />
 
       {lead.lead_type === "Real Estate Agent" && (
         <ConvertAgentToClientDialog

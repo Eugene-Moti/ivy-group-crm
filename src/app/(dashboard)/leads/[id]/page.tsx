@@ -11,6 +11,7 @@ import { getActivities } from "@/lib/queries/activities";
 import { getLeadEvidence } from "@/lib/queries/evidence";
 import { getLeadDocuments } from "@/lib/queries/documents";
 import { getCampaigns } from "@/lib/queries/settings";
+import { getUpcomingReminders } from "@/lib/queries/reminders";
 import { LeadDetail } from "@/components/leads/lead-detail";
 
 /**
@@ -35,18 +36,29 @@ export default async function LeadDetailPage({
 }) {
   const { id } = await params;
 
-  const [lead, activities, leadSources, propertyTypes, agents, agentLeads, evidence, documents, campaigns] =
-    await Promise.all([
-      getLead(id),
-      getActivities(id),
-      getLeadSources(),
-      getPropertyTypes(),
-      getAgents(),
-      getAgentLeads(),
-      safe(getLeadEvidence(id), [], "evidence"),
-      safe(getLeadDocuments(id), [], "documents"),
-      getCampaigns(),
-    ]);
+  const [
+    lead,
+    activities,
+    leadSources,
+    propertyTypes,
+    agents,
+    agentLeads,
+    evidence,
+    documents,
+    campaigns,
+    reminders,
+  ] = await Promise.all([
+    getLead(id),
+    getActivities(id),
+    getLeadSources(),
+    getPropertyTypes(),
+    getAgents(),
+    getAgentLeads(),
+    safe(getLeadEvidence(id), [], "evidence"),
+    safe(getLeadDocuments(id), [], "documents"),
+    getCampaigns(),
+    safe(getUpcomingReminders(id), [], "reminders"),
+  ]);
 
   if (!lead) notFound();
 
@@ -65,6 +77,7 @@ export default async function LeadDetailPage({
       referredLeads={referredLeads}
       evidence={evidence}
       documents={documents}
+      reminders={reminders}
     />
   );
 }

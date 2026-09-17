@@ -2,23 +2,12 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LEAD_SELECT, type LeadWithRelations } from "@/lib/queries/leads";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
+import type { ReminderWithLeadName } from "@/lib/queries/reminders";
 import { runClaudeNarration } from "@/lib/claude";
-import { ORION_PERSONA, buildPortfolioContext } from "@/lib/orion";
+import { ORION_PERSONA, buildPortfolioContext, briefingPrompt, parseBriefing } from "@/lib/orion";
 import { renderDigestEmail } from "@/lib/digest-email";
+import { generateOrionBriefingPdfBuffer } from "@/lib/orion-briefing-pdf-server";
 import { sendMail } from "@/lib/mailer";
-
-const DIGEST_PROMPT = `You are writing today's automated Daily Briefing email for the admins of Ivy Group CRM — this lands in their inbox once a day. Below is the full, already-computed state of the pipeline as JSON: KPIs, breakdowns, deterministic insights, the current "needs attention" list, and recent unit sales. Read it, then write the complete briefing in a single reply (this is one-shot, there's no follow-up turn).
-
-Structure the briefing as:
-- A one-line headline sense of where things stand today.
-- "Needs attention" — the most urgent items (overdue follow-ups, Hot leads gone quiet, Won leads without a recorded unit sale, any agent incorrectly marked Won), as a short bullet list. Name specific leads where it helps, but don't dump a huge list — mention counts and the 2-3 most important individually.
-- "Snapshot" — a couple of the most notable numbers from the full analysis (conversion rate, notable trend, a standout manager/source).
-- One short closing suggestion for what to prioritize today.
-
-Keep it tight — this is an email someone reads in under a minute, not a report. Use "-" for bullet lists. No filler preamble, no sign-off, no subject line (that's handled separately). Never invent a lead, a number, or a name — everything you say must trace back to the data below.
-
-DATA:
-`;
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -35,17 +24,27 @@ export async function GET(request: Request) {
 
   try {
     const supabase = createAdminClient();
+    const now = new Date();
+    const windowFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    const windowTo = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes] = await Promise.all([
-      supabase.from("leads").select(LEAD_SELECT).order("created_at", { ascending: false }),
-      supabase.from("activities").select("lead_id, type, created_at, body"),
-      supabase.from("lead_evidence").select("lead_id"),
-      supabase.from("units_sold").select("*").order("sold_at", { ascending: false }),
-      supabase.from("pipeline_stages").select("*").order("sort_order"),
-      supabase.from("profiles").select("email").eq("role", "admin"),
-    ]);
+    const [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes, remindersRes] =
+      await Promise.all([
+        supabase.from("leads").select(LEAD_SELECT).order("created_at", { ascending: false }),
+        supabase.from("activities").select("lead_id, type, created_at, body"),
+        supabase.from("lead_evidence").select("lead_id"),
+        supabase.from("units_sold").select("*").order("sold_at", { ascending: false }),
+        supabase.from("pipeline_stages").select("*").order("sort_order"),
+        supabase.from("profiles").select("email, notification_email, full_name, display_name").eq("role", "admin"),
+        supabase
+          .from("lead_reminders")
+          .select("*, lead:leads(first_name, last_name)")
+          .gte("remind_at", windowFrom)
+          .lte("remind_at", windowTo)
+          .order("remind_at", { ascending: true }),
+      ]);
 
-    for (const res of [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes]) {
+    for (const res of [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes, remindersRes]) {
       if (res.error) throw new Error(res.error.message);
     }
 
@@ -55,13 +54,20 @@ export async function GET(request: Request) {
     const unitsSold = (unitsSoldRes.data ?? []) as UnitSoldRow[];
     const stages = stagesRes.data ?? [];
     const statusLabels = Object.fromEntries(stages.map((s) => [s.key, s.label]));
+    const reminders: ReminderWithLeadName[] = (remindersRes.data ?? []).map((r) => {
+      const { lead, ...rest } = r as typeof r & { lead: { first_name: string; last_name: string } | null };
+      return { ...rest, lead_name: lead ? `${lead.first_name} ${lead.last_name}`.trim() : "Unknown lead" };
+    });
 
     const recipients = (profilesRes.data ?? [])
-      .map((p) => p.email)
-      .filter((e): e is string => !!e);
+      .map((p) => ({
+        email: p.notification_email || p.email,
+        name: p.display_name || p.full_name?.split(" ")[0] || "there",
+      }))
+      .filter((r): r is { email: string; name: string } => !!r.email);
 
     if (recipients.length === 0) {
-      return NextResponse.json({ skipped: "No admin has an email on file." });
+      return NextResponse.json({ skipped: "No admin has a notification email on file." });
     }
 
     const context = buildPortfolioContext({
@@ -71,13 +77,16 @@ export async function GET(request: Request) {
       unitsSold,
       stages,
       statusLabels,
+      reminders,
     });
 
-    const briefing = await runClaudeNarration({
+    const raw = await runClaudeNarration({
       system: ORION_PERSONA,
-      prompt: DIGEST_PROMPT + context,
-      maxTokens: 2000,
+      prompt: briefingPrompt("email") + context,
+      maxTokens: 3000,
     });
+
+    const briefing = parseBriefing(raw, leads);
 
     const today = new Date().toLocaleDateString("en-GB", {
       weekday: "long",
@@ -86,21 +95,47 @@ export async function GET(request: Request) {
       year: "numeric",
     });
 
-    const { error: sendError } = await sendMail({
-      to: recipients,
-      subject: `Orion's Daily Briefing — ${today}`,
-      html: renderDigestEmail({
-        title: "Orion's Daily Briefing",
-        subtitle: today,
-        body: briefing,
-      }),
-    });
-
-    if (sendError) {
-      throw new Error(sendError);
+    let pdfBuffer: Buffer | null = null;
+    try {
+      pdfBuffer = await generateOrionBriefingPdfBuffer({ briefing, generatedByName: null });
+    } catch (err) {
+      console.error("Orion briefing PDF generation failed, sending without attachment:", err);
     }
 
-    return NextResponse.json({ sent: true, recipients: recipients.length });
+    const results = await Promise.all(
+      recipients.map((r) =>
+        sendMail({
+          to: r.email,
+          subject: `Orion's Daily Briefing — ${today}`,
+          html: renderDigestEmail({
+            greetingName: r.name,
+            subtitle: today,
+            briefing,
+            hasAttachment: !!pdfBuffer,
+          }),
+          attachments: pdfBuffer
+            ? [
+                {
+                  filename: `orion-daily-briefing-${new Date().toISOString().slice(0, 10)}.pdf`,
+                  content: pdfBuffer,
+                  contentType: "application/pdf",
+                },
+              ]
+            : undefined,
+        })
+      )
+    );
+
+    const failed = results.filter((r) => r.error);
+    if (failed.length === results.length) {
+      throw new Error(failed[0]?.error ?? "All sends failed.");
+    }
+
+    return NextResponse.json({
+      sent: results.length - failed.length,
+      failed: failed.length,
+      recipients: recipients.length,
+    });
   } catch (err) {
     console.error("Digest cron failed:", err);
     return NextResponse.json(
