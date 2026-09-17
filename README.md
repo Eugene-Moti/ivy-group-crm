@@ -269,7 +269,16 @@ these in order:
    different from their login email — set from Team & Users → your card) and the
    `lead_reminders` table (site-visit/meeting reminders tied to a lead, surfaced in the
    briefing the day they're due — see Team & Users → a lead's page).
-29. [`supabase/seed.sql`](supabase/seed.sql) —
+29. [`supabase/migrations/20260919000000_orion_business_context.sql`](supabase/migrations/20260919000000_orion_business_context.sql) —
+   adds the `orion_business_context` singleton table backing Settings → "Teach Orion": a
+   free-text field admins use to answer whatever Orion can't infer from the data alone (team
+   roles, what a pipeline stage means in practice, follow-up conventions), included in every
+   chat/briefing/digest from then on.
+30. [`supabase/migrations/20260920000000_merge_ivypark_duplicate_project.sql`](supabase/migrations/20260920000000_merge_ivypark_duplicate_project.sql) —
+   one-time data cleanup: merges the "Ivy Park" / "Ivypark" duplicate `property_types` row
+   (a spelling-inconsistency phantom project Orion flagged) into a single row named
+   "Ivypark - Kilimani", repointing every affected lead first.
+31. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
