@@ -6,7 +6,7 @@ import { LOST_STATUS_KEY, type ActivityType, type LeadPriority } from "@/lib/con
 type SupabaseClient = ReturnType<typeof createClient>;
 
 /**
- * Everything the AI Assistant can ever change, as a discriminated union.
+ * Everything Orion can ever change, as a discriminated union.
  * A proposal is a plain data object — nothing is applied until the human
  * reviewing it in the chat panel clicks Confirm and one of the apply*
  * functions below actually runs. Each carries a human-readable `summary` so
@@ -85,7 +85,7 @@ export async function applyPriorityChange(
   await supabase.from("activities").insert({
     lead_id: action.leadId,
     type: "note",
-    body: `Priority changed from ${action.previousPriority} to ${action.newPriority} (via AI Assistant).`,
+    body: `Priority changed from ${action.previousPriority} to ${action.newPriority} (via Orion).`,
     created_by: userId,
   });
   return { error: null };
@@ -105,7 +105,7 @@ export async function applyFollowUp(
   await supabase.from("activities").insert({
     lead_id: action.leadId,
     type: "note",
-    body: `Follow-up scheduled for ${new Date(action.nextFollowUpAt).toLocaleString()} (via AI Assistant).`,
+    body: `Follow-up scheduled for ${new Date(action.nextFollowUpAt).toLocaleString()} (via Orion).`,
     created_by: userId,
   });
   return { error: null };

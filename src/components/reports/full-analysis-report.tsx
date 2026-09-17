@@ -112,7 +112,7 @@ export function FullAnalysisReport({
             }
           >
             <Sparkles className="size-4" />
-            Ask AI
+            Ask Orion
           </Button>
           <Button size="sm" onClick={handleGeneratePdf} disabled={isGenerating}>
             {isGenerating ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}

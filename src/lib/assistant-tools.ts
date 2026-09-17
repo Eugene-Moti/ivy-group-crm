@@ -19,7 +19,15 @@ import type { ProposedAction } from "@/lib/assistant-actions";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
 import type { PipelineStage } from "@/lib/queries/settings";
-import type { ToolDefinition, ToolExecutor } from "@/lib/groq";
+
+/** The engine-agnostic tool contract — Orion's Claude tool loop (src/lib/claude.ts) consumes these unchanged. */
+export type ToolDefinition = {
+  name: string;
+  description: string;
+  parameters: Record<string, unknown>;
+};
+
+export type ToolExecutor = (args: Record<string, unknown>) => Promise<unknown> | unknown;
 
 const SEARCH_LIMIT_DEFAULT = 20;
 const SEARCH_LIMIT_MAX = 50;

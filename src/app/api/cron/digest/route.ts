@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LEAD_SELECT, type LeadWithRelations } from "@/lib/queries/leads";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
 import { runClaudeNarration } from "@/lib/claude";
 import { ORION_PERSONA, buildPortfolioContext } from "@/lib/orion";
 import { renderDigestEmail } from "@/lib/digest-email";
+import { sendMail } from "@/lib/mailer";
 
 const DIGEST_PROMPT = `You are writing today's automated Daily Briefing email for the admins of Ivy Group CRM — this lands in their inbox once a day. Below is the full, already-computed state of the pipeline as JSON: KPIs, breakdowns, deterministic insights, the current "needs attention" list, and recent unit sales. Read it, then write the complete briefing in a single reply (this is one-shot, there's no follow-up turn).
 
@@ -29,8 +29,8 @@ export async function GET(request: Request) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: "ANTHROPIC_API_KEY is not configured." }, { status: 503 });
   }
-  if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json({ error: "RESEND_API_KEY is not configured." }, { status: 503 });
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return NextResponse.json({ error: "SMTP_HOST, SMTP_USER, and SMTP_PASS are not configured." }, { status: 503 });
   }
 
   try {
@@ -86,9 +86,7 @@ export async function GET(request: Request) {
       year: "numeric",
     });
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const { error: sendError } = await resend.emails.send({
-      from: process.env.DIGEST_FROM_EMAIL || "Ivy Group CRM <onboarding@resend.dev>",
+    const { error: sendError } = await sendMail({
       to: recipients,
       subject: `Orion's Daily Briefing — ${today}`,
       html: renderDigestEmail({
@@ -99,7 +97,7 @@ export async function GET(request: Request) {
     });
 
     if (sendError) {
-      throw new Error(sendError.message);
+      throw new Error(sendError);
     }
 
     return NextResponse.json({ sent: true, recipients: recipients.length });

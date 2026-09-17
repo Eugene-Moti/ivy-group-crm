@@ -113,7 +113,7 @@ export function PeriodReport({
         <div className="flex shrink-0 flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={handleAskAi}>
             <Sparkles className="size-4" />
-            Ask AI
+            Ask Orion
           </Button>
           <Button size="sm" onClick={handleGeneratePdf} disabled={isGenerating}>
             {isGenerating ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}

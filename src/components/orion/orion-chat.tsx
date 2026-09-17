@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Bot, Check, Loader2, Send, Sparkles, User, X } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,6 +38,7 @@ const STARTER_PROMPTS = [
 
 export function OrionChat() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const profile = useProfile();
   const isAdmin = useIsAdmin();
   const statusLabels = useStatusLabels();
@@ -48,6 +49,16 @@ export function OrionChat() {
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const appliedAsk = useRef(false);
+
+  useEffect(() => {
+    const ask = searchParams.get("ask");
+    if (!ask || appliedAsk.current) return;
+    appliedAsk.current = true;
+    setInput(ask);
+    textareaRef.current?.focus();
+    router.replace("/orion", { scroll: false });
+  }, [searchParams, router]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });

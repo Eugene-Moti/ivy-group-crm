@@ -35,39 +35,45 @@ cp .env.local.example .env.local
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-GROQ_API_KEY=your-groq-api-key
 ANTHROPIC_API_KEY=your-anthropic-api-key
-RESEND_API_KEY=your-resend-api-key
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-gmail-address@gmail.com
+SMTP_PASS=your-16-character-app-password
 CRON_SECRET=your-random-secret
 LEAD_WEBHOOK_SECRET=your-random-secret
 ```
 
 `.env.local` is gitignored — never commit real keys.
 
-The quick-chat **Orion** panel (top bar, on every page) needs `GROQ_API_KEY`.
-Get a free key at [console.groq.com/keys](https://console.groq.com/keys) — no
-card required. Without it, the panel still shows but replies with a "not
-configured" message instead of erroring the whole app.
-
-The full **Orion page** (`/orion` — the Portfolio Briefing and its deep-dive
-chat) needs `ANTHROPIC_API_KEY`. Get one at
+**Orion**, the AI analyst built into the CRM (the top-bar trigger, the full
+`/orion` page with its Portfolio Briefing and deep-dive chat, and the daily
+briefing email below) needs `ANTHROPIC_API_KEY`. Get one at
 [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys).
-Without it, the page still loads but the briefing and chat both show a "not
-configured" message. This is the same key the daily briefing email below runs on.
+Without it, every Orion surface still loads but shows a "not configured"
+message instead of erroring the whole app.
 
-**Orion's Daily Briefing email** (sent to every admin each morning) needs
-`ANTHROPIC_API_KEY` (above) plus `RESEND_API_KEY` (free at
-[resend.com/api-keys](https://resend.com/api-keys), ~3,000 emails/month, no
-card) and `CRON_SECRET` (any random string — set the *same* value in Vercel's
-Environment Variables, since Vercel Cron automatically sends it as a Bearer
-token when invoking `/api/cron/digest`).
-By default the email sends from Resend's shared sandbox address, which can
-only deliver to the email on your own Resend account — verify a sending
-domain in Resend and set `DIGEST_FROM_EMAIL` once you want it to actually
-reach your admins' inboxes. The cron schedule lives in
-[`vercel.json`](vercel.json) (`0 6 * * *`, i.e. 06:00 UTC / 09:00 EAT daily)
-and only runs once deployed to Vercel — there's no local equivalent, though
-you can trigger it manually with
+**Orion's Daily Briefing email** (sent to every admin each morning, to
+whatever email is on their profile) needs `ANTHROPIC_API_KEY` (above) plus
+SMTP credentials and `CRON_SECRET` (any random string — set the *same* value
+in Vercel's Environment Variables, since Vercel Cron automatically sends it
+as a Bearer token when invoking `/api/cron/digest`). Any SMTP provider
+works; the quickest free option is Gmail:
+1. Turn on 2-Step Verification on the sending Gmail account at
+   [myaccount.google.com/security](https://myaccount.google.com/security).
+2. Create an App Password at
+   [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+   (choose "Mail") — a 16-character password, not the regular Gmail password.
+3. Set `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_USER=` the full
+   Gmail address, `SMTP_PASS=` that App Password. Optionally set `SMTP_FROM`
+   to a display name on the same address (e.g. `Ivy Group CRM <that@gmail.com>`)
+   — Gmail rejects a "from" address it doesn't own, so this can't point
+   anywhere else. Gmail's free tier caps around 500 sends/day, comfortably
+   enough for one daily email to a handful of admins.
+
+The cron schedule lives in [`vercel.json`](vercel.json) (`0 6 * * *`, i.e.
+06:00 UTC / 09:00 EAT daily) and only runs once deployed to Vercel — there's
+no local equivalent, though you can trigger it manually with
 `curl -H "Authorization: Bearer $CRON_SECRET" https://your-deployment.vercel.app/api/cron/digest`
 to test it.
 

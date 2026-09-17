@@ -1,6 +1,6 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
-import type { ToolDefinition, ToolExecutor } from "@/lib/groq";
+import type { ToolDefinition, ToolExecutor } from "@/lib/assistant-tools";
 
 const MODEL = "claude-opus-5";
 const MAX_TOOL_ITERATIONS = 8;
@@ -19,12 +19,12 @@ function getClient(): Anthropic {
 export type SimpleMessage = { role: "user" | "assistant"; content: string };
 
 /**
- * Orion's engine — a manual tool-calling loop against Claude Opus 5, same
- * shape as runGroqAssistant (same ToolDefinition/ToolExecutor contracts
- * from lib/assistant-tools.ts) so both engines share every tool definition
- * without change. Non-streaming: MAX_TOKENS is comfortably under the
- * platform's request timeout, so there's no need for the streaming
- * complexity a much larger response would call for.
+ * Orion's engine — a manual tool-calling loop against Claude Opus 5, built
+ * against the same ToolDefinition/ToolExecutor contracts from
+ * lib/assistant-tools.ts as every other Orion surface. Non-streaming:
+ * MAX_TOKENS is comfortably under the platform's request timeout, so
+ * there's no need for the streaming complexity a much larger response
+ * would call for.
  */
 export async function runClaudeAssistant({
   system,

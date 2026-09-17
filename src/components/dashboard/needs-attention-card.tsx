@@ -50,7 +50,7 @@ export function NeedsAttentionCard() {
           className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
           <Sparkles className="size-3" />
-          Ask AI
+          Ask Orion
         </button>
       </CardHeader>
       <CardContent>

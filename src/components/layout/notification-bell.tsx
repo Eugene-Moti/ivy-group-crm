@@ -146,7 +146,7 @@ export function NotificationBell() {
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
             >
               <Sparkles className="size-3" />
-              Ask AI
+              Ask Orion
             </button>
           )}
         </div>

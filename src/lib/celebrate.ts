@@ -7,9 +7,9 @@ const CELEBRATION_COLORS = ["#c9a54a", "#dabb6f", "#2c3038", "#eef0f2"];
 
 /**
  * Fired the moment a lead becomes Won, from every path that can cause it
- * (Kanban drag, the edit form, the AI Assistant's confirmed action) — a
- * short, tasteful burst rather than a takeover, so it celebrates without
- * getting in the way of whatever the person does next.
+ * (Kanban drag, the edit form, Orion's confirmed action) — a short,
+ * tasteful burst rather than a takeover, so it celebrates without getting
+ * in the way of whatever the person does next.
  */
 export function celebrateWon() {
   if (typeof window === "undefined") return;
