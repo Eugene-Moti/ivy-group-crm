@@ -19,6 +19,8 @@ import { EvidenceTimeline } from "@/components/leads/evidence-timeline";
 import { DocumentUploadForm } from "@/components/leads/document-upload-form";
 import { DocumentList } from "@/components/leads/document-list";
 import { LeadReminders } from "@/components/leads/lead-reminders";
+import { LeadOrionSidebar } from "@/components/orion/lead-orion-sidebar";
+import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivityWithAuthor } from "@/lib/queries/activities";
 import type { LeadEvidenceWithAuthor } from "@/lib/queries/evidence";
@@ -171,6 +173,8 @@ export function LeadDetail({
           onSaved={() => {}}
         />
       )}
+
+      <LeadOrionSidebar leadId={lead.id} leadName={fullName(lead)} />
     </div>
   );
 }
