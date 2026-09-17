@@ -414,6 +414,35 @@ export interface Database {
           },
         ];
       };
+      orion_business_context: {
+        Row: {
+          id: boolean;
+          content: string;
+          updated_by: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: boolean;
+          content?: string;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: boolean;
+          content?: string;
+          updated_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "orion_business_context_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       lead_evidence: {
         Row: {
           id: string;

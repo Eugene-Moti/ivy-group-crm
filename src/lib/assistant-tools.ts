@@ -32,7 +32,17 @@ export type ToolExecutor = (args: Record<string, unknown>) => Promise<unknown> |
 const SEARCH_LIMIT_DEFAULT = 20;
 const SEARCH_LIMIT_MAX = 50;
 
-function summarizeLead(lead: LeadWithRelations, statusLabels: Record<string, string>) {
+/**
+ * `includeContact` gates phone/email — leave it off for viewers. The
+ * underlying lead object is already masked to null for a non-admin caller
+ * by getLeads()/getLead() (see queries/leads.ts), so this is defense in
+ * depth, not the only thing standing between a viewer and a phone number.
+ */
+function summarizeLead(
+  lead: LeadWithRelations,
+  statusLabels: Record<string, string>,
+  includeContact = false
+) {
   return {
     id: lead.id,
     name: fullName(lead),
@@ -50,6 +60,7 @@ function summarizeLead(lead: LeadWithRelations, statusLabels: Record<string, str
     created_at: lead.created_at,
     lost_reason: lead.lost_reason,
     referred_by: lead.referred_by ? fullName(lead.referred_by) : null,
+    ...(includeContact ? { phone: lead.phone, email: lead.email } : {}),
   };
 }
 
@@ -248,7 +259,7 @@ export function buildAssistantTools(ctx: {
 
       return {
         total_matches: filtered.length,
-        leads: filtered.slice(0, limit).map((l) => summarizeLead(l, statusLabels)),
+        leads: filtered.slice(0, limit).map((l) => summarizeLead(l, statusLabels, isAdminUser)),
       };
     },
 
@@ -259,7 +270,7 @@ export function buildAssistantTools(ctx: {
 
       const activities = await getActivities(lead.id);
       return {
-        ...summarizeLead(lead, statusLabels),
+        ...summarizeLead(lead, statusLabels, isAdminUser),
         has_evidence: evidenceSet.has(lead.id),
         notes_field: lead.notes,
         activity_timeline: activities.slice(0, 15).map((a) => ({
@@ -281,7 +292,7 @@ export function buildAssistantTools(ctx: {
 
     get_follow_ups() {
       const grouped = groupFollowUps(leads, new Date());
-      const compact = (arr: LeadWithRelations[]) => arr.map((l) => summarizeLead(l, statusLabels));
+      const compact = (arr: LeadWithRelations[]) => arr.map((l) => summarizeLead(l, statusLabels, isAdminUser));
       return {
         overdue: compact(grouped.overdue),
         due_today: compact(grouped.dueToday),

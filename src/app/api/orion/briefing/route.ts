@@ -6,8 +6,9 @@ import { getAllEvidenceLeadIds } from "@/lib/queries/evidence";
 import { getUnitsSold } from "@/lib/queries/units-sold";
 import { getPipelineStages } from "@/lib/queries/settings";
 import { getRemindersInWindow } from "@/lib/queries/reminders";
+import { getOrionBusinessContextForRequest } from "@/lib/queries/orion-context";
 import { runClaudeNarration } from "@/lib/claude";
-import { ORION_PERSONA, buildPortfolioContext, briefingPrompt, parseBriefing } from "@/lib/orion";
+import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, parseBriefing } from "@/lib/orion";
 
 export type { OrionBriefing, OrionBriefingItem } from "@/lib/orion";
 
@@ -28,14 +29,16 @@ export async function GET() {
     const windowFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
     const windowTo = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [leads, activitySummaries, evidenceLeadIds, unitsSold, stages, reminders] = await Promise.all([
-      getLeads(),
-      getAllActivitySummaries(),
-      getAllEvidenceLeadIds(),
-      getUnitsSold(),
-      getPipelineStages(),
-      getRemindersInWindow(windowFrom, windowTo),
-    ]);
+    const [leads, activitySummaries, evidenceLeadIds, unitsSold, stages, reminders, businessContext] =
+      await Promise.all([
+        getLeads(),
+        getAllActivitySummaries(),
+        getAllEvidenceLeadIds(),
+        getUnitsSold(),
+        getPipelineStages(),
+        getRemindersInWindow(windowFrom, windowTo),
+        getOrionBusinessContextForRequest().catch(() => ""),
+      ]);
     const statusLabels = Object.fromEntries(stages.map((s) => [s.key, s.label]));
 
     const context = buildPortfolioContext({
@@ -49,7 +52,7 @@ export async function GET() {
     });
 
     const raw = await runClaudeNarration({
-      system: ORION_PERSONA,
+      system: orionSystemPrompt(businessContext),
       prompt: briefingPrompt("page") + context,
       maxTokens: 4000,
     });

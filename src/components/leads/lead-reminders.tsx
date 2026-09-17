@@ -6,8 +6,9 @@ import { CalendarClock, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
+import { useProfile } from "@/components/providers/profile-provider";
 import { formatDateTime } from "@/lib/format";
-import type { LeadReminderRow } from "@/lib/queries/reminders";
+import type { LeadReminderWithAuthor } from "@/lib/queries/reminders";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,15 +36,16 @@ export function LeadReminders({
   isAdmin,
 }: {
   leadId: string;
-  reminders: LeadReminderRow[];
+  reminders: LeadReminderWithAuthor[];
   isAdmin: boolean;
 }) {
   const router = useRouter();
+  const profile = useProfile();
   const [title, setTitle] = useState("");
   const [remindAt, setRemindAt] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState<LeadReminderRow | null>(null);
+  const [deleting, setDeleting] = useState<LeadReminderWithAuthor | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -60,6 +62,7 @@ export function LeadReminders({
       title: title.trim(),
       notes: notes.trim() || null,
       remind_at: new Date(remindAt).toISOString(),
+      created_by: profile?.id ?? null,
     });
     setIsSubmitting(false);
 
@@ -113,6 +116,9 @@ export function LeadReminders({
                   <p className="text-sm font-medium text-foreground">{r.title}</p>
                   <p className="text-xs text-muted-foreground">{formatDateTime(r.remind_at)}</p>
                   {r.notes && <p className="mt-1 text-sm text-muted-foreground">{r.notes}</p>}
+                  <p className="mt-1 text-xs text-muted-foreground/70">
+                    by {r.author?.full_name ?? "author not recorded"}
+                  </p>
                 </div>
               </div>
               {isAdmin && (

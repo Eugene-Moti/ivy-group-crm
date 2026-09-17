@@ -3,8 +3,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { LEAD_SELECT, type LeadWithRelations } from "@/lib/queries/leads";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
 import type { ReminderWithLeadName } from "@/lib/queries/reminders";
+import { getOrionBusinessContext } from "@/lib/queries/orion-context";
 import { runClaudeNarration } from "@/lib/claude";
-import { ORION_PERSONA, buildPortfolioContext, briefingPrompt, parseBriefing } from "@/lib/orion";
+import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, parseBriefing } from "@/lib/orion";
 import { renderDigestEmail } from "@/lib/digest-email";
 import { generateOrionBriefingPdfBuffer } from "@/lib/orion-briefing-pdf-server";
 import { sendMail } from "@/lib/mailer";
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     const windowFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
     const windowTo = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
-    const [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes, remindersRes] =
+    const [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes, remindersRes, businessContext] =
       await Promise.all([
         supabase.from("leads").select(LEAD_SELECT).order("created_at", { ascending: false }),
         supabase.from("activities").select("lead_id, type, created_at, body"),
@@ -42,6 +43,7 @@ export async function GET(request: Request) {
           .gte("remind_at", windowFrom)
           .lte("remind_at", windowTo)
           .order("remind_at", { ascending: true }),
+        getOrionBusinessContext(supabase).catch(() => ""),
       ]);
 
     for (const res of [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes, remindersRes]) {
@@ -81,7 +83,7 @@ export async function GET(request: Request) {
     });
 
     const raw = await runClaudeNarration({
-      system: ORION_PERSONA,
+      system: orionSystemPrompt(businessContext),
       prompt: briefingPrompt("email") + context,
       maxTokens: 3000,
     });

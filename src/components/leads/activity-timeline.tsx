@@ -42,11 +42,9 @@ export function ActivityTimeline({
                   {activity.body}
                 </p>
               )}
-              {activity.author?.full_name && (
-                <p className="mt-1 text-xs text-muted-foreground/70">
-                  by {activity.author.full_name}
-                </p>
-              )}
+              <p className="mt-1 text-xs text-muted-foreground/70">
+                by {activity.author?.full_name ?? "author not recorded"}
+              </p>
             </div>
           </li>
         );

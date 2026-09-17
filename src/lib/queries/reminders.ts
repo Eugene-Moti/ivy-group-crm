@@ -4,16 +4,20 @@ import type { Database } from "@/types/database.types";
 
 export type LeadReminderRow = Database["public"]["Tables"]["lead_reminders"]["Row"];
 
-export async function getUpcomingReminders(leadId: string): Promise<LeadReminderRow[]> {
+export type LeadReminderWithAuthor = LeadReminderRow & {
+  author: { id: string; full_name: string | null } | null;
+};
+
+export async function getUpcomingReminders(leadId: string): Promise<LeadReminderWithAuthor[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("lead_reminders")
-    .select("*")
+    .select("*, author:profiles!lead_reminders_created_by_fkey(id, full_name)")
     .eq("lead_id", leadId)
     .order("remind_at", { ascending: true });
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return (data ?? []) as unknown as LeadReminderWithAuthor[];
 }
 
 export type ReminderWithLeadName = LeadReminderRow & { lead_name: string };

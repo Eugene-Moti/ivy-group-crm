@@ -25,7 +25,7 @@ import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { ActivityWithAuthor } from "@/lib/queries/activities";
 import type { LeadEvidenceWithAuthor } from "@/lib/queries/evidence";
 import type { LeadDocumentWithAuthor } from "@/lib/queries/documents";
-import type { LeadReminderRow } from "@/lib/queries/reminders";
+import type { LeadReminderWithAuthor } from "@/lib/queries/reminders";
 
 type LeadOption = { id: string; name: string };
 type ProjectOption = { id: string; name: string; location: string | null };
@@ -55,7 +55,7 @@ export function LeadDetail({
   referredLeads: LeadWithRelations[];
   evidence: LeadEvidenceWithAuthor[];
   documents: LeadDocumentWithAuthor[];
-  reminders: LeadReminderRow[];
+  reminders: LeadReminderWithAuthor[];
 }) {
   const isAdmin = useIsAdmin();
   const [isEditing, setIsEditing] = useState(false);

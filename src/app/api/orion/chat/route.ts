@@ -7,7 +7,8 @@ import { getUnitsSold } from "@/lib/queries/units-sold";
 import { getPipelineStages } from "@/lib/queries/settings";
 import { buildAssistantTools } from "@/lib/assistant-tools";
 import { runClaudeAssistant, type SimpleMessage } from "@/lib/claude";
-import { ORION_PERSONA } from "@/lib/orion";
+import { orionSystemPrompt } from "@/lib/orion";
+import { getOrionBusinessContextForRequest } from "@/lib/queries/orion-context";
 import { fullName } from "@/lib/format";
 
 const MAX_HISTORY_MESSAGES = 20;
@@ -16,9 +17,10 @@ const MAX_MESSAGE_LENGTH = 2000;
 function systemPrompt(
   userName: string | null,
   isAdminUser: boolean,
-  scopedLeadContext: string | null
+  scopedLeadContext: string | null,
+  businessContext: string
 ): string {
-  return `${ORION_PERSONA}
+  return `${orionSystemPrompt(businessContext)}
 
 Today's date is ${new Date().toDateString()}. You're talking to ${userName ?? "a team member"}${isAdminUser ? " (admin)" : " (viewer — phone/email are hidden from them by design, don't imply you're withholding anything)"}${scopedLeadContext ? " from that lead's own page" : " on your own dedicated page"} — this is a focused work session, not a quick lookup, so it's fine to be thorough: pull multiple tools, cross-reference, and give a real analysis rather than the shortest possible answer.
 
@@ -37,15 +39,26 @@ ${
 Formatting: this renders as real markdown, not plain text, so use it to make dense information easy to scan — short paragraphs, **bold** for key terms/numbers, bullet or numbered lists when covering multiple leads or steps. Don't over-format a one-line answer, and skip headings unless the reply genuinely has multiple sections.`;
 }
 
-/** The same shape get_lead_detail returns, built once here so a scoped conversation starts already grounded instead of needing a tool round-trip for the lead the admin is already looking at. */
-function buildScopedLeadContext(lead: LeadWithRelations, activities: Awaited<ReturnType<typeof getActivities>>): string {
+/**
+ * The same shape get_lead_detail returns, built once here so a scoped
+ * conversation starts already grounded instead of needing a tool round-trip
+ * for the lead the admin is already looking at. `includeContact` gates
+ * phone/email the same way summarizeLead() in assistant-tools.ts does —
+ * viewers never get them, admins do.
+ */
+function buildScopedLeadContext(
+  lead: LeadWithRelations,
+  activities: Awaited<ReturnType<typeof getActivities>>,
+  statusLabels: Record<string, string>,
+  includeContact: boolean
+): string {
   return `CURRENTLY OPEN LEAD:
 ${JSON.stringify(
   {
     id: lead.id,
     name: fullName(lead),
     lead_type: lead.lead_type,
-    status: lead.status,
+    status: statusLabels[lead.status] ?? lead.status,
     priority: lead.priority,
     manager: lead.assigned_agent?.name ?? null,
     source: lead.lead_source?.name ?? null,
@@ -58,6 +71,7 @@ ${JSON.stringify(
     notes_field: lead.notes,
     lost_reason: lead.lost_reason,
     lost_reason_note: lead.lost_reason_note,
+    ...(includeContact ? { phone: lead.phone, email: lead.email } : {}),
     activity_timeline: activities.slice(0, 30).map((a) => ({
       type: a.type,
       body: a.body,
@@ -110,12 +124,13 @@ export async function POST(request: Request) {
   }
 
   try {
-    const [leads, activitySummaries, evidenceLeadIds, unitsSold, stages] = await Promise.all([
+    const [leads, activitySummaries, evidenceLeadIds, unitsSold, stages, businessContext] = await Promise.all([
       getLeads(),
       getAllActivitySummaries(),
       getAllEvidenceLeadIds(),
       getUnitsSold(),
       getPipelineStages(),
+      getOrionBusinessContextForRequest().catch(() => ""),
     ]);
     const statusLabels = Object.fromEntries(stages.map((s) => [s.key, s.label]));
     const isAdminUser = profile.role === "admin";
@@ -124,7 +139,7 @@ export async function POST(request: Request) {
     const scopedLead = scopedLeadId ? leads.find((l) => l.id === scopedLeadId) : undefined;
     if (scopedLead) {
       const activities = await getActivities(scopedLead.id);
-      scopedLeadContext = buildScopedLeadContext(scopedLead, activities);
+      scopedLeadContext = buildScopedLeadContext(scopedLead, activities, statusLabels, isAdminUser);
     }
 
     const { tools, executors, proposedActions } = buildAssistantTools({
@@ -138,7 +153,7 @@ export async function POST(request: Request) {
     });
 
     const reply = await runClaudeAssistant({
-      system: systemPrompt(profile.full_name, isAdminUser, scopedLeadContext),
+      system: systemPrompt(profile.full_name, isAdminUser, scopedLeadContext, businessContext),
       messages: history,
       tools,
       executors,

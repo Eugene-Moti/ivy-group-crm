@@ -43,6 +43,22 @@ Domain model:
 
 Ground every claim in the data you're given or the tools you're offered — never invent a lead, a number, or a name. If a note, a lead's details, or what someone's asking is genuinely ambiguous or contradictory, say what's unclear and ask rather than guessing — a wrong guess acted on is worse than a clarifying question. This applies double before proposing any change: if you're not confident which lead, which value, or which date someone means, ask first. When notes describe a client's actual words or reaction, read them closely and reflect that nuance back rather than reducing everything to a generic status update.`;
 
+/**
+ * Prepends ORION_PERSONA with whatever the team has written in Settings →
+ * Teach Orion (src/components/settings/orion-context-panel.tsx) — the
+ * durable answer to the business-specific questions Orion itself can't
+ * infer from the data (team roles, what a stage means in practice, follow-
+ * up conventions). Shared by every surface (chat, Portfolio Briefing,
+ * daily digest) so an answer given once applies everywhere.
+ */
+export function orionSystemPrompt(businessContext: string): string {
+  if (!businessContext) return ORION_PERSONA;
+  return `${ORION_PERSONA}
+
+WHAT THE TEAM HAS TOLD YOU ABOUT HOW THEY WORK (trust this over your own assumptions):
+${businessContext}`;
+}
+
 function summarizeLead(lead: LeadWithRelations, statusLabels: Record<string, string>) {
   return {
     id: lead.id,

@@ -8,6 +8,7 @@ import { CampaignsPanel } from "@/components/settings/campaigns-panel";
 import { UsersPanel } from "@/components/settings/users-panel";
 import { ColumnLabelsPanel } from "@/components/settings/column-labels-panel";
 import { PipelineStagesPanel } from "@/components/settings/pipeline-stages-panel";
+import { OrionContextPanel } from "@/components/settings/orion-context-panel";
 import type { CampaignWithSource, LeadColumnLabels, ProfileRow } from "@/lib/queries/settings";
 
 type LeadOption = { id: string; name: string };
@@ -21,6 +22,7 @@ export function SettingsView({
   campaigns,
   profiles,
   columnLabels,
+  orionContext,
 }: {
   leadSources: LeadOption[];
   propertyTypes: ProjectOption[];
@@ -28,6 +30,7 @@ export function SettingsView({
   campaigns: CampaignWithSource[];
   profiles: ProfileRow[];
   columnLabels: LeadColumnLabels;
+  orionContext: string;
 }) {
   return (
     <div className="space-y-4">
@@ -48,6 +51,7 @@ export function SettingsView({
           <TabsTrigger value="users">Users &amp; roles</TabsTrigger>
           <TabsTrigger value="columns">Column labels</TabsTrigger>
           <TabsTrigger value="statuses">Pipeline stages</TabsTrigger>
+          <TabsTrigger value="orion">Teach Orion</TabsTrigger>
         </TabsList>
         <TabsContent value="sources" className="pt-4">
           <LeadSourcesPanel leadSources={leadSources} />
@@ -69,6 +73,9 @@ export function SettingsView({
         </TabsContent>
         <TabsContent value="statuses" className="pt-4">
           <PipelineStagesPanel />
+        </TabsContent>
+        <TabsContent value="orion" className="pt-4">
+          <OrionContextPanel initialContent={orionContext} />
         </TabsContent>
       </Tabs>
     </div>

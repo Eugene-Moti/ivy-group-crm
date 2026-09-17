@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentProfile, isAdmin } from "@/lib/auth";
 import { getAgents, getLeadSources, getPropertyTypes } from "@/lib/queries/leads";
 import { getAllProfiles, getCampaigns, getLeadColumnLabels } from "@/lib/queries/settings";
+import { getOrionBusinessContextForRequest } from "@/lib/queries/orion-context";
 import { SettingsView } from "@/components/settings/settings-view";
 
 export default async function SettingsPage() {
@@ -10,7 +11,7 @@ export default async function SettingsPage() {
     redirect("/dashboard");
   }
 
-  const [leadSources, propertyTypes, salesAgents, campaigns, profiles, columnLabels] =
+  const [leadSources, propertyTypes, salesAgents, campaigns, profiles, columnLabels, orionContext] =
     await Promise.all([
       getLeadSources(),
       getPropertyTypes(),
@@ -18,6 +19,8 @@ export default async function SettingsPage() {
       getCampaigns(),
       getAllProfiles(),
       getLeadColumnLabels(),
+      // Falls back to empty rather than breaking the whole Settings page if this migration hasn't run yet.
+      getOrionBusinessContextForRequest().catch(() => ""),
     ]);
 
   return (
@@ -28,6 +31,7 @@ export default async function SettingsPage() {
       campaigns={campaigns}
       profiles={profiles}
       columnLabels={columnLabels}
+      orionContext={orionContext}
     />
   );
 }
