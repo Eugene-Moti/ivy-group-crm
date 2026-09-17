@@ -16,10 +16,6 @@ export interface NavItem {
   adminOnly?: boolean;
 }
 
-// Deliberately no "Private" entry here — that area never appears in any
-// menu, sidebar, or search result for anyone, allowlisted or not. It's
-// reached only by the hidden phrase in the command palette (or typing
-// /private directly), never listed. See command-palette.tsx.
 export const NAV_ITEMS: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Leads", href: "/leads", icon: Users },

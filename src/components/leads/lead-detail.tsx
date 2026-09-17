@@ -9,7 +9,6 @@ import { ReferredLeadsList } from "@/components/leads/referred-leads-list";
 import { GenerateReferralReportButton } from "@/components/leads/generate-referral-report-button";
 import { ConvertAgentToClientDialog } from "@/components/leads/convert-agent-to-client-dialog";
 import { RecordUnitSaleDialog } from "@/components/leads/record-unit-sale-dialog";
-import { MakePrivateButton } from "@/components/private/make-private-button";
 import { Button } from "@/components/ui/button";
 import { Building2, UserPlus } from "lucide-react";
 import { WON_STATUS_KEY } from "@/lib/constants";
@@ -69,8 +68,6 @@ export function LeadDetail({
         isEditing={isEditing}
         onToggleEdit={() => setIsEditing((v) => !v)}
       />
-
-      {!lead.is_private && <MakePrivateButton leadId={lead.id} />}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
         <div>

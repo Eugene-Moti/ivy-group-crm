@@ -224,9 +224,6 @@ export interface Database {
           referred_by_lead_id: string | null;
           lost_reason: string | null;
           lost_reason_note: string | null;
-          is_private: boolean;
-          codename: string | null;
-          confidential_brief: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -253,9 +250,6 @@ export interface Database {
           referred_by_lead_id?: string | null;
           lost_reason?: string | null;
           lost_reason_note?: string | null;
-          is_private?: boolean;
-          codename?: string | null;
-          confidential_brief?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -282,9 +276,6 @@ export interface Database {
           referred_by_lead_id?: string | null;
           lost_reason?: string | null;
           lost_reason_note?: string | null;
-          is_private?: boolean;
-          codename?: string | null;
-          confidential_brief?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -572,132 +563,6 @@ export interface Database {
           },
         ];
       };
-      private_lead_access: {
-        Row: {
-          user_id: string;
-          is_owner: boolean;
-          granted_by: string | null;
-          granted_at: string;
-        };
-        Insert: {
-          user_id: string;
-          is_owner?: boolean;
-          granted_by?: string | null;
-          granted_at?: string;
-        };
-        Update: {
-          user_id?: string;
-          is_owner?: boolean;
-          granted_by?: string | null;
-          granted_at?: string;
-        };
-        Relationships: [];
-      };
-      private_area_credentials: {
-        Row: {
-          user_id: string;
-          pin_hash: string | null;
-          pin_set_at: string | null;
-          failed_attempts: number;
-          locked_until: string | null;
-          updated_at: string;
-        };
-        Insert: {
-          user_id: string;
-          pin_hash?: string | null;
-          pin_set_at?: string | null;
-          failed_attempts?: number;
-          locked_until?: string | null;
-          updated_at?: string;
-        };
-        Update: {
-          user_id?: string;
-          pin_hash?: string | null;
-          pin_set_at?: string | null;
-          failed_attempts?: number;
-          locked_until?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      private_entry_phrase: {
-        Row: {
-          user_id: string;
-          phrase_hash: string;
-          updated_at: string;
-        };
-        Insert: {
-          user_id: string;
-          phrase_hash: string;
-          updated_at?: string;
-        };
-        Update: {
-          user_id?: string;
-          phrase_hash?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      private_webauthn_credentials: {
-        Row: {
-          credential_id: string;
-          user_id: string;
-          public_key: string;
-          counter: number;
-          transports: string[] | null;
-          device_label: string | null;
-          created_at: string;
-          last_used_at: string | null;
-        };
-        Insert: {
-          credential_id: string;
-          user_id: string;
-          public_key: string;
-          counter?: number;
-          transports?: string[] | null;
-          device_label?: string | null;
-          created_at?: string;
-          last_used_at?: string | null;
-        };
-        Update: {
-          credential_id?: string;
-          user_id?: string;
-          public_key?: string;
-          counter?: number;
-          transports?: string[] | null;
-          device_label?: string | null;
-          created_at?: string;
-          last_used_at?: string | null;
-        };
-        Relationships: [];
-      };
-      private_access_log: {
-        Row: {
-          id: string;
-          user_id: string | null;
-          lead_id: string | null;
-          action: string;
-          detail: Json | null;
-          at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id?: string | null;
-          lead_id?: string | null;
-          action: string;
-          detail?: Json | null;
-          at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string | null;
-          lead_id?: string | null;
-          action?: string;
-          detail?: Json | null;
-          at?: string;
-        };
-        Relationships: [];
-      };
       auth_2fa_pin: {
         Row: {
           user_id: string;
@@ -753,14 +618,6 @@ export interface Database {
     Views: Record<string, never>;
     Functions: {
       is_admin: {
-        Args: Record<string, never>;
-        Returns: boolean;
-      };
-      has_private_access: {
-        Args: Record<string, never>;
-        Returns: boolean;
-      };
-      is_private_owner: {
         Args: Record<string, never>;
         Returns: boolean;
       };

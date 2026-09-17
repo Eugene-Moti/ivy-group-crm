@@ -226,18 +226,11 @@ these in order:
    success stage — agents can't be Closed - Won themselves. Reopening the buyer's deal moves the
    agent back to "Client Active"; a fresh referral does too, via the existing referral trigger.
 24. [`supabase/migrations/20260911000000_private_clients.sql`](supabase/migrations/20260911000000_private_clients.sql) —
-   adds a confidential-client tier: `leads.is_private` / `codename` / `confidential_brief`, an
-   allowlist table (`private_lead_access`, with an owner bootstrapped from the
-   `erickmoti3609@gmail.com` profile), PIN + WebAuthn credential tables, an append-only
-   `private_access_log`, and `has_private_access()` / `is_private_owner()` helpers. Rewrites RLS
-   on `leads`, `activities`, `lead_evidence`, `lead_documents`, `units_sold`, and the two storage
-   buckets so a private row (and its notes / files / unit sales) is invisible to anyone off the
-   allowlist — admins included. Powers the **Private** tab, which is gated behind a step-up PIN
-   or Windows Hello / Touch ID unlock (`PRIVATE_UNLOCK_SECRET` env var required). Private clients
-   never appear in the shared pipeline, reports, search, exports, or the daily digest. The tab
-   itself has no nav link and is never listed anywhere, including the command palette (which
-   otherwise lists every page) — the only way in is typing your own entry phrase into Ctrl/Cmd+K
-   (set from Private → Security, see migration 26) or navigating to `/private` directly.
+   **superseded by migration 27** — added a confidential-client tier (allowlist, step-up PIN /
+   WebAuthn unlock, a hidden `/private` tab). Still run this one first if you're setting up from
+   scratch; 27 depends on the tables it creates having existed before dropping them. It added
+   real friction for a case the team decided was better handled by just assigning a sensitive
+   client to a trusted sales manager like any other lead.
 25. [`supabase/migrations/20260912000000_login_2fa.sql`](supabase/migrations/20260912000000_login_2fa.sql) —
    mandatory two-factor on the main login for every user: after email + password, a PIN each
    user sets once (`auth_2fa_pin` — scrypt-hashed, 5-attempt lockout, admin-resettable) is asked
@@ -248,11 +241,16 @@ these in order:
    PIN from Team & Users → your card → "Sign-in PIN"; admins reset someone else's from Settings
    → Users. `DISABLE_LOGIN_2FA=true` is the emergency kill switch.
 26. [`supabase/migrations/20260913000000_private_entry_phrase.sql`](supabase/migrations/20260913000000_private_entry_phrase.sql) —
-   `private_entry_phrase`: each allowlisted user's own Ctrl/Cmd+K entry phrase (scrypt-hashed,
-   4–60 chars), set from Private → Security. Replaces an earlier single shared
-   `PRIVATE_ENTRY_PHRASE` env var — no team-wide secret, no redeploy to add or change one, and
-   the owner never has to hand a new allowlisted user a password out of band.
-27. [`supabase/seed.sql`](supabase/seed.sql) —
+   **superseded by migration 27.** Still run this one before 27, for the same reason as 24.
+27. [`supabase/migrations/20260917000000_remove_private_clients.sql`](supabase/migrations/20260917000000_remove_private_clients.sql) —
+   removes the confidential-client tier entirely: restores `leads` (and `activities` /
+   `lead_evidence` / `lead_documents` / `units_sold` / the two storage buckets) to the plain
+   "every authenticated user can read, only admins write" policies from the original schema,
+   drops `leads.is_private` / `codename` / `confidential_brief`, and drops every `private_*`
+   table and helper function migrations 24 and 26 added. Nothing to reassign first — there were
+   zero private leads when this ran. A confidential client goes back to being an ordinary lead
+   with a trusted sales manager (e.g. one of the admins) assigned to it, same as any other.
+28. [`supabase/seed.sql`](supabase/seed.sql) —
    seeds 12 lead sources, 4 sample campaigns, and 8 sample Nairobi buyer leads with activity timelines.
 
 If you have the [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)

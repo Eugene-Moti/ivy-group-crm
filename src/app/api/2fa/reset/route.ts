@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { require2faSession } from "@/lib/auth-2fa/guard";
 import { log2fa } from "@/lib/auth-2fa/audit";
-import { withJson } from "@/lib/private/route-helpers";
+import { withJson } from "@/lib/api-json";
 
 /**
  * Admin-only: clear a user's PIN so their next sign-in forces setting a new

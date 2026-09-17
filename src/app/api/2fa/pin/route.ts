@@ -3,14 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { require2faSession } from "@/lib/auth-2fa/guard";
 import { grant2fa, is2faVerified } from "@/lib/auth-2fa/verified";
 import { log2fa } from "@/lib/auth-2fa/audit";
-import { withJson } from "@/lib/private/route-helpers";
+import { withJson } from "@/lib/api-json";
 import {
   hashPin,
   verifyPin,
   isValidPinFormat,
   MAX_PIN_ATTEMPTS,
   PIN_LOCKOUT_MINUTES,
-} from "@/lib/private/pin";
+} from "@/lib/pin-hash";
 
 /** Whether the current user already has a PIN set. */
 export const GET = withJson(async () => {
