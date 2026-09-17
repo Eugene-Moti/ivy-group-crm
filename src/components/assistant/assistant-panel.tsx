@@ -181,11 +181,12 @@ export function AssistantPanel({
         <SheetHeader className="border-b border-border">
           <SheetTitle className="flex items-center gap-2">
             <Sparkles className="size-4 text-gold" />
-            AI Assistant
+            Orion
           </SheetTitle>
           <SheetDescription>
-            Ask about leads, notifications, or the pipeline — grounded in live CRM data.
-            {isAdmin && " It can draft changes too, but nothing is applied until you confirm it."}
+            Quick questions about leads, notifications, or the pipeline — grounded in live CRM data.
+            {isAdmin && " Orion can draft changes too, but nothing is applied until you confirm it."} For a full
+            portfolio briefing and deeper analysis, visit the Orion page.
           </SheetDescription>
         </SheetHeader>
 

@@ -6,6 +6,7 @@ import {
   Upload,
   IdCard,
   Settings,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -18,6 +19,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Orion", href: "/orion", icon: Sparkles },
   { title: "Leads", href: "/leads", icon: Users },
   { title: "Follow-ups", href: "/follow-ups", icon: CalendarClock },
   { title: "Reports", href: "/reports", icon: BarChart3 },

@@ -3,13 +3,11 @@ import { Resend } from "resend";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LEAD_SELECT, type LeadWithRelations } from "@/lib/queries/leads";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
-import { buildAssistantTools } from "@/lib/assistant-tools";
-import { runGroqAssistant } from "@/lib/groq";
+import { runClaudeNarration } from "@/lib/claude";
+import { ORION_PERSONA, buildPortfolioContext } from "@/lib/orion";
 import { renderDigestEmail } from "@/lib/digest-email";
 
-const DIGEST_SYSTEM_PROMPT = `You are writing today's automated daily briefing email for the admins of Ivy Group CRM, a Nairobi real estate lead/client management tool. This is a ONE-SHOT briefing, not a conversation — there is no follow-up turn, so gather everything you need with tool calls first, then write the complete briefing in a single reply.
-
-Use your tools (get_notifications, get_full_analysis, get_follow_ups) to ground every claim in real data — never invent a lead, a number, or a name.
+const DIGEST_PROMPT = `You are writing today's automated Daily Briefing email for the admins of Ivy Group CRM — this lands in their inbox once a day. Below is the full, already-computed state of the pipeline as JSON: KPIs, breakdowns, deterministic insights, the current "needs attention" list, and recent unit sales. Read it, then write the complete briefing in a single reply (this is one-shot, there's no follow-up turn).
 
 Structure the briefing as:
 - A one-line headline sense of where things stand today.
@@ -17,7 +15,10 @@ Structure the briefing as:
 - "Snapshot" — a couple of the most notable numbers from the full analysis (conversion rate, notable trend, a standout manager/source).
 - One short closing suggestion for what to prioritize today.
 
-Keep it tight — this is an email someone reads in under a minute, not a report. Use "-" for bullet lists. No filler preamble, no sign-off, no subject line (that's handled separately).`;
+Keep it tight — this is an email someone reads in under a minute, not a report. Use "-" for bullet lists. No filler preamble, no sign-off, no subject line (that's handled separately). Never invent a lead, a number, or a name — everything you say must trace back to the data below.
+
+DATA:
+`;
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -25,8 +26,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!process.env.GROQ_API_KEY) {
-    return NextResponse.json({ error: "GROQ_API_KEY is not configured." }, { status: 503 });
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: "ANTHROPIC_API_KEY is not configured." }, { status: 503 });
   }
   if (!process.env.RESEND_API_KEY) {
     return NextResponse.json({ error: "RESEND_API_KEY is not configured." }, { status: 503 });
@@ -63,23 +64,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ skipped: "No admin has an email on file." });
     }
 
-    const { tools, executors } = buildAssistantTools({
+    const context = buildPortfolioContext({
       leads,
       activitySummaries,
       evidenceLeadIds,
       unitsSold,
       stages,
       statusLabels,
-      isAdminUser: true,
     });
 
-    const briefing = await runGroqAssistant({
-      messages: [
-        { role: "system", content: DIGEST_SYSTEM_PROMPT },
-        { role: "user", content: "Generate today's briefing." },
-      ],
-      tools,
-      executors,
+    const briefing = await runClaudeNarration({
+      system: ORION_PERSONA,
+      prompt: DIGEST_PROMPT + context,
+      maxTokens: 2000,
     });
 
     const today = new Date().toLocaleDateString("en-GB", {
@@ -93,9 +90,9 @@ export async function GET(request: Request) {
     const { error: sendError } = await resend.emails.send({
       from: process.env.DIGEST_FROM_EMAIL || "Ivy Group CRM <onboarding@resend.dev>",
       to: recipients,
-      subject: `Ivy Group CRM — Daily Briefing, ${today}`,
+      subject: `Orion's Daily Briefing — ${today}`,
       html: renderDigestEmail({
-        title: "Daily Briefing",
+        title: "Orion's Daily Briefing",
         subtitle: today,
         body: briefing,
       }),
