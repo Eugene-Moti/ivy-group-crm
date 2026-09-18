@@ -10,6 +10,13 @@ import { renderDigestEmail } from "@/lib/digest-email";
 import { generateOrionBriefingPdfBuffer } from "@/lib/orion-briefing-pdf-server";
 import { sendMail } from "@/lib/mailer";
 
+// Opus 5 at effort "high" with adaptive thinking and a 16k-token structured
+// output, plus PDF generation and sending to every admin, can genuinely
+// take longer than the platform's default function timeout — this is the
+// max the Vercel Hobby plan allows. Vercel Cron itself also has its own
+// per-invocation timeout that scales with the plan.
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -86,7 +93,6 @@ export async function GET(request: Request) {
       system: orionSystemPrompt(businessContext),
       prompt: briefingPrompt("email") + context,
       schema: OrionBriefingSchema,
-      maxTokens: 3000,
     });
 
     const briefing = finalizeBriefing(raw, leads);

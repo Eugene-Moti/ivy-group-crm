@@ -12,6 +12,11 @@ import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, finalizeBrief
 
 export type { OrionBriefing, OrionBriefingItem } from "@/lib/orion";
 
+// Opus 5 at effort "high" with adaptive thinking and a 16k-token structured
+// output can genuinely take longer than the platform's default function
+// timeout — this is the max the Vercel Hobby plan allows.
+export const maxDuration = 60;
+
 export async function GET() {
   const profile = await getCurrentProfile();
   if (!profile) {
@@ -55,7 +60,6 @@ export async function GET() {
       system: orionSystemPrompt(businessContext),
       prompt: briefingPrompt("page") + context,
       schema: OrionBriefingSchema,
-      maxTokens: 4000,
     });
 
     const briefing = finalizeBriefing(raw, leads);

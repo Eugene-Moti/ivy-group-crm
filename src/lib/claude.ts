@@ -100,49 +100,28 @@ export async function runClaudeAssistant({
 }
 
 /**
- * A single, tool-free call for narrating already-computed data (the
- * Portfolio Briefing) — no loop, since there's nothing to look up: the
- * caller hands Orion the full, trustworthy numbers up front and asks it to
- * prioritize and write them up, rather than risking it recomputing stats
- * itself.
- */
-export async function runClaudeNarration({
-  system,
-  prompt,
-  maxTokens = 4000,
-}: {
-  system: string;
-  prompt: string;
-  maxTokens?: number;
-}): Promise<string> {
-  const anthropic = getClient();
-  const response = await createMessage(anthropic, {
-    model: MODEL,
-    max_tokens: maxTokens,
-    system,
-    thinking: { type: "adaptive" },
-    output_config: { effort: "high" },
-    messages: [{ role: "user", content: prompt }],
-  });
-  const textBlock = response.content.find((b): b is Anthropic.TextBlock => b.type === "text");
-  return textBlock?.text ?? "";
-}
-
-/**
  * Structured-output generation (the Portfolio Briefing / daily digest) —
- * uses client.messages.parse() with a Zod schema instead of asking Claude
- * to write JSON as free text and hoping it complies with "no commentary,
- * no fences." The API enforces the schema server-side, so this eliminates
- * the whole class of failure where a stray sentence of preamble broke a
- * regex-based fence-stripping parse and silently degraded to an empty
- * briefing/PDF. `parsed_output` is still nullable on a genuine failure —
- * callers must handle that, not assume success.
+ * uses client.messages.stream() + output_config.format with a Zod schema
+ * instead of asking Claude to write JSON as free text and hoping it
+ * complies with "no commentary, no fences." The API enforces the schema
+ * server-side, so there's no fence-stripping regex left to break.
+ *
+ * Streamed rather than a plain .parse() call, for two reasons: the first
+ * production run of this exact call truncated mid-JSON ("Unterminated
+ * string") because adaptive thinking at effort "high" can spend a real
+ * chunk of a small max_tokens budget on reasoning before it ever starts
+ * writing the visible output, and a non-streaming request that large risks
+ * the platform's own request timeout regardless. Streaming plus a
+ * generous max_tokens fixes both at once — see the claude-api skill's own
+ * guidance to default to streaming for any high-max_tokens request.
+ * `parsed_output` is still nullable on a genuine failure — callers must
+ * handle that, not assume success.
  */
 export async function runClaudeStructured<T>({
   system,
   prompt,
   schema,
-  maxTokens = 4000,
+  maxTokens = 16000,
 }: {
   system: string;
   prompt: string;
@@ -150,9 +129,9 @@ export async function runClaudeStructured<T>({
   maxTokens?: number;
 }): Promise<T> {
   const anthropic = getClient();
-  let response: Anthropic.Message & { parsed_output: T | null };
+  let message: Anthropic.Message & { parsed_output: T | null };
   try {
-    response = await anthropic.messages.parse({
+    const stream = anthropic.messages.stream({
       model: MODEL,
       max_tokens: maxTokens,
       system,
@@ -160,13 +139,14 @@ export async function runClaudeStructured<T>({
       output_config: { effort: "high", format: zodOutputFormat(schema) },
       messages: [{ role: "user", content: prompt }],
     });
+    message = await stream.finalMessage();
   } catch (err) {
     throw toFriendlyError(err);
   }
-  if (response.parsed_output === null) {
+  if (message.parsed_output === null) {
     throw new Error("Orion couldn't produce a structured response for that — try again.");
   }
-  return response.parsed_output;
+  return message.parsed_output;
 }
 
 async function createMessage(
