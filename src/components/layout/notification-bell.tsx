@@ -24,16 +24,58 @@ function showToast(
   severity: NotificationItem["severity"],
   onView: () => void
 ) {
-  const options = {
-    description,
-    duration: 10000,
-    action: { label: "View", onClick: onView },
-  };
-  if (severity === "critical") {
-    toast.error(title, options);
-  } else {
-    toast.warning(title, options);
-  }
+  const critical = severity === "critical";
+  toast.custom(
+    (id) => (
+      <div
+        className={cn(
+          "flex w-full max-w-sm items-start gap-3 rounded-xl border bg-card p-3.5 shadow-lg",
+          critical ? "border-destructive/40" : "border-gold/40"
+        )}
+      >
+        <div
+          className={cn(
+            "flex size-7 shrink-0 items-center justify-center rounded-full",
+            critical ? "bg-destructive/15 text-destructive" : "bg-gold/15 text-gold"
+          )}
+        >
+          <Sparkles className="size-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p
+            className={cn(
+              "text-[10px] font-semibold uppercase tracking-wide",
+              critical ? "text-destructive" : "text-gold"
+            )}
+          >
+            Orion flagged this
+          </p>
+          <p className="mt-0.5 text-sm font-medium text-foreground">{title}</p>
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{description}</p>
+          <div className="mt-2 flex gap-4">
+            <button
+              type="button"
+              onClick={() => {
+                toast.dismiss(id);
+                onView();
+              }}
+              className="text-xs font-medium text-gold hover:underline"
+            >
+              View
+            </button>
+            <button
+              type="button"
+              onClick={() => toast.dismiss(id)}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    ),
+    { duration: 10000 }
+  );
 }
 
 export function NotificationBell() {

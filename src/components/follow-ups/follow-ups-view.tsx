@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarClock, FileDown, Loader2 } from "lucide-react";
+import { CalendarClock, FileDown, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { useIsAdmin, useProfile } from "@/components/providers/profile-provider";
+import { useAssistant } from "@/components/providers/assistant-provider";
 import { useRealtimeLeadsRefresh } from "@/hooks/use-realtime-leads-refresh";
 import { FollowUpSection } from "@/components/follow-ups/follow-up-section";
 import { BulkRescheduleDialog } from "@/components/leads/bulk-reschedule-dialog";
@@ -38,6 +39,7 @@ export function FollowUpsView({
 }) {
   const isAdmin = useIsAdmin();
   const profile = useProfile();
+  const { openAssistant } = useAssistant();
   useRealtimeLeadsRefresh();
 
   const [agentFilter, setAgentFilter] = useState(ALL);
@@ -133,6 +135,16 @@ export function FollowUpsView({
             <Button size="sm" variant="outline" onClick={handleGeneratePdf} disabled={isGenerating}>
               {isGenerating ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}
               Generate PDF
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                openAssistant("Help me prioritize today's follow-ups — who should I contact first and why?")
+              }
+            >
+              <Sparkles className="size-4" />
+              Ask Orion
             </Button>
           </div>
         )}

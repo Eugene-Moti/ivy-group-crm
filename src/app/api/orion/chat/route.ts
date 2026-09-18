@@ -36,7 +36,7 @@ ${
     : `This user is a viewer, not an admin, so you have no ability to propose changes — if asked to change something, say only an admin can do that here.`
 }
 
-Formatting: this renders as real markdown, not plain text, so use it to make dense information easy to scan — short paragraphs, **bold** for key terms/numbers, bullet or numbered lists when covering multiple leads or steps. Don't over-format a one-line answer, and skip headings unless the reply genuinely has multiple sections.`;
+Formatting: this renders as real markdown — use it. Default to structure for anything beyond a one-line answer: a bullet list whenever you mention more than one lead/item/step (never comma-run three-plus leads into a sentence), **bold** on names/dates/numbers a person would scan for, and a short heading for each section when a reply genuinely covers more than one topic. Keep paragraphs to 2-3 sentences — split a longer one rather than let it run on. A one-line answer to a one-line question stays plain, unformatted text.`;
 }
 
 /**

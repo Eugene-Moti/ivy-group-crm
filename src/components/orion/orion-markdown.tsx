@@ -3,15 +3,23 @@ import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
 
 const components: Components = {
-  p: ({ children }) => <p className="mb-3 leading-relaxed last:mb-0">{children}</p>,
-  ul: ({ children }) => <ul className="mb-3 list-disc space-y-1 pl-5 last:mb-0">{children}</ul>,
-  ol: ({ children }) => <ol className="mb-3 list-decimal space-y-1 pl-5 last:mb-0">{children}</ol>,
-  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  p: ({ children }) => <p className="mb-3.5 leading-[1.65] last:mb-0">{children}</p>,
+  ul: ({ children }) => <ul className="mb-3.5 list-disc space-y-1.5 pl-5 last:mb-0">{children}</ul>,
+  ol: ({ children }) => <ol className="mb-3.5 list-decimal space-y-1.5 pl-5 last:mb-0">{children}</ol>,
+  li: ({ children }) => <li className="leading-[1.6] marker:text-gold/70">{children}</li>,
   strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
   em: ({ children }) => <em className="italic">{children}</em>,
-  h1: ({ children }) => <h3 className="mb-2 mt-4 text-sm font-semibold text-foreground first:mt-0">{children}</h3>,
-  h2: ({ children }) => <h3 className="mb-2 mt-4 text-sm font-semibold text-foreground first:mt-0">{children}</h3>,
-  h3: ({ children }) => <h3 className="mb-2 mt-4 text-sm font-semibold text-foreground first:mt-0">{children}</h3>,
+  h1: ({ children }) => (
+    <h3 className="mb-2 mt-4 border-b border-border/60 pb-1.5 text-sm font-semibold text-foreground first:mt-0">
+      {children}
+    </h3>
+  ),
+  h2: ({ children }) => (
+    <h3 className="mb-2 mt-4 border-b border-border/60 pb-1.5 text-sm font-semibold text-foreground first:mt-0">
+      {children}
+    </h3>
+  ),
+  h3: ({ children }) => <h4 className="mb-1.5 mt-3.5 text-sm font-semibold text-foreground first:mt-0">{children}</h4>,
   a: ({ children, href }) => (
     <a
       href={href}

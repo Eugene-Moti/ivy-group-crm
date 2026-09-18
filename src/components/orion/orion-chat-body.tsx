@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bot, Check, Loader2, Send, Sparkles, User, X } from "lucide-react";
+import { Bot, Check, Copy, Loader2, Send, Sparkles, User, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -66,8 +66,19 @@ export function OrionChatBody({
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  async function handleCopy(index: number, content: string) {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex((v) => (v === index ? null : v)), 1500);
+    } catch {
+      toast.error("Couldn't copy to clipboard");
+    }
+  }
 
   useEffect(() => {
     if (!initialPrompt) return;
@@ -218,8 +229,8 @@ export function OrionChatBody({
           )}
 
           {messages.map((m, i) => (
-            <div key={i} className="flex flex-col gap-2">
-              <div className={cn("flex gap-2", m.role === "user" ? "flex-row-reverse" : "flex-row")}>
+            <div key={i} className="group flex flex-col gap-1.5">
+              <div className={cn("flex gap-2.5", m.role === "user" ? "flex-row-reverse" : "flex-row")}>
                 <div
                   className={cn(
                     "flex size-7 shrink-0 items-center justify-center rounded-full",
@@ -230,7 +241,7 @@ export function OrionChatBody({
                 </div>
                 <div
                   className={cn(
-                    "max-w-[85%] rounded-xl px-3.5 py-2.5",
+                    "max-w-[88%] rounded-xl px-4 py-3 shadow-sm",
                     m.role === "user"
                       ? "bg-primary text-sm text-primary-foreground"
                       : "border border-border bg-background text-foreground"
@@ -239,6 +250,26 @@ export function OrionChatBody({
                   {m.role === "assistant" ? <OrionMarkdown content={m.content} /> : m.content}
                 </div>
               </div>
+
+              {m.role === "assistant" && m.content && (
+                <button
+                  type="button"
+                  onClick={() => handleCopy(i, m.content)}
+                  className="ml-9 flex w-fit items-center gap-1 text-[11px] text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+                >
+                  {copiedIndex === i ? (
+                    <>
+                      <Check className="size-3" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-3" />
+                      Copy
+                    </>
+                  )}
+                </button>
+              )}
 
               {m.actions && m.actions.length > 0 && (
                 <div className="ml-9 flex flex-col gap-2">
