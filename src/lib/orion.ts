@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { computeFullAnalysis, type ActivitySummary, type EvidenceLeadId } from "@/lib/full-analysis";
 import { computeNotifications } from "@/lib/notifications";
 import { fullName } from "@/lib/format";
@@ -41,7 +42,9 @@ Domain model:
 - There used to be a separate hidden "Private" tier for sensitive/confidential clients; the team removed it as unnecessary friction. A sensitive client today is just an ordinary lead assigned to a trusted sales manager, same as any other — don't suggest hiding or special-casing one.
 - Admins set where their own daily briefing email goes (profiles.notification_email, defaults to their login email) from Team & Users → their card.
 
-Ground every claim in the data you're given or the tools you're offered — never invent a lead, a number, or a name. If a note, a lead's details, or what someone's asking is genuinely ambiguous or contradictory, say what's unclear and ask rather than guessing — a wrong guess acted on is worse than a clarifying question. This applies double before proposing any change: if you're not confident which lead, which value, or which date someone means, ask first. When notes describe a client's actual words or reaction, read them closely and reflect that nuance back rather than reducing everything to a generic status update.`;
+Ground every claim in the data you're given or the tools you're offered — never invent a lead, a number, or a name. If a note, a lead's details, or what someone's asking is genuinely ambiguous or contradictory, say what's unclear and ask rather than guessing — a wrong guess acted on is worse than a clarifying question. This applies double before proposing any change: if you're not confident which lead, which value, or which date someone means, ask first. When notes describe a client's actual words or reaction, read them closely and reflect that nuance back rather than reducing everything to a generic status update.
+
+Never suggest moving a follow-up or reminder earlier — or any other change — just because a date looks far away or a generic pattern (overdue, stale, gone quiet) matches it. Read the lead's actual notes and activity timeline first: a follow-up set months out is very often deliberate, not neglect — e.g. a client who said they'd revisit budget in December. If the notes already explain why the date is what it is, either agree with that reasoning or explicitly say why you think it should change anyway — never propose undoing a documented decision without acknowledging the reason behind it. Treat a human's past scheduling choice as informed until the record says otherwise.`;
 
 /**
  * Prepends ORION_PERSONA with whatever the team has written in Settings →
@@ -144,6 +147,43 @@ export function buildPortfolioContext(ctx: {
   });
 }
 
+/**
+ * Claude's actual output shape for a Portfolio Briefing, enforced
+ * server-side via output_config.format (see runClaudeStructured in
+ * lib/claude.ts) — not hoped-for JSON in free text. leadNames are exact
+ * copies of a "name" field already present in the data; resolveLeadNames()
+ * below turns them into verified {id, name} pairs, silently dropping
+ * anything that doesn't match a real lead so a link is never shown for a
+ * hallucinated or misspelled name.
+ */
+export const OrionBriefingSchema = z.object({
+  headline: z.string().describe("1-2 sentences on overall pipeline health and momentum right now, in your own voice."),
+  items: z
+    .array(
+      z.object({
+        severity: z
+          .enum(["critical", "warning", "positive", "info"])
+          .describe("critical = needs attention now, warning = worth reviewing, positive = going well, info = FYI"),
+        title: z.string().describe("Short and specific, not generic."),
+        detail: z.string().describe("1-2 sentences. Cite real numbers/names already present in the data — never invent one."),
+        leadNames: z
+          .array(z.string())
+          .default([])
+          .describe(
+            'Exact lead names copied character-for-character from a "name" field already in the data — never paraphrased or guessed. Empty array if this item isn\'t about specific leads.'
+          ),
+      })
+    )
+    .describe(
+      '4-7 items, ordered most-important-first. Synthesize across overview/by_manager/by_project/needs_attention rather than restating deterministic_insights verbatim. If reminders_due_today has entries, give it its own item near the top (severity "info") naming the lead, the title, and the time.'
+    ),
+  recommendations: z
+    .array(z.string())
+    .describe('3-5 concrete, specific actions ("who should do what by when") — not generic advice like "follow up more."'),
+});
+
+export type RawOrionBriefing = z.infer<typeof OrionBriefingSchema>;
+
 export type OrionBriefingItem = {
   severity: "critical" | "warning" | "positive" | "info";
   title: string;
@@ -156,72 +196,39 @@ export type OrionBriefing = {
   items: OrionBriefingItem[];
   recommendations: string[];
   generatedAt: string;
-  raw?: string;
 };
 
 /** Only relative-order-independent info the model can safely be trusted to have echoed back verbatim: names. Resolved here against real leads so a link is only ever shown when it's genuinely valid. */
-function resolveLeadNames(names: unknown, leads: LeadWithRelations[]): { id: string; name: string }[] | undefined {
-  if (!Array.isArray(names)) return undefined;
+function resolveLeadNames(names: string[], leads: LeadWithRelations[]): { id: string; name: string }[] | undefined {
   const byLowerName = new Map(leads.map((l) => [fullName(l).toLowerCase(), l]));
   const resolved = names
-    .filter((n): n is string => typeof n === "string")
     .map((n) => byLowerName.get(n.trim().toLowerCase()))
     .filter((l): l is LeadWithRelations => !!l)
     .map((l) => ({ id: l.id, name: fullName(l) }));
   return resolved.length > 0 ? resolved : undefined;
 }
 
-/**
- * Parses Claude's structured briefing JSON (headline/items/recommendations)
- * into an OrionBriefing, resolving each item's lead names against the real
- * leads array. Shared by the on-demand Portfolio Briefing and the daily
- * digest email so both render from an identical, verified shape — and so
- * the same PDF export function works for either. Falls back to a raw-text
- * shape on a parse failure so nothing is lost even if the model's output
- * isn't valid JSON.
- */
-export function parseBriefing(raw: string, leads: LeadWithRelations[]): OrionBriefing {
-  const generatedAt = new Date().toISOString();
-  try {
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-    const parsed = JSON.parse(cleaned);
-    if (typeof parsed.headline === "string" && Array.isArray(parsed.items)) {
-      return {
-        headline: parsed.headline,
-        items: parsed.items
-          .filter(
-            (i: unknown): i is Record<string, unknown> =>
-              !!i && typeof i === "object" && typeof (i as Record<string, unknown>).title === "string"
-          )
-          .map(
-            (i: Record<string, unknown>): OrionBriefingItem => ({
-              severity: (["critical", "warning", "positive", "info"] as const).includes(
-                i.severity as never
-              )
-                ? (i.severity as OrionBriefingItem["severity"])
-                : "info",
-              title: i.title as string,
-              detail: typeof i.detail === "string" ? i.detail : "",
-              leads: resolveLeadNames(i.leadNames, leads),
-            })
-          ),
-        recommendations: Array.isArray(parsed.recommendations)
-          ? parsed.recommendations.filter((r: unknown) => typeof r === "string")
-          : [],
-        generatedAt,
-      };
-    }
-  } catch {
-    // fall through to the raw-text fallback below
-  }
-  return { headline: "", items: [], recommendations: [], generatedAt, raw };
+/** Turns Claude's validated raw output into the shape the UI/PDF/email actually render, resolving each item's lead names against the real leads array. */
+export function finalizeBriefing(raw: RawOrionBriefing, leads: LeadWithRelations[]): OrionBriefing {
+  return {
+    headline: raw.headline,
+    items: raw.items.map((i) => ({
+      severity: i.severity,
+      title: i.title,
+      detail: i.detail,
+      leads: resolveLeadNames(i.leadNames, leads),
+    })),
+    recommendations: raw.recommendations,
+    generatedAt: new Date().toISOString(),
+  };
 }
 
 /**
- * The JSON-briefing instructions shared by both surfaces that ask Claude
- * for a structured Portfolio Briefing — the on-demand page and the daily
- * digest email — differing only in the one line of framing that says where
- * this is being read.
+ * The framing instructions shared by both surfaces that ask Claude for a
+ * structured Portfolio Briefing — the on-demand page and the daily digest
+ * email — differing only in the one line of context about where this is
+ * being read. The output shape itself is enforced by OrionBriefingSchema,
+ * not described here in prose.
  */
 export function briefingPrompt(context: "page" | "email"): string {
   const framing =
@@ -231,21 +238,7 @@ export function briefingPrompt(context: "page" | "email"): string {
 
   return `${framing} You're given the full, already-computed state of the pipeline below as JSON: KPIs, breakdowns by manager/project/source, deterministic insights, the current "needs attention" list (each with the exact leads behind it), recent unit sales, today's/upcoming scheduled reminders (site visits, meetings), and a list of open leads.
 
-Read all of it, then respond with ONLY a JSON object (no markdown fences, no commentary before or after) in exactly this shape:
-{
-  "headline": "1-2 sentences on overall pipeline health and momentum right now, in your own voice.",
-  "items": [
-    { "severity": "critical" | "warning" | "positive" | "info", "title": "short, specific", "detail": "1-2 sentences, cite real numbers/names from the data", "leadNames": ["exact lead name", "..."] }
-  ],
-  "recommendations": ["one concrete, specific action — who should do what", "..."]
-}
-
-Guidelines:
-- 4-7 items, ordered most-important-first. Don't just restate the deterministic_insights list — synthesize across overview/by_manager/by_project/needs_attention to surface what actually matters, and point out anything the raw numbers hint at that a single metric wouldn't (e.g. a manager whose win rate is fine but whose pipeline is thinning).
-- If reminders_due_today has any entries, give it its own item near the top (severity "info") naming the lead, the title, and the time — these are scheduled site visits/meetings, not something to bury.
-- leadNames must be copied exactly, character-for-character, from a "name" field already present in the data — never paraphrase. Omit the field entirely if an item isn't about specific leads.
-- 3-5 recommendations, concrete enough to act on today, not generic advice ("follow up more").
-- Never invent a number, name, or fact not present in the data. If something in the notes or the data looks contradictory or unclear, say so as its own item rather than guessing at what it means.
+Read all of it, then fill in your response. Never invent a number, name, or fact not present in the data — if something in the notes or the data looks contradictory or unclear, say so as its own item rather than guessing at what it means. Before recommending any date or schedule change, check whether the notes already give a reason for the current date — if they do, don't propose undoing it without addressing that reason directly.
 
 DATA:
 `;

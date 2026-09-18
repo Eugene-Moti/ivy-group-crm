@@ -108,14 +108,16 @@ export function PortfolioBriefing() {
               <p className="text-sm italic text-foreground">{briefing.headline}</p>
             )}
 
-            {briefing.raw && briefing.items.length === 0 ? (
-              <p className="whitespace-pre-wrap text-sm text-muted-foreground">{briefing.raw}</p>
-            ) : (
+            {briefing.items.length > 0 ? (
               <div className="space-y-2.5">
                 {briefing.items.map((item, i) => (
                   <InsightCard key={i} insight={item} />
                 ))}
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Nothing notable to flag right now — the pipeline looks steady.
+              </p>
             )}
 
             {briefing.recommendations.length > 0 && (

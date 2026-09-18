@@ -7,8 +7,8 @@ import { getUnitsSold } from "@/lib/queries/units-sold";
 import { getPipelineStages } from "@/lib/queries/settings";
 import { getRemindersInWindow } from "@/lib/queries/reminders";
 import { getOrionBusinessContextForRequest } from "@/lib/queries/orion-context";
-import { runClaudeNarration } from "@/lib/claude";
-import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, parseBriefing } from "@/lib/orion";
+import { runClaudeStructured } from "@/lib/claude";
+import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, finalizeBriefing, OrionBriefingSchema } from "@/lib/orion";
 
 export type { OrionBriefing, OrionBriefingItem } from "@/lib/orion";
 
@@ -51,13 +51,14 @@ export async function GET() {
       reminders,
     });
 
-    const raw = await runClaudeNarration({
+    const raw = await runClaudeStructured({
       system: orionSystemPrompt(businessContext),
       prompt: briefingPrompt("page") + context,
+      schema: OrionBriefingSchema,
       maxTokens: 4000,
     });
 
-    const briefing = parseBriefing(raw, leads);
+    const briefing = finalizeBriefing(raw, leads);
     return NextResponse.json(briefing);
   } catch (err) {
     console.error("Orion briefing failed:", err);

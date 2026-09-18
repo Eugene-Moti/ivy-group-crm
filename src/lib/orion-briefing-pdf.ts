@@ -69,6 +69,13 @@ export async function generateOrionBriefingPdf({
     y = wrapped(doc, briefing.headline, MARGIN, y, contentWidth) + 6;
   }
 
+  if (briefing.items.length === 0) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(...IVY_BRAND.muted);
+    y = wrapped(doc, "Nothing notable to flag right now — the pipeline looks steady.", MARGIN, y, contentWidth) + 6;
+  }
+
   for (const item of briefing.items) {
     y = ensureSpace(doc, y, 22);
     const color = SEVERITY_COLOR[item.severity];

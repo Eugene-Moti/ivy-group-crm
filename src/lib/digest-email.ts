@@ -89,7 +89,7 @@ export function renderDigestEmail({
                 <h1 style="margin:0 0 4px;font-size:20px;color:#14161c;">Good morning, ${escapeHtml(greetingName)}</h1>
                 <p style="margin:0 0 20px;font-size:13px;color:#767c87;">${escapeHtml(subtitle)}</p>
                 ${briefing.headline ? `<p style="margin:0 0 22px;font-size:14px;font-style:italic;line-height:1.6;color:#2c3038;">${escapeHtml(briefing.headline)}</p>` : ""}
-                ${briefing.raw && briefing.items.length === 0 ? `<p style="margin:0 0 16px;font-size:13px;line-height:1.6;color:#2c3038;white-space:pre-wrap;">${escapeHtml(briefing.raw)}</p>` : itemsToHtml(briefing.items)}
+                ${briefing.items.length > 0 ? itemsToHtml(briefing.items) : `<p style="margin:0 0 16px;font-size:13px;color:#767c87;">Nothing notable to flag right now — the pipeline looks steady.</p>`}
                 ${recommendationsToHtml(briefing.recommendations)}
                 <p style="margin:24px 0 0;font-size:13px;color:#2c3038;">
                   ${hasAttachment ? "A PDF copy of this briefing is attached. " : ""}Have a great day —<br/>

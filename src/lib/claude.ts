@@ -1,5 +1,7 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import type { z } from "zod";
 import type { ToolDefinition, ToolExecutor } from "@/lib/assistant-tools";
 
 const MODEL = "claude-opus-5";
@@ -126,6 +128,47 @@ export async function runClaudeNarration({
   return textBlock?.text ?? "";
 }
 
+/**
+ * Structured-output generation (the Portfolio Briefing / daily digest) —
+ * uses client.messages.parse() with a Zod schema instead of asking Claude
+ * to write JSON as free text and hoping it complies with "no commentary,
+ * no fences." The API enforces the schema server-side, so this eliminates
+ * the whole class of failure where a stray sentence of preamble broke a
+ * regex-based fence-stripping parse and silently degraded to an empty
+ * briefing/PDF. `parsed_output` is still nullable on a genuine failure —
+ * callers must handle that, not assume success.
+ */
+export async function runClaudeStructured<T>({
+  system,
+  prompt,
+  schema,
+  maxTokens = 4000,
+}: {
+  system: string;
+  prompt: string;
+  schema: z.ZodType<T>;
+  maxTokens?: number;
+}): Promise<T> {
+  const anthropic = getClient();
+  let response: Anthropic.Message & { parsed_output: T | null };
+  try {
+    response = await anthropic.messages.parse({
+      model: MODEL,
+      max_tokens: maxTokens,
+      system,
+      thinking: { type: "adaptive" },
+      output_config: { effort: "high", format: zodOutputFormat(schema) },
+      messages: [{ role: "user", content: prompt }],
+    });
+  } catch (err) {
+    throw toFriendlyError(err);
+  }
+  if (response.parsed_output === null) {
+    throw new Error("Orion couldn't produce a structured response for that — try again.");
+  }
+  return response.parsed_output;
+}
+
 async function createMessage(
   anthropic: Anthropic,
   params: Anthropic.MessageCreateParamsNonStreaming
@@ -133,15 +176,19 @@ async function createMessage(
   try {
     return await anthropic.messages.create(params);
   } catch (err) {
-    if (err instanceof Anthropic.AuthenticationError) {
-      throw new Error("Orion's API key is invalid or missing — check ANTHROPIC_API_KEY.");
-    }
-    if (err instanceof Anthropic.RateLimitError) {
-      throw new Error("Orion is getting rate-limited — try again in a moment.");
-    }
-    if (err instanceof Anthropic.APIError) {
-      throw new Error(`Orion hit an API error (${err.status}): ${err.message}`);
-    }
-    throw err;
+    throw toFriendlyError(err);
   }
+}
+
+function toFriendlyError(err: unknown): Error {
+  if (err instanceof Anthropic.AuthenticationError) {
+    return new Error("Orion's API key is invalid or missing — check ANTHROPIC_API_KEY.");
+  }
+  if (err instanceof Anthropic.RateLimitError) {
+    return new Error("Orion is getting rate-limited — try again in a moment.");
+  }
+  if (err instanceof Anthropic.APIError) {
+    return new Error(`Orion hit an API error (${err.status}): ${err.message}`);
+  }
+  return err instanceof Error ? err : new Error("Orion hit an unexpected error.");
 }

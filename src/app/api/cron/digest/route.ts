@@ -4,8 +4,8 @@ import { LEAD_SELECT, type LeadWithRelations } from "@/lib/queries/leads";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
 import type { ReminderWithLeadName } from "@/lib/queries/reminders";
 import { getOrionBusinessContext } from "@/lib/queries/orion-context";
-import { runClaudeNarration } from "@/lib/claude";
-import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, parseBriefing } from "@/lib/orion";
+import { runClaudeStructured } from "@/lib/claude";
+import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, finalizeBriefing, OrionBriefingSchema } from "@/lib/orion";
 import { renderDigestEmail } from "@/lib/digest-email";
 import { generateOrionBriefingPdfBuffer } from "@/lib/orion-briefing-pdf-server";
 import { sendMail } from "@/lib/mailer";
@@ -82,13 +82,14 @@ export async function GET(request: Request) {
       reminders,
     });
 
-    const raw = await runClaudeNarration({
+    const raw = await runClaudeStructured({
       system: orionSystemPrompt(businessContext),
       prompt: briefingPrompt("email") + context,
+      schema: OrionBriefingSchema,
       maxTokens: 3000,
     });
 
-    const briefing = parseBriefing(raw, leads);
+    const briefing = finalizeBriefing(raw, leads);
 
     const today = new Date().toLocaleDateString("en-GB", {
       weekday: "long",
