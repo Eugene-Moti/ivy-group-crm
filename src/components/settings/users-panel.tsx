@@ -159,7 +159,7 @@ export function UsersPanel({ profiles }: { profiles: ProfileRow[] }) {
             <AlertDialogTitle>Remove user?</AlertDialogTitle>
             <AlertDialogDescription>
               {removing &&
-                `${removing.full_name || removing.email} will lose access immediately. Their leads will become unassigned rather than deleted.`}
+                `This deletes ${removing.full_name || removing.email}'s login and profile entirely — not just a deactivation, and it can't be undone. Any notes, reminders, or other records they created stay on file but show as "author not recorded" going forward. This doesn't touch lead assignments — those are tied to sales managers, a separate thing from a login.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

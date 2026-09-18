@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Copy, KeyRound, Loader2, RefreshCw, ShieldOff, ShieldCheck } from "lucide-react";
+import { Check, Copy, KeyRound, Loader2, RefreshCw, ShieldOff, ShieldCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +20,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -66,6 +76,8 @@ export function TeamMemberDialog({
   const [isGeneratingPassword, setIsGeneratingPassword] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const canEditRoleAndStatus = viewerIsAdmin && !isSelf;
 
@@ -126,6 +138,27 @@ export function TeamMemberDialog({
       return;
     }
     toast.success(profile.is_active ? "Account deactivated" : "Account reactivated");
+    router.refresh();
+  }
+
+  async function handleRemove() {
+    setIsRemoving(true);
+    const res = await fetch("/api/admin/users", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: profile.id }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setIsRemoving(false);
+
+    if (!res.ok) {
+      toast.error("Failed to remove user", { description: data.error });
+      return;
+    }
+
+    toast.success("User removed");
+    setRemoveOpen(false);
+    handleOpenChange(false);
     router.refresh();
   }
 
@@ -330,12 +363,55 @@ export function TeamMemberDialog({
                 {profile.is_active ? "Deactivate account" : "Reactivate account"}
               </Button>
             )}
+
+            {canEditRoleAndStatus && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => setRemoveOpen(true)}
+              >
+                <Trash2 className="size-3.5" />
+                Remove from system
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
 
       {isSelf && <SetPasswordDialog open={setPasswordOpen} onOpenChange={setSetPasswordOpen} />}
       {isSelf && <ChangeLoginPinDialog open={pinDialogOpen} onOpenChange={setPinDialogOpen} />}
+
+      {canEditRoleAndStatus && (
+        <AlertDialog open={removeOpen} onOpenChange={(open) => !isRemoving && setRemoveOpen(open)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove {displayLabel} completely?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This deletes their login and profile entirely — not just a deactivation, and it can&apos;t be
+                undone. Any notes, reminders, or other records they created stay on file but show as
+                &quot;author not recorded&quot; going forward. This doesn&apos;t touch lead assignments — those
+                are tied to sales managers (Settings), a separate thing from a login.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleRemove();
+                }}
+                disabled={isRemoving}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
+                {isRemoving && <Loader2 className="animate-spin" />}
+                Remove completely
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }
