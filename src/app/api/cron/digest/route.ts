@@ -5,7 +5,14 @@ import type { UnitSoldRow } from "@/lib/queries/units-sold";
 import type { ReminderWithLeadName } from "@/lib/queries/reminders";
 import { getOrionBusinessContext } from "@/lib/queries/orion-context";
 import { runClaudeStructured } from "@/lib/claude";
-import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, finalizeBriefing, OrionBriefingSchema } from "@/lib/orion";
+import {
+  orionSystemPrompt,
+  buildPortfolioContext,
+  briefingPrompt,
+  finalizeBriefing,
+  partitionReminders,
+  OrionBriefingSchema,
+} from "@/lib/orion";
 import { renderDigestEmail } from "@/lib/digest-email";
 import { generateOrionBriefingPdfBuffer } from "@/lib/orion-briefing-pdf-server";
 import { sendMail } from "@/lib/mailer";
@@ -33,7 +40,10 @@ export async function GET(request: Request) {
   try {
     const supabase = createAdminClient();
     const now = new Date();
-    const windowFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    // No lower bound: notified_at is what stops a reminder from being
+    // re-sent, not a date window — that's the fix for a reminder created
+    // after today's digest had already run, for later the same day, which
+    // used to fall between "due today" and "upcoming" forever.
     const windowTo = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
     const [leadsRes, activitiesRes, evidenceRes, unitsSoldRes, stagesRes, profilesRes, remindersRes, businessContext] =
@@ -47,7 +57,7 @@ export async function GET(request: Request) {
         supabase
           .from("lead_reminders")
           .select("*, lead:leads(first_name, last_name)")
-          .gte("remind_at", windowFrom)
+          .is("notified_at", null)
           .lte("remind_at", windowTo)
           .order("remind_at", { ascending: true }),
         getOrionBusinessContext(supabase).catch(() => ""),
@@ -140,10 +150,26 @@ export async function GET(request: Request) {
       throw new Error(failed[0]?.error ?? "All sends failed.");
     }
 
+    // At least one admin got the email — mark every reminder that was due
+    // (today or overdue, per partitionReminders) as notified so it doesn't
+    // repeat tomorrow. Reminders still in the future stay unmarked; they'll
+    // move into this bucket and get sent once their date arrives.
+    const { due: sentReminders } = partitionReminders(reminders, now);
+    if (sentReminders.length > 0) {
+      const { error: notifyError } = await supabase
+        .from("lead_reminders")
+        .update({ notified_at: now.toISOString() })
+        .in("id", sentReminders.map((r) => r.id));
+      if (notifyError) {
+        console.error("Failed to mark reminders as notified:", notifyError.message);
+      }
+    }
+
     return NextResponse.json({
       sent: results.length - failed.length,
       failed: failed.length,
       recipients: recipients.length,
+      remindersNotified: sentReminders.length,
     });
   } catch (err) {
     console.error("Digest cron failed:", err);

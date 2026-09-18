@@ -78,6 +78,27 @@ function summarizeLead(lead: LeadWithRelations, statusLabels: Record<string, str
 }
 
 /**
+ * Due-or-overdue vs. upcoming, not "exactly today" vs. future — a reminder
+ * whose date has already passed without being surfaced still needs to show
+ * up rather than silently falling between both buckets forever (the exact
+ * bug a same-day-created reminder hit: created after that day's digest had
+ * already run, its date was in neither "today" nor "future" by the next
+ * run). Exported so the digest cron can mark the due bucket's reminders as
+ * notified after a successful send, not just for buildPortfolioContext's
+ * own use below.
+ */
+export function partitionReminders(
+  reminders: ReminderWithLeadName[],
+  now: Date
+): { due: ReminderWithLeadName[]; upcoming: ReminderWithLeadName[] } {
+  const { end: todayEnd } = nairobiDayBounds(now);
+  return {
+    due: reminders.filter((r) => new Date(r.remind_at) <= todayEnd),
+    upcoming: reminders.filter((r) => new Date(r.remind_at) > todayEnd),
+  };
+}
+
+/**
  * The same trustworthy, deterministic numbers the Full Analysis report and
  * the Needs Attention card already compute — handed to Claude as ground
  * truth to prioritize and narrate, rather than asking it to recompute
@@ -95,11 +116,7 @@ export function buildPortfolioContext(ctx: {
   reminders?: ReminderWithLeadName[];
 }): string {
   const { leads, activitySummaries, evidenceLeadIds, unitsSold, stages, statusLabels, reminders = [] } = ctx;
-  const { start: todayStart, end: todayEnd } = nairobiDayBounds(new Date());
-  const remindersDueToday = reminders.filter(
-    (r) => new Date(r.remind_at) >= todayStart && new Date(r.remind_at) <= todayEnd
-  );
-  const remindersUpcoming = reminders.filter((r) => new Date(r.remind_at) > todayEnd);
+  const { due: remindersDueToday, upcoming: remindersUpcoming } = partitionReminders(reminders, new Date());
   const summarizeReminder = (r: ReminderWithLeadName) => ({
     lead_name: r.lead_name,
     title: r.title,
