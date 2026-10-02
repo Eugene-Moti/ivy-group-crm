@@ -60,6 +60,7 @@ function summarizeLead(
     created_at: lead.created_at,
     lost_reason: lead.lost_reason,
     referred_by: lead.referred_by ? fullName(lead.referred_by) : null,
+    repeat_of: lead.repeat_of ? fullName(lead.repeat_of) : null,
     ...(includeContact ? { phone: lead.phone, email: lead.email } : {}),
   };
 }

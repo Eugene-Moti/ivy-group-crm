@@ -38,6 +38,19 @@ export function LeadProfileView({
             }
           />
         )}
+        {lead.repeat_of && (
+          <Row
+            label="Repeat client — first bought as"
+            value={
+              <Link
+                href={`/leads/${lead.repeat_of.id}`}
+                className="hover:text-gold hover:underline"
+              >
+                {fullName(lead.repeat_of)}
+              </Link>
+            }
+          />
+        )}
         <Row label="Source" value={lead.lead_source?.name ?? "—"} />
         <Row label="Project" value={lead.property_type?.name ?? "—"} />
         <Row label="Location" value={lead.preferred_area ?? "—"} />

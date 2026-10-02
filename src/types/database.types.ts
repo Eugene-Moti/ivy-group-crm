@@ -225,6 +225,7 @@ export interface Database {
           notes: string | null;
           lead_type: LeadType;
           referred_by_lead_id: string | null;
+          repeat_of_lead_id: string | null;
           lost_reason: string | null;
           lost_reason_note: string | null;
           created_at: string;
@@ -251,6 +252,7 @@ export interface Database {
           notes?: string | null;
           lead_type?: LeadType;
           referred_by_lead_id?: string | null;
+          repeat_of_lead_id?: string | null;
           lost_reason?: string | null;
           lost_reason_note?: string | null;
           created_at?: string;
@@ -277,6 +279,7 @@ export interface Database {
           notes?: string | null;
           lead_type?: LeadType;
           referred_by_lead_id?: string | null;
+          repeat_of_lead_id?: string | null;
           lost_reason?: string | null;
           lost_reason_note?: string | null;
           created_at?: string;
@@ -314,6 +317,13 @@ export interface Database {
           {
             foreignKeyName: "leads_referred_by_lead_id_fkey";
             columns: ["referred_by_lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leads_repeat_of_lead_id_fkey";
+            columns: ["repeat_of_lead_id"];
             isOneToOne: false;
             referencedRelation: "leads";
             referencedColumns: ["id"];

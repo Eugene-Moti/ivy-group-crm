@@ -21,6 +21,7 @@ export type NotificationLead = {
   next_follow_up_at: string | null;
   created_at: string;
   updated_at: string;
+  repeat_of_lead_id?: string | null;
 };
 
 export type NotificationActivity = { lead_id: string; created_at: string };

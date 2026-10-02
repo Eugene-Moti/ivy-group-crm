@@ -8,6 +8,7 @@ export type LeadIdentity = {
   email: string | null;
   status: string;
   assigned_agent: { name: string } | null;
+  repeat_of_lead_id?: string | null;
 };
 
 const MIN_PHONE_DIGITS = 9;
@@ -57,7 +58,12 @@ export type DuplicateCluster = {
   leads: LeadIdentity[];
 };
 
-/** Whole-database scan: clusters of 2+ leads sharing a normalized phone or email. */
+/** A deliberately linked repeat-client pair (one lead's repeat_of_lead_id names the other) — a returning customer, not an accidental duplicate. */
+function isKnownRepeatPair(a: LeadIdentity, b: LeadIdentity): boolean {
+  return a.repeat_of_lead_id === b.id || b.repeat_of_lead_id === a.id;
+}
+
+/** Whole-database scan: clusters of 2+ leads sharing a normalized phone or email — excluding a pair explicitly linked as a repeat client's new purchase, which matches on contact info by design, not by accident. */
 export function findAllDuplicateClusters(allLeads: LeadIdentity[]): DuplicateCluster[] {
   const byPhone = new Map<string, LeadIdentity[]>();
   const byEmail = new Map<string, LeadIdentity[]>();
@@ -79,9 +85,11 @@ export function findAllDuplicateClusters(allLeads: LeadIdentity[]): DuplicateClu
 
   const clusters: DuplicateCluster[] = [];
   for (const [key, leads] of byPhone) {
+    if (leads.length === 2 && isKnownRepeatPair(leads[0], leads[1])) continue;
     if (leads.length > 1) clusters.push({ key, field: "phone", leads });
   }
   for (const [key, leads] of byEmail) {
+    if (leads.length === 2 && isKnownRepeatPair(leads[0], leads[1])) continue;
     if (leads.length > 1) clusters.push({ key, field: "email", leads });
   }
   return clusters.sort((a, b) => b.leads.length - a.leads.length);

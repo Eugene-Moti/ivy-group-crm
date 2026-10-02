@@ -71,6 +71,7 @@ ${JSON.stringify(
     notes_field: lead.notes,
     lost_reason: lead.lost_reason,
     lost_reason_note: lead.lost_reason_note,
+    repeat_of: lead.repeat_of ? fullName(lead.repeat_of) : null,
     ...(includeContact ? { phone: lead.phone, email: lead.email } : {}),
     activity_timeline: activities.slice(0, 30).map((a) => ({
       type: a.type,

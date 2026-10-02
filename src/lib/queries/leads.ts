@@ -10,11 +10,12 @@ export type LeadWithRelations = LeadRow & {
   property_type: { id: string; name: string; location: string | null } | null;
   assigned_agent: { id: string; name: string; phone: string | null; email: string | null } | null;
   referred_by: { id: string; first_name: string; last_name: string } | null;
+  repeat_of: { id: string; first_name: string; last_name: string } | null;
 };
 
 /** Exported for callers that need every lead via a client this module doesn't construct itself — e.g. the digest cron route, which runs with no request/cookies and uses the service-role admin client instead. */
 export const LEAD_SELECT =
-  "*, lead_source:lead_sources(id, name), property_type:property_types(id, name, location), assigned_agent:sales_agents!leads_assigned_to_fkey(id, name, phone, email), referred_by:leads!referred_by_lead_id(id, first_name, last_name)";
+  "*, lead_source:lead_sources(id, name), property_type:property_types(id, name, location), assigned_agent:sales_agents!leads_assigned_to_fkey(id, name, phone, email), referred_by:leads!referred_by_lead_id(id, first_name, last_name), repeat_of:leads!repeat_of_lead_id(id, first_name, last_name)";
 
 /**
  * Phone/email are for admins only — viewers get everything else about a
@@ -114,6 +115,19 @@ export async function getReferredLeads(agentLeadId: string): Promise<LeadWithRel
     .from("leads")
     .select(LEAD_SELECT)
     .eq("referred_by_lead_id", agentLeadId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return maskForViewer((data ?? []) as unknown as LeadWithRelations[]);
+}
+
+/** Newer leads explicitly linked as a repeat purchase from this one — a returning client buying again, not an accidental duplicate. */
+export async function getRepeatLeads(leadId: string): Promise<LeadWithRelations[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("leads")
+    .select(LEAD_SELECT)
+    .eq("repeat_of_lead_id", leadId)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);

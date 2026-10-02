@@ -202,39 +202,81 @@ export function LeadFormFields({
         </Field>
       </div>
 
-      {duplicateMatches.length > 0 && (
-        <div className="flex gap-2 rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-gold" />
-          <div className="space-y-1">
-            <p className="font-medium">
-              Possible duplicate — matching{" "}
-              {duplicateMatches[0].matchedOn.length === 2
-                ? "phone and email"
-                : duplicateMatches[0].matchedOn[0]}{" "}
-              found on {duplicateMatches.length === 1 ? "another lead" : `${duplicateMatches.length} other leads`}:
-            </p>
-            <ul className="space-y-0.5">
-              {duplicateMatches.map((m) => (
-                <li key={m.lead.id}>
-                  <Link
-                    href={`/leads/${m.lead.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-gold hover:underline"
-                  >
-                    {fullName(m.lead)}
-                  </Link>{" "}
-                  — {m.lead.status}
-                  {m.lead.assigned_agent && ` · ${m.lead.assigned_agent.name}`}
-                </li>
-              ))}
-            </ul>
-            <p className="text-xs text-muted-foreground">
-              You can still save — this is just a heads-up in case it&apos;s the same client.
-            </p>
+      {(() => {
+        const repeatOfId = watch("repeat_of_lead_id");
+        const linkedMatch = repeatOfId ? duplicateMatches.find((m) => m.lead.id === repeatOfId) : undefined;
+
+        if (linkedMatch) {
+          return (
+            <div className="flex items-start justify-between gap-2 rounded-lg border border-success/40 bg-success/10 p-3 text-sm">
+              <p>
+                Linked as a repeat purchase from{" "}
+                <Link
+                  href={`/leads/${linkedMatch.lead.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-success underline"
+                >
+                  {fullName(linkedMatch.lead)}
+                </Link>
+                . Won&apos;t be flagged as a duplicate.
+              </p>
+              <button
+                type="button"
+                onClick={() => setValue("repeat_of_lead_id", undefined)}
+                className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Unlink
+              </button>
+            </div>
+          );
+        }
+
+        if (duplicateMatches.length === 0) return null;
+
+        return (
+          <div className="flex gap-2 rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-gold" />
+            <div className="space-y-1.5">
+              <p className="font-medium">
+                Possible duplicate — matching{" "}
+                {duplicateMatches[0].matchedOn.length === 2
+                  ? "phone and email"
+                  : duplicateMatches[0].matchedOn[0]}{" "}
+                found on {duplicateMatches.length === 1 ? "another lead" : `${duplicateMatches.length} other leads`}:
+              </p>
+              <ul className="space-y-1">
+                {duplicateMatches.map((m) => (
+                  <li key={m.lead.id} className="flex flex-wrap items-center gap-x-2">
+                    <Link
+                      href={`/leads/${m.lead.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-gold hover:underline"
+                    >
+                      {fullName(m.lead)}
+                    </Link>
+                    <span>
+                      — {m.lead.status}
+                      {m.lead.assigned_agent && ` · ${m.lead.assigned_agent.name}`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setValue("repeat_of_lead_id", m.lead.id)}
+                      className="text-xs text-gold underline underline-offset-2 hover:text-gold/80"
+                    >
+                      Same client, buying again — link it
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-muted-foreground">
+                You can still save either way — this is just a heads-up in case it&apos;s the same client.
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Controller

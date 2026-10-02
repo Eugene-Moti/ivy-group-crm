@@ -23,6 +23,7 @@ export const leadFormSchema = z
     status: z.string().min(1, "Status is required."),
     lead_type: z.enum(LEAD_TYPES),
     referred_by_lead_id: z.string().optional(),
+    repeat_of_lead_id: z.string().optional(),
     created_at: z.string().optional(),
     property_type_id: z.string().optional(),
     preferred_area: z.string().optional(),

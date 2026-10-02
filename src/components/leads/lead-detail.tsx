@@ -6,6 +6,7 @@ import { LeadDetailHeader } from "@/components/leads/lead-detail-header";
 import { LeadProfileView } from "@/components/leads/lead-profile-view";
 import { LeadProfileEditor } from "@/components/leads/lead-profile-editor";
 import { ReferredLeadsList } from "@/components/leads/referred-leads-list";
+import { RepeatLeadsList } from "@/components/leads/repeat-leads-list";
 import { GenerateReferralReportButton } from "@/components/leads/generate-referral-report-button";
 import { ConvertAgentToClientDialog } from "@/components/leads/convert-agent-to-client-dialog";
 import { RecordUnitSaleDialog } from "@/components/leads/record-unit-sale-dialog";
@@ -41,6 +42,7 @@ export function LeadDetail({
   agentLeads,
   campaigns,
   referredLeads,
+  repeatLeads,
   evidence,
   documents,
   reminders,
@@ -53,6 +55,7 @@ export function LeadDetail({
   agentLeads: AgentLeadOption[];
   campaigns: LeadOption[];
   referredLeads: LeadWithRelations[];
+  repeatLeads: LeadWithRelations[];
   evidence: LeadEvidenceWithAuthor[];
   documents: LeadDocumentWithAuthor[];
   reminders: LeadReminderWithAuthor[];
@@ -96,6 +99,11 @@ export function LeadDetail({
                 <Building2 className="size-3.5" />
                 Record unit sale
               </Button>
+            </div>
+          )}
+          {repeatLeads.length > 0 && (
+            <div className="mt-4">
+              <RepeatLeadsList leads={repeatLeads} />
             </div>
           )}
           {lead.lead_type === "Real Estate Agent" && (

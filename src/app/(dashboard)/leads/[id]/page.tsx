@@ -6,6 +6,7 @@ import {
   getLeadSources,
   getPropertyTypes,
   getReferredLeads,
+  getRepeatLeads,
 } from "@/lib/queries/leads";
 import { getActivities } from "@/lib/queries/activities";
 import { getLeadEvidence } from "@/lib/queries/evidence";
@@ -47,6 +48,7 @@ export default async function LeadDetailPage({
     documents,
     campaigns,
     reminders,
+    repeatLeads,
   ] = await Promise.all([
     getLead(id),
     getActivities(id),
@@ -58,6 +60,7 @@ export default async function LeadDetailPage({
     safe(getLeadDocuments(id), [], "documents"),
     getCampaigns(),
     safe(getUpcomingReminders(id), [], "reminders"),
+    safe(getRepeatLeads(id), [], "repeat leads"),
   ]);
 
   if (!lead) notFound();
@@ -75,6 +78,7 @@ export default async function LeadDetailPage({
       agentLeads={agentLeads}
       campaigns={campaigns}
       referredLeads={referredLeads}
+      repeatLeads={repeatLeads}
       evidence={evidence}
       documents={documents}
       reminders={reminders}
