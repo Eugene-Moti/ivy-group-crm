@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useDraggable } from "@dnd-kit/core";
-import { MapPin } from "lucide-react";
+import { MapPin, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PriorityBadge } from "@/components/badges/priority-badge";
 import { FollowUpAlertBadge } from "@/components/badges/follow-up-alert-badge";
 import { QuickContactActions } from "@/components/leads/quick-contact-actions";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import { getFollowUpAlert } from "@/lib/leads";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -54,6 +55,19 @@ export function KanbanCard({
             <Badge variant="outline" className="border-gold/40 text-gold">
               Agent
             </Badge>
+          )}
+          {lead.repeat_of && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex size-5 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold"
+                >
+                  <RefreshCw className="size-3" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Repeat client — first bought as {fullName(lead.repeat_of)}</TooltipContent>
+            </Tooltip>
           )}
           <PriorityBadge priority={lead.priority} />
         </div>
