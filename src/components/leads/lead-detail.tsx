@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useIsAdmin } from "@/components/providers/profile-provider";
 import { LeadDetailHeader } from "@/components/leads/lead-detail-header";
 import { LeadProfileView } from "@/components/leads/lead-profile-view";
@@ -10,8 +11,9 @@ import { RepeatLeadsList } from "@/components/leads/repeat-leads-list";
 import { GenerateReferralReportButton } from "@/components/leads/generate-referral-report-button";
 import { ConvertAgentToClientDialog } from "@/components/leads/convert-agent-to-client-dialog";
 import { RecordUnitSaleDialog } from "@/components/leads/record-unit-sale-dialog";
+import { LeadFormDialog } from "@/components/leads/lead-form-dialog";
 import { Button } from "@/components/ui/button";
-import { Building2, UserPlus } from "lucide-react";
+import { Building2, RefreshCw, UserPlus } from "lucide-react";
 import { WON_STATUS_KEY } from "@/lib/constants";
 import { AddActivityForm } from "@/components/leads/add-activity-form";
 import { ActivityTimeline } from "@/components/leads/activity-timeline";
@@ -61,9 +63,11 @@ export function LeadDetail({
   reminders: LeadReminderWithAuthor[];
 }) {
   const isAdmin = useIsAdmin();
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [convertOpen, setConvertOpen] = useState(false);
   const [recordSaleOpen, setRecordSaleOpen] = useState(false);
+  const [repeatPurchaseOpen, setRepeatPurchaseOpen] = useState(false);
   const canRecordUnitSale =
     isAdmin && lead.status === WON_STATUS_KEY && lead.lead_type === "Direct Client";
 
@@ -93,11 +97,17 @@ export function LeadDetail({
           ) : (
             <LeadProfileView lead={lead} isAdmin={isAdmin} />
           )}
-          {canRecordUnitSale && (
-            <div className="mt-4 flex justify-end">
-              <Button variant="outline" size="sm" onClick={() => setRecordSaleOpen(true)}>
-                <Building2 className="size-3.5" />
-                Record unit sale
+          {isAdmin && lead.lead_type === "Direct Client" && (
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              {canRecordUnitSale && (
+                <Button variant="outline" size="sm" onClick={() => setRecordSaleOpen(true)}>
+                  <Building2 className="size-3.5" />
+                  Record unit sale
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => setRepeatPurchaseOpen(true)}>
+                <RefreshCw className="size-3.5" />
+                Record a repeat purchase
               </Button>
             </div>
           )}
@@ -179,6 +189,26 @@ export function LeadDetail({
           leads={[lead]}
           lockedLead={lead}
           onSaved={() => {}}
+        />
+      )}
+
+      {isAdmin && lead.lead_type === "Direct Client" && (
+        <LeadFormDialog
+          open={repeatPurchaseOpen}
+          onOpenChange={setRepeatPurchaseOpen}
+          prefill={{
+            first_name: lead.first_name,
+            last_name: lead.last_name,
+            phone: lead.phone ?? undefined,
+            email: lead.email ?? undefined,
+            repeat_of_lead_id: lead.id,
+          }}
+          leadSources={leadSources}
+          propertyTypes={propertyTypes}
+          agents={agents}
+          agentLeads={agentLeads}
+          campaigns={campaigns}
+          onSaved={() => router.refresh()}
         />
       )}
 

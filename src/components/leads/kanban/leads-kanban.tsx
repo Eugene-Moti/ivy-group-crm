@@ -11,6 +11,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import { Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +23,7 @@ import { celebrateWon } from "@/lib/celebrate";
 import { KanbanColumn } from "@/components/leads/kanban/kanban-column";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
 import { LostReasonDialog } from "@/components/leads/lost-reason-dialog";
+import { Input } from "@/components/ui/input";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
 /** Nearest ancestor (up to `boundary`) that can still scroll vertically. */
@@ -51,21 +53,31 @@ export function LeadsKanban({
   const [overrides, setOverrides] = useState<Record<string, LeadStatus>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pendingLostDrag, setPendingLostDrag] = useState<LeadWithRelations | null>(null);
+  const [search, setSearch] = useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleLeads = useMemo(() => {
+    if (!normalizedSearch) return leads;
+    return leads.filter((l) => {
+      const haystack = [fullName(l), l.phone, l.email].filter(Boolean).join(" ").toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+  }, [leads, normalizedSearch]);
+
   const leadsByStatus = useMemo(() => {
     const map = new Map<LeadStatus, LeadWithRelations[]>(
       stages.map((s) => [s.key, []])
     );
-    for (const lead of leads) {
+    for (const lead of visibleLeads) {
       const status = overrides[lead.id] ?? lead.status;
       map.get(status)?.push(lead);
     }
     return map;
-  }, [leads, overrides, stages]);
+  }, [visibleLeads, overrides, stages]);
 
   const activeLead = activeId ? leads.find((l) => l.id === activeId) : undefined;
 
@@ -166,41 +178,66 @@ export function LeadsKanban({
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex gap-3 overflow-x-auto pb-4" onWheel={handleWheel}>
-        {stages.map((stage) => (
-          <KanbanColumn
-            key={stage.key}
-            status={stage.key}
-            leads={leadsByStatus.get(stage.key) ?? []}
-            isAdmin={isAdmin}
-          />
-        ))}
-      </div>
-      <DragOverlay dropAnimation={{ duration: 200, easing: "cubic-bezier(0.2, 0, 0, 1)" }}>
-        {activeLead ? (
-          <div className="w-72 rotate-2 scale-105 opacity-95 drop-shadow-xl">
-            <KanbanCard lead={activeLead} isAdmin={false} />
-          </div>
-        ) : null}
-      </DragOverlay>
-
-      {pendingLostDrag && (
-        <LostReasonDialog
-          open={!!pendingLostDrag}
-          onOpenChange={(open) => !open && setPendingLostDrag(null)}
-          leadName={fullName(pendingLostDrag)}
-          leadType={pendingLostDrag.lead_type}
-          onConfirm={async (reason, note) => {
-            await commitStatusChange(pendingLostDrag, LOST_STATUS_KEY, { reason, note });
-            setPendingLostDrag(null);
-          }}
+    <div className="space-y-3">
+      <div className="relative max-w-xs">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search cards by name, phone, or email…"
+          className="pl-8"
         />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            aria-label="Clear search"
+            className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+      {normalizedSearch && (
+        <p className="text-xs text-muted-foreground">
+          {visibleLeads.length === 0
+            ? "No cards match."
+            : `${visibleLeads.length} card${visibleLeads.length === 1 ? "" : "s"} match across all columns.`}
+        </p>
       )}
-    </DndContext>
+
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="flex gap-3 overflow-x-auto pb-4" onWheel={handleWheel}>
+          {stages.map((stage) => (
+            <KanbanColumn
+              key={stage.key}
+              status={stage.key}
+              leads={leadsByStatus.get(stage.key) ?? []}
+              isAdmin={isAdmin}
+            />
+          ))}
+        </div>
+        <DragOverlay dropAnimation={{ duration: 200, easing: "cubic-bezier(0.2, 0, 0, 1)" }}>
+          {activeLead ? (
+            <div className="w-72 rotate-2 scale-105 opacity-95 drop-shadow-xl">
+              <KanbanCard lead={activeLead} isAdmin={false} />
+            </div>
+          ) : null}
+        </DragOverlay>
+
+        {pendingLostDrag && (
+          <LostReasonDialog
+            open={!!pendingLostDrag}
+            onOpenChange={(open) => !open && setPendingLostDrag(null)}
+            leadName={fullName(pendingLostDrag)}
+            leadType={pendingLostDrag.lead_type}
+            onConfirm={async (reason, note) => {
+              await commitStatusChange(pendingLostDrag, LOST_STATUS_KEY, { reason, note });
+              setPendingLostDrag(null);
+            }}
+          />
+        )}
+      </DndContext>
+    </div>
   );
 }

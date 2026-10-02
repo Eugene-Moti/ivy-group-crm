@@ -36,6 +36,7 @@ export function LeadFormDialog({
   open,
   onOpenChange,
   lead,
+  prefill,
   leadSources,
   propertyTypes,
   agents,
@@ -46,6 +47,8 @@ export function LeadFormDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lead?: LeadWithRelations;
+  /** Create mode only (ignored when `lead` is set) — seeds personal details (and repeat_of_lead_id) onto the normal "new lead" defaults, e.g. for a repeat client's new purchase, where only the deal-specific fields should start blank. */
+  prefill?: Partial<LeadFormValues>;
   leadSources: LeadOption[];
   propertyTypes: ProjectOption[];
   agents: AgentOption[];
@@ -57,6 +60,8 @@ export function LeadFormDialog({
   const profile = useProfile();
   const statusLabels = useStatusLabels();
 
+  const defaults = () => (isEdit ? leadFormDefaults(lead) : { ...leadFormDefaults(lead), ...prefill });
+
   const {
     register,
     handleSubmit,
@@ -67,12 +72,13 @@ export function LeadFormDialog({
     formState: { errors, isSubmitting },
   } = useForm<LeadFormValues>({
     resolver: zodResolver(leadFormSchema),
-    defaultValues: leadFormDefaults(lead),
+    defaultValues: defaults(),
   });
 
   useEffect(() => {
-    if (open) reset(leadFormDefaults(lead));
-  }, [open, lead, reset]);
+    if (open) reset(defaults());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- defaults() is re-derived from lead/prefill, both already in the dep list via their own identity
+  }, [open, lead, prefill, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     const supabase = createClient();
@@ -105,11 +111,13 @@ export function LeadFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit lead" : "Add lead"}</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit lead" : prefill?.repeat_of_lead_id ? "Add repeat purchase" : "Add lead"}</DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Update this lead's details."
-              : "Add a new buyer lead to the pipeline."}
+              : prefill?.repeat_of_lead_id
+                ? "Their name and contact details are carried over — just the project, budget, and other deal details need entering fresh."
+                : "Add a new buyer lead to the pipeline."}
           </DialogDescription>
         </DialogHeader>
 
