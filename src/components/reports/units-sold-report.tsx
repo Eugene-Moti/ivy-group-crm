@@ -22,8 +22,10 @@ import {
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { RecordUnitSaleDialog } from "@/components/leads/record-unit-sale-dialog";
+import { useProfile } from "@/components/providers/profile-provider";
 import { createClient } from "@/lib/supabase/client";
 import { generateUnitSalePdf } from "@/lib/unit-sale-pdf";
+import { generateRevenueReportPdf } from "@/lib/revenue-report-pdf";
 import { formatDate, formatKES, fullName } from "@/lib/format";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -44,12 +46,14 @@ export function UnitsSoldReport({
   leads: LeadWithRelations[];
 }) {
   const router = useRouter();
+  const profile = useProfile();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<UnitSoldRow | null>(null);
   const [deletingUnit, setDeletingUnit] = useState<UnitSoldRow | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [isGeneratingRevenue, setIsGeneratingRevenue] = useState(false);
 
   function openCreate() {
     setEditingUnit(null);
@@ -88,16 +92,20 @@ export function UnitsSoldReport({
   const byManager = useMemo(() => {
     const map = new Map<
       string,
-      { name: string; units: number; unitValue: number; bonus: number }
+      { name: string; clients: Set<string>; units: number; unitValue: number; bonus: number }
     >();
     for (const r of rows) {
-      const entry = map.get(r.salesManager) ?? { name: r.salesManager, units: 0, unitValue: 0, bonus: 0 };
+      const entry =
+        map.get(r.salesManager) ?? { name: r.salesManager, clients: new Set(), units: 0, unitValue: 0, bonus: 0 };
+      entry.clients.add(r.lead_id);
       entry.units += 1;
       entry.unitValue += r.unit_amount;
       entry.bonus += r.bonus_amount;
       map.set(r.salesManager, entry);
     }
-    return Array.from(map.values()).sort((a, b) => b.unitValue - a.unitValue);
+    return Array.from(map.values())
+      .map((m) => ({ ...m, clientCount: m.clients.size }))
+      .sort((a, b) => b.unitValue - a.unitValue);
   }, [rows]);
 
   const duplicateUnitNumbers = useMemo(() => {
@@ -137,6 +145,42 @@ export function UnitsSoldReport({
     bonus_paid: r.bonus_paid ? "Paid" : "Owed",
     sold_at: formatDate(r.sold_at),
   }));
+
+  // What goes to the boss — no bonus figures anywhere, he doesn't handle those.
+  const revenueExportRows = rows.map((r) => ({
+    client: r.clientName,
+    sale_type: r.sale_type,
+    unit_number: r.unit_number,
+    project: r.project ?? "—",
+    sales_manager: r.salesManager,
+    unit_amount: formatKES(r.unit_amount),
+    sold_at: formatDate(r.sold_at),
+  }));
+
+  async function handleGenerateRevenueReport() {
+    setIsGeneratingRevenue(true);
+    try {
+      await generateRevenueReportPdf({
+        rows: rows.map((r) => ({
+          lead_id: r.lead_id,
+          clientName: r.clientName,
+          sale_type: r.sale_type,
+          unit_number: r.unit_number,
+          project: r.project,
+          salesManager: r.salesManager,
+          unit_amount: r.unit_amount,
+          sold_at: r.sold_at,
+        })),
+        generatedByName: profile?.full_name ?? null,
+      });
+    } catch (err) {
+      toast.error("Failed to generate the revenue report", {
+        description: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setIsGeneratingRevenue(false);
+    }
+  }
 
   async function handleTogglePaid(unit: (typeof rows)[number]) {
     setTogglingId(unit.id);
@@ -205,10 +249,16 @@ export function UnitsSoldReport({
           team&apos;s bonus — 1% of the unit amount for a direct sale, a set amount for an
           agent-referred one.
         </p>
-        <Button size="sm" onClick={openCreate}>
-          <Plus className="size-4" />
-          Record unit sale
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={handleGenerateRevenueReport} disabled={isGeneratingRevenue}>
+            {isGeneratingRevenue ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}
+            Revenue report for the boss
+          </Button>
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="size-4" />
+            Record unit sale
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -237,6 +287,7 @@ export function UnitsSoldReport({
             <TableHeader>
               <TableRow>
                 <TableHead>Sales manager</TableHead>
+                <TableHead>Clients</TableHead>
                 <TableHead>Units sold</TableHead>
                 <TableHead>Total unit value</TableHead>
                 <TableHead>Total bonus</TableHead>
@@ -247,6 +298,7 @@ export function UnitsSoldReport({
                 byManager.map((m) => (
                   <TableRow key={m.name}>
                     <TableCell className="font-medium">{m.name}</TableCell>
+                    <TableCell>{m.clientCount}</TableCell>
                     <TableCell>{m.units}</TableCell>
                     <TableCell>{formatKES(m.unitValue)}</TableCell>
                     <TableCell>{formatKES(m.bonus)}</TableCell>
@@ -254,7 +306,7 @@ export function UnitsSoldReport({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-20 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="h-20 text-center text-muted-foreground">
                     No units sold yet.
                   </TableCell>
                 </TableRow>
@@ -287,6 +339,24 @@ export function UnitsSoldReport({
               title="Units Sold"
             />
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">Client sale summary, no bonus — for sharing outside the team:</p>
+          <ExportButtons
+            data={revenueExportRows}
+            columns={[
+              { key: "client", label: "Client" },
+              { key: "sale_type", label: "Direct / Agent referred" },
+              { key: "unit_number", label: "Unit number" },
+              { key: "project", label: "Project" },
+              { key: "sales_manager", label: "Sales manager" },
+              { key: "unit_amount", label: "Unit amount" },
+              { key: "sold_at", label: "Date sold" },
+            ]}
+            filename="ivy-group-revenue-summary"
+            title="Revenue Summary"
+          />
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-2">
