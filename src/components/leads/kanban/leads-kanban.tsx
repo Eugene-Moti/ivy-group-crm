@@ -23,6 +23,7 @@ import { celebrateWon } from "@/lib/celebrate";
 import { KanbanColumn } from "@/components/leads/kanban/kanban-column";
 import { KanbanCard } from "@/components/leads/kanban/kanban-card";
 import { LostReasonDialog } from "@/components/leads/lost-reason-dialog";
+import { RecordUnitSaleDialog } from "@/components/leads/record-unit-sale-dialog";
 import { Input } from "@/components/ui/input";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 
@@ -53,6 +54,7 @@ export function LeadsKanban({
   const [overrides, setOverrides] = useState<Record<string, LeadStatus>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [pendingLostDrag, setPendingLostDrag] = useState<LeadWithRelations | null>(null);
+  const [pendingUnitSaleLead, setPendingUnitSaleLead] = useState<LeadWithRelations | null>(null);
   const [search, setSearch] = useState("");
 
   const sensors = useSensors(
@@ -147,7 +149,10 @@ export function LeadsKanban({
     });
 
     toast.success(`${fullName(lead)} moved to ${statusLabels[newStatus] ?? newStatus}`);
-    if (newStatus === WON_STATUS_KEY) celebrateWon();
+    if (newStatus === WON_STATUS_KEY) {
+      celebrateWon();
+      if (lead.lead_type === "Direct Client") setPendingUnitSaleLead(lead);
+    }
     router.refresh();
   }
 
@@ -235,6 +240,16 @@ export function LeadsKanban({
               await commitStatusChange(pendingLostDrag, LOST_STATUS_KEY, { reason, note });
               setPendingLostDrag(null);
             }}
+          />
+        )}
+
+        {pendingUnitSaleLead && (
+          <RecordUnitSaleDialog
+            open={!!pendingUnitSaleLead}
+            onOpenChange={(open) => !open && setPendingUnitSaleLead(null)}
+            leads={[pendingUnitSaleLead]}
+            lockedLead={pendingUnitSaleLead}
+            onSaved={() => setPendingUnitSaleLead(null)}
           />
         )}
       </DndContext>
