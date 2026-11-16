@@ -34,11 +34,11 @@ export function KpiCard({
       <CardContent className="flex h-full flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
             <p
               className={cn(
-                "mt-1 text-3xl font-semibold tracking-tight tabular-nums",
-                accent && "text-destructive"
+                "mt-1.5 text-3xl font-semibold tracking-tight tabular-nums",
+                accent ? "text-destructive" : "orion-figure"
               )}
             >
               <AnimatedCounter value={value} formatter={formatter} />
@@ -49,8 +49,10 @@ export function KpiCard({
           </div>
           <div
             className={cn(
-              "flex size-9 shrink-0 items-center justify-center rounded-xl",
-              accent ? "bg-destructive/12 text-destructive" : "bg-evergreen-soft/15 text-evergreen-soft"
+              "flex size-10 shrink-0 items-center justify-center rounded-2xl ring-1 transition-transform duration-500 ease-[var(--ease-orion-spring)] group-hover/card:scale-110 group-hover/card:-rotate-6",
+              accent
+                ? "bg-destructive/12 text-destructive ring-destructive/25"
+                : "bg-gradient-to-br from-evergreen-soft/25 to-gold/15 text-evergreen-soft ring-evergreen-soft/25"
             )}
           >
             <Icon className="size-4.5" />

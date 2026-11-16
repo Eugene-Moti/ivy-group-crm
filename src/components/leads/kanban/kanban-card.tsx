@@ -31,6 +31,7 @@ export function KanbanCard({
   return (
     <div
       ref={setNodeRef}
+      data-lead-card={lead.id}
       {...(isAdmin ? { ...attributes, ...listeners } : {})}
       onClick={() => {
         if (!isDragging) router.push(`/leads/${lead.id}`);
@@ -43,9 +44,9 @@ export function KanbanCard({
           : undefined
       }
       className={cn(
-        "space-y-2 rounded-xl border border-border bg-card p-3 shadow-sm transition-[box-shadow,opacity] duration-150 hover:shadow-md",
+        "space-y-2 rounded-xl border border-border bg-card/90 p-3 shadow-sm backdrop-blur transition-[box-shadow,opacity,transform,border-color] duration-200 ease-[var(--ease-orion)] hover:-translate-y-0.5 hover:border-gold/30 hover:shadow-[0_14px_28px_-18px_rgb(0_0_0/0.45)]",
         isAdmin && "cursor-grab active:cursor-grabbing",
-        isDragging && "z-10 opacity-40 shadow-lg"
+        isDragging && "z-10 border-dashed opacity-35 shadow-none hover:translate-y-0"
       )}
     >
       <div className="flex items-start justify-between gap-2">

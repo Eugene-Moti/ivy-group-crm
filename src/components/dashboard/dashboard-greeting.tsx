@@ -41,13 +41,13 @@ function plateLineFor(criticalCount: number, totalCount: number): string {
 export function DashboardGreeting() {
   const profile = useProfile();
   const isAdmin = useIsAdmin();
-  const [hour, setHour] = useState<number | null>(null);
+  const [now, setNow] = useState<Date | null>(null);
   const { notifications, isLoading } = useNotifications(isAdmin);
   const [typed, setTyped] = useState("");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- reading the visitor's actual clock, an external signal the server can't know and can't be computed during render without risking a hydration mismatch
-    setHour(new Date().getHours());
+    setNow(new Date());
   }, []);
 
   const name = profile?.display_name || profile?.full_name?.split(" ")[0] || "there";
@@ -65,26 +65,37 @@ export function DashboardGreeting() {
     return () => clearInterval(id);
   }, [plateLine]);
 
-  if (hour === null) {
+  if (now === null) {
     // Matches the final layout so nothing visibly shifts once the real greeting lands.
     return (
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight opacity-0">Loading, {name} 👋</h1>
-        <p className="text-sm text-muted-foreground">Here&apos;s what&apos;s on your plate today.</p>
+      <div className="opacity-0">
+        <p className="font-mono text-[11px] tracking-[0.18em] uppercase">Today</p>
+        <h1 className="mt-1.5 text-3xl tracking-tight sm:text-4xl">Hello, {name}</h1>
+        <p className="mt-1.5 text-sm">Here&apos;s what&apos;s on your plate today.</p>
       </div>
     );
   }
+
+  const hour = now.getHours();
+  const dateLabel = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const showTypewriter = !!plateLine;
   const displayLine = showTypewriter ? typed : "Here's what's on your plate today.";
 
   return (
-    <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-      <h1 className="text-2xl font-semibold tracking-tight">
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
+      <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
+        <span className="relative flex size-2">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-evergreen-soft opacity-60 motion-reduce:animate-none" />
+          <span className="relative inline-flex size-2 rounded-full bg-evergreen-soft" />
+        </span>
+        {dateLabel}
+      </p>
+      <h1 className="mt-1.5 text-3xl tracking-tight sm:text-4xl">
         {greetingForHour(hour)}
-        {name} 👋
+        <span className="text-primary dark:text-gold-soft">{name}</span>
       </h1>
-      <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+      <p className="mt-1.5 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Sparkles className="size-3.5 shrink-0 text-gold" />
         <span>
           {displayLine}

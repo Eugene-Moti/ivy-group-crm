@@ -45,6 +45,7 @@ export function renderReminderEmail({
   followUpsToday,
   comingUp,
   limit,
+  workspaceName = "Ivy Group",
 }: {
   greetingName: string;
   dateLabel: string;
@@ -54,6 +55,7 @@ export function renderReminderEmail({
   followUpsToday: DigestRow[];
   comingUp: DigestRow[];
   limit: number;
+  workspaceName?: string;
 }): string {
   const take = (rows: DigestRow[]) => rows.slice(0, limit);
   const more = (rows: DigestRow[]) => Math.max(0, rows.length - limit);
@@ -69,7 +71,7 @@ export function renderReminderEmail({
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;">
         <tr><td style="background-color:#0d0f0d;padding:20px 28px;">
           <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:20px;letter-spacing:0.18em;color:#f6f4ee;">ORION</p>
-          <p style="margin:2px 0 0;font-size:12px;color:#a29d90;">Ivy Group workspace · Morning summary</p>
+          <p style="margin:2px 0 0;font-size:12px;color:#a29d90;">${esc(workspaceName)} workspace · Morning summary</p>
         </td></tr>
         <tr><td style="padding:26px 28px 30px;">
           <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:22px;color:${INK};">Good morning, ${esc(greetingName)}</p>

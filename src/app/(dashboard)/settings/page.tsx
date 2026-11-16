@@ -4,6 +4,7 @@ import { getAgents, getLeadSources, getPropertyTypes } from "@/lib/queries/leads
 import { getAllProfiles, getCampaigns, getLeadColumnLabels } from "@/lib/queries/settings";
 import { getOrionBusinessContextForRequest } from "@/lib/queries/orion-context";
 import { ASK_ORION_ENABLED } from "@/lib/features";
+import { getWorkspace } from "@/lib/queries/workspace";
 import { SettingsView } from "@/components/settings/settings-view";
 
 export default async function SettingsPage() {
@@ -12,7 +13,7 @@ export default async function SettingsPage() {
     redirect("/dashboard");
   }
 
-  const [leadSources, propertyTypes, salesAgents, campaigns, profiles, columnLabels, orionContext] =
+  const [leadSources, propertyTypes, salesAgents, campaigns, profiles, columnLabels, orionContext, workspace] =
     await Promise.all([
       getLeadSources(),
       getPropertyTypes(),
@@ -22,6 +23,7 @@ export default async function SettingsPage() {
       getLeadColumnLabels(),
       // Falls back to empty rather than breaking the whole Settings page if this migration hasn't run yet.
       ASK_ORION_ENABLED ? getOrionBusinessContextForRequest().catch(() => "") : Promise.resolve(""),
+      getWorkspace(),
     ]);
 
   return (
@@ -33,6 +35,7 @@ export default async function SettingsPage() {
       profiles={profiles}
       columnLabels={columnLabels}
       orionContext={orionContext}
+      workspace={workspace}
     />
   );
 }

@@ -12,6 +12,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { Search, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
@@ -150,7 +151,11 @@ export function LeadsKanban({
 
     toast.success(`${fullName(lead)} moved to ${statusLabels[newStatus] ?? newStatus}`);
     if (newStatus === WON_STATUS_KEY) {
-      celebrateWon();
+      // The card is already in the Won column (optimistic override), so the
+      // burst comes from where it landed.
+      requestAnimationFrame(() =>
+        celebrateWon(document.querySelector(`[data-lead-card="${leadId}"]`))
+      );
       if (lead.lead_type === "Direct Client") setPendingUnitSaleLead(lead);
     }
     router.refresh();
@@ -222,11 +227,17 @@ export function LeadsKanban({
             />
           ))}
         </div>
-        <DragOverlay dropAnimation={{ duration: 200, easing: "cubic-bezier(0.2, 0, 0, 1)" }}>
+        <DragOverlay dropAnimation={{ duration: 320, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)" }}>
           {activeLead ? (
-            <div className="w-72 rotate-2 scale-105 opacity-95 drop-shadow-xl">
+            // Picked up: the card lifts and tilts with a spring, like the brand board demo.
+            <motion.div
+              initial={{ rotate: 0, scale: 1 }}
+              animate={{ rotate: 3, scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 500, damping: 22 }}
+              className="w-72 cursor-grabbing rounded-xl shadow-[0_28px_50px_-18px_rgb(0_0_0/0.45)] ring-1 ring-gold/40"
+            >
               <KanbanCard lead={activeLead} isAdmin={false} />
-            </div>
+            </motion.div>
           ) : null}
         </DragOverlay>
 

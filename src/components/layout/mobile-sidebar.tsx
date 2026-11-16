@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/layout/logo";
 import { NavLinks } from "@/components/layout/nav-links";
+import { SidebarWorkspace } from "@/components/layout/sidebar";
 
 export function MobileSidebar() {
   const [open, setOpen] = useState(false);
@@ -18,16 +19,14 @@ export function MobileSidebar() {
           <span className="sr-only">Open navigation</span>
         </Button>
       </SheetTrigger>
-      <SheetContent
-        side="left"
-        className="w-64 border-sidebar-border bg-sidebar p-4 text-sidebar-foreground"
-      >
+      <SheetContent side="left" className="orion-rail w-72 border-0 p-3 text-sidebar-foreground">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
-        <div className="px-2 py-2">
+        <div className="px-2 pt-2 pb-4">
           <Logo />
         </div>
-        <div className="mt-6">
-          <NavLinks onNavigate={() => setOpen(false)} />
+        <SidebarWorkspace />
+        <div className="mt-5">
+          <NavLinks onNavigate={() => setOpen(false)} layoutGroup="sheet" />
         </div>
       </SheetContent>
     </Sheet>

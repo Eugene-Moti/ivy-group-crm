@@ -7,6 +7,7 @@ import { partitionReminders } from "@/lib/orion";
 import { fullName } from "@/lib/format";
 import { sendMail } from "@/lib/mailer";
 import { renderReminderEmail, type DigestRow } from "@/lib/reminder-email";
+import { getWorkspace } from "@/lib/queries/workspace";
 
 const TZ = "Africa/Nairobi";
 const LIST_LIMIT = 10;
@@ -90,6 +91,7 @@ export async function runReminderDigest(appUrl: string) {
     when: when(l.next_follow_up_at!),
   });
 
+  const workspace = await getWorkspace();
   const dateLabel = now.toLocaleDateString("en-GB", { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
   const results = await Promise.all(
@@ -106,6 +108,7 @@ export async function runReminderDigest(appUrl: string) {
           followUpsToday: dueToday.map(followUpRow),
           comingUp: upcoming.map(reminderRow),
           limit: LIST_LIMIT,
+          workspaceName: workspace.name,
         }),
       })
     )

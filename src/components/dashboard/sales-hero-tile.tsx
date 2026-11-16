@@ -27,12 +27,14 @@ export function SalesHeroTile({
   lastMonth,
   pipelineValue,
   totalLeads,
+  projectName,
 }: {
   months: SalesMonth[];
   thisMonth: SalesMonth;
   lastMonth: SalesMonth;
   pipelineValue: number;
   totalLeads: number;
+  projectName?: string | null;
 }) {
   const monthName = thisMonth.label.split(" ")[0];
   const delta = lastMonth.value > 0 ? ((thisMonth.value - lastMonth.value) / lastMonth.value) * 100 : null;
@@ -44,13 +46,21 @@ export function SalesHeroTile({
       <CardContent className="flex h-full flex-col gap-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-muted-foreground">Sales closed · {monthName}</p>
-            <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">
+            <p className="font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+              Sales closed · {monthName}
+              {projectName ? ` · ${projectName}` : ""}
+            </p>
+            <p className="orion-figure mt-2 text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl">
               <AnimatedCounter value={thisMonth.value} formatter={(n) => formatKES(n)} />
             </p>
             <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-xs">
               {delta !== null && (
-                <span className={cn("font-semibold", delta >= 0 ? "text-evergreen-soft" : "text-destructive")}>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 font-semibold",
+                    delta >= 0 ? "bg-evergreen-soft/15 text-evergreen-soft" : "bg-destructive/12 text-destructive"
+                  )}
+                >
                   {delta >= 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}%
                 </span>
               )}
@@ -62,7 +72,7 @@ export function SalesHeroTile({
           </div>
           <Link
             href="/reports?tab=units-sold"
-            className="rounded-lg px-2.5 py-1 text-xs text-muted-foreground ring-1 ring-border transition-colors hover:text-foreground"
+            className="orion-glass rounded-full px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             Units sold report
           </Link>
@@ -74,8 +84,8 @@ export function SalesHeroTile({
               <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="sales-fill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.28} />
-                    <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0.02} />
+                    <stop offset="0%" stopColor="var(--chart-1)" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="var(--chart-1)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} stroke={CHART_GRID} />
@@ -95,10 +105,11 @@ export function SalesHeroTile({
                   type="monotone"
                   dataKey="value"
                   stroke="var(--chart-1)"
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                   fill="url(#sales-fill)"
                   activeDot={{ r: 5, stroke: "var(--card)", strokeWidth: 2, fill: "var(--chart-1)" }}
-                  animationDuration={900}
+                  animationDuration={1400}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -109,7 +120,7 @@ export function SalesHeroTile({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
+        <div className="grid grid-cols-2 gap-3 border-t border-[var(--glass-border)] pt-3 text-sm">
           <Link href="/leads" className="group rounded-lg">
             <p className="text-xs text-muted-foreground">Pipeline value</p>
             <p className="font-semibold tabular-nums group-hover:text-primary">{formatKES(pipelineValue)}</p>

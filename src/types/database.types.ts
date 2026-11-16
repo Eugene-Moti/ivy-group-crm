@@ -430,6 +430,42 @@ export interface Database {
           },
         ];
       };
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          short_name: string | null;
+          tagline: string | null;
+          logo_url: string | null;
+          accent: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          short_name?: string | null;
+          tagline?: string | null;
+          logo_url?: string | null;
+          accent?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          slug?: string;
+          short_name?: string | null;
+          tagline?: string | null;
+          logo_url?: string | null;
+          accent?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       orion_business_context: {
         Row: {
           id: boolean;

@@ -6,6 +6,7 @@ import { UserCard } from "@/components/team/user-card";
 import { CreateUserDialog } from "@/components/settings/create-user-dialog";
 import { InviteUserDialog } from "@/components/settings/invite-user-dialog";
 import type { ProfileRow } from "@/lib/queries/settings";
+import { useWorkspace } from "@/components/providers/workspace-provider";
 
 export function TeamView({
   profiles,
@@ -16,6 +17,7 @@ export function TeamView({
 }) {
   const isAdmin = useIsAdmin();
   const currentProfile = useProfile();
+  const workspace = useWorkspace();
 
   // The top logger(s) this month, only once there's a real signal — a lone
   // "leader" out of one logged activity isn't worth a trophy.
@@ -31,7 +33,7 @@ export function TeamView({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Team &amp; Users</h1>
           <p className="text-sm text-muted-foreground">
-            Everyone in the Ivy Group workspace.
+            Everyone in the {workspace.name} workspace.
           </p>
         </div>
         {isAdmin && (

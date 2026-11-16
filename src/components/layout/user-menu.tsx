@@ -44,7 +44,7 @@ export function UserMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="gap-2 px-1.5">
+          <Button variant="ghost" className="h-9 gap-2 rounded-full px-1.5 sm:pr-3">
             <Avatar className="size-7">
               <AvatarImage src={profile?.avatar_url ?? undefined} alt={label} />
               <AvatarFallback className="bg-gold text-xs font-semibold text-ink">

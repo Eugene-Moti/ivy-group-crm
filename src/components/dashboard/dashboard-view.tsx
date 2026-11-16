@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { subWeeks } from "date-fns";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { AlertTriangle, Percent, Trophy, UserPlus } from "lucide-react";
 
 import { useRealtimeLeadsRefresh } from "@/hooks/use-realtime-leads-refresh";
@@ -18,6 +18,8 @@ import { AgentLeaderboard } from "@/components/dashboard/agent-leaderboard";
 import { RecentActivityFeed } from "@/components/dashboard/recent-activity-feed";
 import { NeedsAttentionCard } from "@/components/dashboard/needs-attention-card";
 import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting";
+import { SpotlightTile } from "@/components/dashboard/spotlight-tile";
+import { ProjectScope } from "@/components/dashboard/project-scope";
 import type {
   computeAgentLeaderboard,
   computeKpis,
@@ -37,19 +39,21 @@ const tile: Variants = {
   show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: EASE } },
 };
 
-function Tile({ className, children }: { className?: string; children: React.ReactNode }) {
+/** One bento cell: rises in with the stagger, then tilts toward the cursor with a gold spotlight. */
+function Tile({ className, spotlightClassName, children }: { className?: string; spotlightClassName?: string; children: React.ReactNode }) {
   return (
     <motion.div variants={tile} className={cn("min-w-0", className)}>
-      {children}
+      <SpotlightTile className={spotlightClassName}>{children}</SpotlightTile>
     </motion.div>
   );
 }
 
 /**
  * The "new face" dashboard: a bento grid of glass tiles over slow ambient
- * light. Every figure is computed exactly as before (dashboard-metrics);
- * only the presentation changed. Glass comes from the .orion-bento scope
- * in globals.css, which restyles each existing chart card in place.
+ * light (the light itself lives in the app shell). Every figure is computed
+ * exactly as before (dashboard-metrics); only the presentation changed, plus
+ * an optional project scope. Glass comes from the .orion-bento scope in
+ * globals.css, which restyles each existing chart card in place.
  */
 export function DashboardView({
   kpis,
@@ -61,6 +65,8 @@ export function DashboardView({
   agentLeaderboard,
   recentActivities,
   sales,
+  projects,
+  projectId,
 }: {
   kpis: ReturnType<typeof computeKpis>;
   kpiTrends: ReturnType<typeof computeKpiTrends>;
@@ -71,10 +77,12 @@ export function DashboardView({
   agentLeaderboard: ReturnType<typeof computeAgentLeaderboard>;
   recentActivities: ActivityWithLeadAndAuthor[];
   sales: ReturnType<typeof computeSalesByMonth>;
+  projects: { id: string; name: string }[];
+  projectId: string | null;
 }) {
   useRealtimeLeadsRefresh();
-  const reduceMotion = useReducedMotion();
-  const motionProps = reduceMotion ? {} : { variants: grid, initial: "hidden" as const, animate: "show" as const };
+  // Reduced motion is handled globally by MotionConfig (theme-provider).
+  const motionProps = { variants: grid, initial: "hidden" as const, animate: "show" as const };
 
   const newThisWeekHref = useMemo(
     () =>
@@ -90,25 +98,23 @@ export function DashboardView({
 
   return (
     <div className="relative space-y-5">
-      <div className="orion-orbs" aria-hidden>
-        <span />
-        <span />
-        <span />
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <DashboardGreeting />
+        <ProjectScope projects={projects} activeId={projectId} />
       </div>
-
-      <DashboardGreeting />
 
       <motion.div
         {...motionProps}
         className="orion-bento grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:grid-rows-[auto_auto]"
       >
-        <Tile className="sm:col-span-2 xl:row-span-2">
+        <Tile className="sm:col-span-2 xl:row-span-2" spotlightClassName="orion-hero">
           <SalesHeroTile
             months={sales.months}
             thisMonth={sales.thisMonth}
             lastMonth={sales.lastMonth}
             pipelineValue={kpis.pipelineValue}
             totalLeads={kpis.totalLeads}
+            projectName={projects.find((p) => p.id === projectId)?.name ?? null}
           />
         </Tile>
         <Tile>
@@ -151,9 +157,11 @@ export function DashboardView({
         </Tile>
       </motion.div>
 
-      <div className="orion-bento">
-        <NeedsAttentionCard />
-      </div>
+      <motion.div {...motionProps} className="orion-bento">
+        <Tile>
+          <NeedsAttentionCard />
+        </Tile>
+      </motion.div>
 
       <motion.div {...motionProps} className="orion-bento grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Tile className="sm:col-span-2">

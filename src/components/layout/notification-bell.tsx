@@ -131,7 +131,7 @@ export function NotificationBell() {
         <button
           type="button"
           aria-label="Notifications"
-          className="relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="orion-bell relative flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         >
           <Bell className="size-4.5" />
           {totalCount > 0 && (

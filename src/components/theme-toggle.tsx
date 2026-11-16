@@ -12,10 +12,11 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       aria-label="Toggle theme"
+      className="group size-9 rounded-full"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
-      <Sun className="hidden size-4 dark:block" />
-      <Moon className="block size-4 dark:hidden" />
+      <Sun className="hidden size-4 text-gold transition-transform duration-500 ease-[var(--ease-orion-spring)] group-hover:rotate-90 dark:block" />
+      <Moon className="block size-4 transition-transform duration-500 ease-[var(--ease-orion-spring)] group-hover:-rotate-12 dark:hidden" />
     </Button>
   );
 }

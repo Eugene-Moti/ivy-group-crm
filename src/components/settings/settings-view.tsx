@@ -9,6 +9,8 @@ import { UsersPanel } from "@/components/settings/users-panel";
 import { ColumnLabelsPanel } from "@/components/settings/column-labels-panel";
 import { PipelineStagesPanel } from "@/components/settings/pipeline-stages-panel";
 import { ASK_ORION_ENABLED } from "@/lib/features";
+import { WorkspacePanel } from "@/components/settings/workspace-panel";
+import type { Workspace } from "@/lib/workspace";
 import { OrionContextPanel } from "@/components/settings/orion-context-panel";
 import type { CampaignWithSource, LeadColumnLabels, ProfileRow } from "@/lib/queries/settings";
 
@@ -24,6 +26,7 @@ export function SettingsView({
   profiles,
   columnLabels,
   orionContext,
+  workspace,
 }: {
   leadSources: LeadOption[];
   propertyTypes: ProjectOption[];
@@ -32,19 +35,21 @@ export function SettingsView({
   profiles: ProfileRow[];
   columnLabels: LeadColumnLabels;
   orionContext: string;
+  workspace: Workspace;
 }) {
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="text-sm text-muted-foreground">
-          Manage lead sources, projects, sales managers, campaigns, and
-          user roles.
+          Your workspace branding, lead sources, projects, sales managers,
+          campaigns, pipeline stages, and user roles.
         </p>
       </div>
 
-      <Tabs defaultValue="sources">
+      <Tabs defaultValue="workspace">
         <TabsList>
+          <TabsTrigger value="workspace">Workspace</TabsTrigger>
           <TabsTrigger value="sources">Lead sources</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="sales-agents">Sales managers</TabsTrigger>
@@ -54,6 +59,9 @@ export function SettingsView({
           <TabsTrigger value="statuses">Pipeline stages</TabsTrigger>
           {ASK_ORION_ENABLED && <TabsTrigger value="orion">Teach Orion</TabsTrigger>}
         </TabsList>
+        <TabsContent value="workspace" className="pt-4">
+          <WorkspacePanel workspace={workspace} />
+        </TabsContent>
         <TabsContent value="sources" className="pt-4">
           <LeadSourcesPanel leadSources={leadSources} />
         </TabsContent>

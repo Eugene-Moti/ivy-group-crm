@@ -102,7 +102,7 @@ export function LeadsOverTimeChart({ createdDates }: { createdDates: string[] })
       <CardContent className="h-64">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ left: -16, right: 8 }}>
+            <AreaChart data={data} margin={{ left: 0, right: 8 }}>
               <defs>
                 <linearGradient id="leadsOverTimeFill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={CHART_GOLD} stopOpacity={0.35} />
@@ -115,7 +115,7 @@ export function LeadsOverTimeChart({ createdDates }: { createdDates: string[] })
                 tick={{ fill: CHART_INK, fontSize: 11 }}
                 interval="preserveStartEnd"
               />
-              <YAxis tick={{ fill: CHART_INK, fontSize: 12 }} allowDecimals={false} width={32} />
+              <YAxis tick={{ fill: CHART_INK, fontSize: 12 }} allowDecimals={false} width={40} tickLine={false} axisLine={false} />
               <Tooltip contentStyle={chartTooltipStyle} />
               <Area
                 type="monotone"

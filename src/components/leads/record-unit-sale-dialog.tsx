@@ -11,6 +11,7 @@ import { DIRECT_SALE_BONUS_RATE, WON_STATUS_KEY, type SaleType } from "@/lib/con
 import { formatKES, fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
 import type { UnitSoldRow } from "@/lib/queries/units-sold";
+import { showSaleReceipt } from "@/components/shared/sale-receipt";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -149,7 +150,7 @@ export function RecordUnitSaleDialog({
     setIsSubmitting(true);
     const supabase = createClient();
 
-    const { error } = editingUnit
+    const { data: saved, error } = editingUnit
       ? await supabase
           .from("units_sold")
           .update({
@@ -174,7 +175,9 @@ export function RecordUnitSaleDialog({
           sold_at: soldAt,
           notes: notes.trim() || null,
           created_by: profile?.id ?? null,
-        });
+        })
+        .select("id")
+        .single();
     setIsSubmitting(false);
 
     if (error) {
@@ -185,6 +188,20 @@ export function RecordUnitSaleDialog({
     }
 
     toast.success(`${unitNumber.trim()} ${editingUnit ? "updated" : "recorded as sold"}`);
+    // A brand-new sale gets the print-receipt moment; edits just close.
+    if (!editingUnit && saved?.id) {
+      showSaleReceipt({
+        id: saved.id,
+        clientName: fullName(selectedLead),
+        project: selectedLead.property_type?.name ?? null,
+        unitNumber: unitNumber.trim(),
+        unitSize: unitSize.trim() || null,
+        amount: Number(unitAmount),
+        saleType,
+        salesManager: selectedLead.assigned_agent?.name ?? null,
+        soldAt,
+      });
+    }
     handleOpenChange(false);
     onSaved();
     router.refresh();
