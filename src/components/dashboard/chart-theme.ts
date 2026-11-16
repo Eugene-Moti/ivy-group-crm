@@ -2,7 +2,9 @@ import type { CSSProperties } from "react";
 
 export const CHART_INK = "var(--muted-foreground)";
 export const CHART_GRID = "var(--border)";
-export const CHART_GOLD = "var(--gold)";
+// Name kept so existing chart imports don't churn; the primary series is now
+// the brand evergreen (--chart-1), with gold reserved for highlights.
+export const CHART_GOLD = "var(--chart-1)";
 
 export const chartTooltipStyle: CSSProperties = {
   background: "var(--popover)",

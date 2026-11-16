@@ -4,7 +4,7 @@ import { require2faSession } from "@/lib/auth-2fa/guard";
 import { AuthStepShell } from "@/components/auth/auth-step-shell";
 import { TwoFactorEnroll } from "@/components/auth/two-factor-enroll";
 
-export const metadata = { title: "Set up your sign-in PIN · Ivy Group CRM" };
+export const metadata = { title: "Set up your sign-in PIN · Orion CRM" };
 
 export default async function EnrollPage() {
   const session = await require2faSession();

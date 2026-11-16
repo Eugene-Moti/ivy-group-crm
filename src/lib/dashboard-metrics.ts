@@ -1,4 +1,4 @@
-import { subWeeks, isAfter, isBefore, subDays, startOfDay, endOfDay } from "date-fns";
+import { subWeeks, isAfter, isBefore, subDays, startOfDay, endOfDay, startOfMonth, subMonths, format } from "date-fns";
 import {
   CLOSED_STATUS_KEYS,
   LEAD_PRIORITIES,
@@ -151,4 +151,30 @@ export function computeKpiTrends(leads: DashboardLead[], now: Date): KpiTrends {
   });
 
   return { totalLeads, newThisWeek, overdueFollowUps, dealsWon, conversionRate, pipelineValue };
+}
+
+export type SalesMonth = { key: string; label: string; value: number; units: number };
+
+/**
+ * Twelve calendar months of closed sales (sum of unit_amount from
+ * units_sold, by sold_at), oldest first, ending with the current month.
+ * Sale amounts only — bonus figures are deliberately never surfaced on
+ * the dashboard.
+ */
+export function computeSalesByMonth(
+  units: { unit_amount: number; sold_at: string }[],
+  now: Date
+): { months: SalesMonth[]; thisMonth: SalesMonth; lastMonth: SalesMonth } {
+  const months: SalesMonth[] = Array.from({ length: 12 }, (_, i) => {
+    const start = startOfMonth(subMonths(now, 11 - i));
+    return { key: format(start, "yyyy-MM"), label: format(start, "MMM yyyy"), value: 0, units: 0 };
+  });
+  const byKey = new Map(months.map((m) => [m.key, m]));
+  for (const u of units) {
+    const m = byKey.get(format(new Date(u.sold_at), "yyyy-MM"));
+    if (!m) continue;
+    m.value += Number(u.unit_amount) || 0;
+    m.units += 1;
+  }
+  return { months, thisMonth: months[11], lastMonth: months[10] };
 }

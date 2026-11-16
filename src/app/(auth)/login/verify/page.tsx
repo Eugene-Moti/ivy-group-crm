@@ -4,7 +4,7 @@ import { require2faSession } from "@/lib/auth-2fa/guard";
 import { AuthStepShell } from "@/components/auth/auth-step-shell";
 import { TwoFactorVerify } from "@/components/auth/two-factor-verify";
 
-export const metadata = { title: "Enter your PIN · Ivy Group CRM" };
+export const metadata = { title: "Enter your PIN · Orion CRM" };
 
 export default async function VerifyPage() {
   const session = await require2faSession();

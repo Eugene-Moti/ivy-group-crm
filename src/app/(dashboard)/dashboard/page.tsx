@@ -1,6 +1,7 @@
 import { getLeads } from "@/lib/queries/leads";
 import { getRecentActivities } from "@/lib/queries/activities";
 import { getPipelineStages } from "@/lib/queries/settings";
+import { getUnitsSold } from "@/lib/queries/units-sold";
 import {
   computeAgentLeaderboard,
   computeKpis,
@@ -8,15 +9,19 @@ import {
   computeLeadsBySource,
   computePipelineByStatus,
   computePrioritySplit,
+  computeSalesByMonth,
   type DashboardLead,
 } from "@/lib/dashboard-metrics";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 
 export default async function DashboardPage() {
-  const [leads, recentActivities, pipelineStages] = await Promise.all([
+  const [leads, recentActivities, pipelineStages, unitsSold] = await Promise.all([
     getLeads(),
     getRecentActivities(15),
     getPipelineStages(),
+    // The sales tile is additive — if this read fails, the rest of the
+    // dashboard still renders with the tile showing zero.
+    getUnitsSold().catch(() => []),
   ]);
 
   // Real Estate Agent leads are a referral channel, not client deals — they
@@ -46,6 +51,7 @@ export default async function DashboardPage() {
   const leadsBySource = computeLeadsBySource(dashboardLeads);
   const agentLeaderboard = computeAgentLeaderboard(dashboardLeads);
   const leadCreatedDates = dashboardLeads.map((l) => l.created_at);
+  const sales = computeSalesByMonth(unitsSold, now);
 
   return (
     <DashboardView
@@ -57,6 +63,7 @@ export default async function DashboardPage() {
       leadCreatedDates={leadCreatedDates}
       agentLeaderboard={agentLeaderboard}
       recentActivities={recentActivities}
+      sales={sales}
     />
   );
 }

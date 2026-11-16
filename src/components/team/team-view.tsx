@@ -31,7 +31,7 @@ export function TeamView({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Team &amp; Users</h1>
           <p className="text-sm text-muted-foreground">
-            Everyone with access to Ivy Group CRM.
+            Everyone in the Ivy Group workspace.
           </p>
         </div>
         {isAdmin && (

@@ -6,15 +6,17 @@ import { Area, AreaChart, ResponsiveContainer } from "recharts";
 export function KpiSparkline({
   data,
   color = "var(--gold)",
+  className = "h-8 w-20",
 }: {
   data: number[];
   color?: string;
+  className?: string;
 }) {
   const gradientId = `kpi-sparkline-${useId().replace(/:/g, "")}`;
   const chartData = data.map((value, i) => ({ i, value }));
 
   return (
-    <div className="h-8 w-20">
+    <div className={className}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
           <defs>

@@ -24,9 +24,9 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/65 transition-[background-color,color,transform] duration-200 hover:translate-x-0.5 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground",
               isActive &&
-                "bg-sidebar-accent text-gold hover:text-gold"
+                "bg-gradient-to-r from-gold/15 to-sidebar-accent/60 text-sidebar-foreground before:absolute before:-left-4 before:top-2 before:bottom-2 before:w-[3px] before:rounded-r-full before:bg-gold [&>svg]:text-gold"
             )}
           >
             <item.icon className="size-4 shrink-0" />
