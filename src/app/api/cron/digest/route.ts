@@ -16,6 +16,7 @@ import {
 import { renderDigestEmail } from "@/lib/digest-email";
 import { generateOrionBriefingPdfBuffer } from "@/lib/orion-briefing-pdf-server";
 import { sendMail } from "@/lib/mailer";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 
 // Opus 5 at effort "high" with adaptive thinking and a 16k-token structured
 // output, plus PDF generation and sending to every admin, can genuinely
@@ -28,6 +29,12 @@ export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // The digest is written by Ask Orion — while that's paused, skip cleanly
+  // instead of failing every morning on the expired API key.
+  if (!ASK_ORION_ENABLED) {
+    return NextResponse.json({ skipped: "Ask Orion is paused, so the daily briefing is off." });
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {

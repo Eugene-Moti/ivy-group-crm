@@ -5,6 +5,7 @@ import { CalendarClock, FileDown, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { useIsAdmin, useProfile } from "@/components/providers/profile-provider";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 import { useAssistant } from "@/components/providers/assistant-provider";
 import { useRealtimeLeadsRefresh } from "@/hooks/use-realtime-leads-refresh";
 import { FollowUpSection } from "@/components/follow-ups/follow-up-section";
@@ -136,7 +137,7 @@ export function FollowUpsView({
               {isGenerating ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}
               Generate PDF
             </Button>
-            <Button
+            {ASK_ORION_ENABLED && <Button
               size="sm"
               variant="outline"
               onClick={() =>
@@ -145,7 +146,7 @@ export function FollowUpsView({
             >
               <Sparkles className="size-4" />
               Ask Orion
-            </Button>
+            </Button>}
           </div>
         )}
       </div>

@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { AssistantTrigger } from "@/components/assistant/assistant-trigger";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 import { CommandPalette } from "@/components/command-palette/command-palette";
 
 export function Topbar() {
@@ -40,7 +41,7 @@ export function Topbar() {
       </button>
 
       <div className="ml-auto flex items-center gap-1">
-        <AssistantTrigger />
+        {ASK_ORION_ENABLED && <AssistantTrigger />}
         <NotificationBell />
         <ThemeToggle />
         <UserMenu />

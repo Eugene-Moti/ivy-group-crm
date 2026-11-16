@@ -8,6 +8,7 @@ import { getPipelineStages } from "@/lib/queries/settings";
 import { getRemindersInWindow } from "@/lib/queries/reminders";
 import { getOrionBusinessContextForRequest } from "@/lib/queries/orion-context";
 import { runClaudeStructured } from "@/lib/claude";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 import { orionSystemPrompt, buildPortfolioContext, briefingPrompt, finalizeBriefing, OrionBriefingSchema } from "@/lib/orion";
 
 export type { OrionBriefing, OrionBriefingItem } from "@/lib/orion";
@@ -18,6 +19,9 @@ export type { OrionBriefing, OrionBriefingItem } from "@/lib/orion";
 export const maxDuration = 60;
 
 export async function GET() {
+  if (!ASK_ORION_ENABLED) {
+    return NextResponse.json({ error: "Ask Orion is paused." }, { status: 404 });
+  }
   const profile = await getCurrentProfile();
   if (!profile) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

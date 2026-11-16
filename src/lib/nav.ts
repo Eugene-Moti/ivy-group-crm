@@ -9,6 +9,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 
 export interface NavItem {
   title: string;
@@ -19,7 +20,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Orion", href: "/orion", icon: Sparkles },
+  ...(ASK_ORION_ENABLED ? [{ title: "Ask Orion", href: "/orion", icon: Sparkles }] : []),
   { title: "Leads", href: "/leads", icon: Users },
   { title: "Follow-ups", href: "/follow-ups", icon: CalendarClock },
   { title: "Reports", href: "/reports", icon: BarChart3 },

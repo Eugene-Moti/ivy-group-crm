@@ -7,6 +7,7 @@ import { Bell, CheckCircle2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { useIsAdmin } from "@/components/providers/profile-provider";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 import { useAssistant } from "@/components/providers/assistant-provider";
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationItemCard } from "@/components/shared/notification-item-card";
@@ -178,7 +179,7 @@ export function NotificationBell() {
           >
             View full analysis report
           </Link>
-          {totalCount > 0 && (
+          {ASK_ORION_ENABLED && totalCount > 0 && (
             <button
               type="button"
               onClick={() => {

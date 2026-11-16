@@ -16,6 +16,7 @@ import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { InsightCard } from "@/components/shared/insight-card";
 import { BreakdownTable } from "@/components/shared/breakdown-table";
 import { useProfile } from "@/components/providers/profile-provider";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 import { useAssistant } from "@/components/providers/assistant-provider";
 import {
   computePeriodReport,
@@ -111,10 +112,12 @@ export function PeriodReport({
           put more effort, what the setbacks were, and what&apos;s worth knowing.
         </p>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={handleAskAi}>
-            <Sparkles className="size-4" />
-            Ask Orion
-          </Button>
+          {ASK_ORION_ENABLED && (
+            <Button size="sm" variant="outline" onClick={handleAskAi}>
+              <Sparkles className="size-4" />
+              Ask Orion
+            </Button>
+          )}
           <Button size="sm" onClick={handleGeneratePdf} disabled={isGenerating}>
             {isGenerating ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}
             Generate PDF

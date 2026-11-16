@@ -10,6 +10,7 @@ import { runClaudeAssistant, type SimpleMessage } from "@/lib/claude";
 import { orionSystemPrompt } from "@/lib/orion";
 import { getOrionBusinessContextForRequest } from "@/lib/queries/orion-context";
 import { fullName } from "@/lib/format";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 
 const MAX_HISTORY_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 2000;
@@ -86,6 +87,9 @@ ${JSON.stringify(
 }
 
 export async function POST(request: Request) {
+  if (!ASK_ORION_ENABLED) {
+    return NextResponse.json({ error: "Ask Orion is paused." }, { status: 404 });
+  }
   const profile = await getCurrentProfile();
   if (!profile) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

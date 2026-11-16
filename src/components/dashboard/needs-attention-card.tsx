@@ -3,6 +3,7 @@
 import { Bell, CheckCircle2, Sparkles } from "lucide-react";
 import { useIsAdmin } from "@/components/providers/profile-provider";
 import { useAssistant } from "@/components/providers/assistant-provider";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationItemCard } from "@/components/shared/notification-item-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,7 +43,7 @@ export function NeedsAttentionCard() {
             </span>
           )}
         </CardTitle>
-        <button
+        {ASK_ORION_ENABLED && <button
           type="button"
           onClick={() =>
             openAssistant("Summarize what needs my attention right now and what to do about it.")
@@ -51,7 +52,7 @@ export function NeedsAttentionCard() {
         >
           <Sparkles className="size-3" />
           Ask Orion
-        </button>
+        </button>}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-2">

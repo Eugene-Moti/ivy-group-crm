@@ -25,6 +25,7 @@ import { useProfile } from "@/components/providers/profile-provider";
 import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
 import { computeFullAnalysis, type ActivitySummary, type EvidenceLeadId } from "@/lib/full-analysis";
 import { generateFullAnalysisReport } from "@/lib/full-analysis-report";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 import { useAssistant } from "@/components/providers/assistant-provider";
 import { WON_STATUS_KEY, LOST_STATUS_KEY } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -102,7 +103,7 @@ export function FullAnalysisReport({
           shareable summary with data-driven suggestions on where to focus next.
         </p>
         <div className="flex shrink-0 gap-2">
-          <Button
+          {ASK_ORION_ENABLED && <Button
             size="sm"
             variant="outline"
             onClick={() =>
@@ -113,7 +114,7 @@ export function FullAnalysisReport({
           >
             <Sparkles className="size-4" />
             Ask Orion
-          </Button>
+          </Button>}
           <Button size="sm" onClick={handleGeneratePdf} disabled={isGenerating}>
             {isGenerating ? <Loader2 className="animate-spin" /> : <FileDown className="size-4" />}
             Generate PDF

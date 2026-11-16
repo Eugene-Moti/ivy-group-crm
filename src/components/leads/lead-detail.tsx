@@ -22,6 +22,7 @@ import { EvidenceTimeline } from "@/components/leads/evidence-timeline";
 import { DocumentUploadForm } from "@/components/leads/document-upload-form";
 import { DocumentList } from "@/components/leads/document-list";
 import { LeadReminders } from "@/components/leads/lead-reminders";
+import { ASK_ORION_ENABLED } from "@/lib/features";
 import { LeadOrionSidebar } from "@/components/orion/lead-orion-sidebar";
 import { fullName } from "@/lib/format";
 import type { LeadWithRelations } from "@/lib/queries/leads";
@@ -212,7 +213,7 @@ export function LeadDetail({
         />
       )}
 
-      <LeadOrionSidebar leadId={lead.id} leadName={fullName(lead)} />
+      {ASK_ORION_ENABLED && <LeadOrionSidebar leadId={lead.id} leadName={fullName(lead)} />}
     </div>
   );
 }
