@@ -19,6 +19,7 @@ export function NavLinks({ onNavigate, layoutGroup = "rail" }: { onNavigate?: ()
   const items = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
 
   const activeHref = items
+    .filter((item) => !item.soon)
     .filter((item) => pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/")))
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
@@ -26,6 +27,21 @@ export function NavLinks({ onNavigate, layoutGroup = "rail" }: { onNavigate?: ()
     <nav className="flex flex-col gap-0.5">
       {items.map((item) => {
         const isActive = item.href === activeHref;
+        if (item.soon) {
+          // Planned, not built yet: visible so people know it's coming, but not a link.
+          return (
+            <span
+              key={item.href}
+              aria-disabled="true"
+              title={`${item.title} is coming soon`}
+              className="relative flex cursor-default items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground/40"
+            >
+              <item.icon className="size-[18px] shrink-0 text-gold/70" />
+              <span>{item.title}</span>
+              <span className="ml-auto rounded-full bg-gold/15 px-1.5 py-0.5 font-mono text-[9.5px] tracking-[0.08em] text-gold-soft">SOON</span>
+            </span>
+          );
+        }
         return (
           <Link
             key={item.href}

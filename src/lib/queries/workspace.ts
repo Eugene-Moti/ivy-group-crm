@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_WORKSPACE, initialsFor, isAccentKey, type Workspace } from "@/lib/workspace";
 
 /**
@@ -33,5 +34,16 @@ export const getWorkspace = cache(async (): Promise<Workspace> => {
     };
   } catch {
     return DEFAULT_WORKSPACE;
+  }
+});
+
+/** How many people have an account in this workspace ("12 seats"). Null if it can't be read. */
+export const getSeatCount = cache(async (): Promise<number | null> => {
+  try {
+    const supabase = await createClient();
+    const { count, error } = await supabase.from("profiles").select("id", { count: "exact", head: true });
+    return error ? null : count;
+  } catch {
+    return null;
   }
 });

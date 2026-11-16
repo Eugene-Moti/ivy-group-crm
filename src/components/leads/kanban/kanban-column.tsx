@@ -13,10 +13,14 @@ export function KanbanColumn({
   status,
   leads,
   isAdmin,
+  nextStageFor,
+  onNextStage,
 }: {
   status: LeadStatus;
   leads: LeadWithRelations[];
   isAdmin: boolean;
+  nextStageFor?: (lead: LeadWithRelations) => LeadStatus | null;
+  onNextStage?: (lead: LeadWithRelations, next: LeadStatus) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const labels = useStatusLabels();
@@ -69,7 +73,16 @@ export function KanbanColumn({
               exit={{ opacity: 0, scale: 0.92 }}
               transition={{ type: "spring", stiffness: 500, damping: 40 }}
             >
-              <KanbanCard lead={lead} isAdmin={isAdmin} />
+              <KanbanCard
+                lead={lead}
+                isAdmin={isAdmin}
+                nextStage={isAdmin ? nextStageFor?.(lead) ?? null : null}
+                nextStageLabel={(() => {
+                  const next = nextStageFor?.(lead);
+                  return next ? labels[next] ?? next : undefined;
+                })()}
+                onNextStage={onNextStage ? (next) => onNextStage(lead, next) : undefined}
+              />
             </motion.div>
           ))}
         </AnimatePresence>

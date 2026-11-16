@@ -14,7 +14,9 @@ export function SidebarWorkspace() {
       <WorkspaceBadge workspace={workspace} />
       <div className="min-w-0 leading-tight">
         <p className="truncate text-sm font-medium text-sidebar-foreground">{workspace.name}</p>
-        <p className="text-[11px] text-sidebar-foreground/45">Workspace</p>
+        <p className="text-[11px] text-sidebar-foreground/45">
+          Workspace{workspace.seats ? ` · ${workspace.seats} ${workspace.seats === 1 ? "seat" : "seats"}` : ""}
+        </p>
       </div>
     </div>
   );

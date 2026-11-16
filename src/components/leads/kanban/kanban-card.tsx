@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDraggable } from "@dnd-kit/core";
-import { MapPin, RefreshCw } from "lucide-react";
+import { ArrowRight, MapPin, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { PriorityBadge } from "@/components/badges/priority-badge";
@@ -12,13 +13,21 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { formatBudgetRange, formatDate, fullName } from "@/lib/format";
 import { getFollowUpAlert } from "@/lib/leads";
 import type { LeadWithRelations } from "@/lib/queries/leads";
+import type { LeadStatus } from "@/lib/constants";
 
 export function KanbanCard({
   lead,
   isAdmin,
+  nextStage = null,
+  nextStageLabel,
+  onNextStage,
 }: {
   lead: LeadWithRelations;
   isAdmin: boolean;
+  /** Where "Next stage →" moves this card; null hides the button. */
+  nextStage?: LeadStatus | null;
+  nextStageLabel?: string;
+  onNextStage?: (next: LeadStatus) => void;
 }) {
   const router = useRouter();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -50,7 +59,15 @@ export function KanbanCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-medium">{fullName(lead)}</span>
+        <Link
+          href={`/leads/${lead.id}`}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          className="rounded-sm text-sm font-medium hover:underline focus-visible:outline-2 focus-visible:outline-gold"
+        >
+          {fullName(lead)}
+        </Link>
         <div className="flex shrink-0 items-center gap-1.5">
           {lead.lead_type === "Real Estate Agent" && (
             <Badge variant="outline" className="border-gold/40 text-gold">
@@ -96,6 +113,25 @@ export function KanbanCard({
           <QuickContactActions phone={lead.phone} email={lead.email} />
         </div>
       </div>
+
+      {nextStage && onNextStage && (
+        <div className="flex justify-end border-t border-border/50 pt-2">
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onNextStage(nextStage);
+            }}
+            aria-label={`Move ${fullName(lead)} to ${nextStageLabel ?? "the next stage"}`}
+            className="group/next flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-gold dark:text-evergreen-soft"
+          >
+            {nextStageLabel ? `Next: ${nextStageLabel}` : "Next stage"}
+            <ArrowRight className="size-3.5 transition-transform duration-300 ease-[var(--ease-orion-spring)] group-hover/next:translate-x-0.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

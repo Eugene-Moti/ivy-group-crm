@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import {
   DndContext,
   DragOverlay,
+  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
+  type Announcements,
   type DragEndEvent,
   type DragStartEvent,
+  type KeyboardCoordinateGetter,
 } from "@dnd-kit/core";
 import { Search, X } from "lucide-react";
 import { motion } from "framer-motion";
@@ -18,7 +21,13 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useProfile } from "@/components/providers/profile-provider";
 import { usePipelineStages, useStatusLabels } from "@/components/providers/status-labels-provider";
-import { LOST_STATUS_KEY, WON_STATUS_KEY, type LeadStatus } from "@/lib/constants";
+import {
+  LOST_STATUS_KEY,
+  REFERRED_CLIENT_ACTIVE_STATUS_KEY,
+  REFERRED_DEAL_DONE_STATUS_KEY,
+  WON_STATUS_KEY,
+  type LeadStatus,
+} from "@/lib/constants";
 import { fullName } from "@/lib/format";
 import { celebrateWon } from "@/lib/celebrate";
 import { KanbanColumn } from "@/components/leads/kanban/kanban-column";
@@ -41,6 +50,31 @@ function findVerticalScrollable(el: HTMLElement, boundary: HTMLElement): HTMLEle
   return null;
 }
 
+/**
+ * Keyboard dragging: Space/Enter picks a card up, Left/Right jumps it a
+ * whole column at a time (not 25px nudges), Space/Enter drops it, Escape
+ * cancels. Columns are found by their on-screen order.
+ */
+const columnCoordinates: KeyboardCoordinateGetter = (event, { context }) => {
+  const { collisionRect, droppableRects, droppableContainers } = context;
+  const dir = event.code === "ArrowRight" ? 1 : event.code === "ArrowLeft" ? -1 : 0;
+  if (!collisionRect || dir === 0) return undefined;
+  event.preventDefault();
+  const columns = droppableContainers
+    .getEnabled()
+    .map((c) => droppableRects.get(c.id))
+    .filter((r): r is NonNullable<typeof r> => !!r)
+    .sort((a, b) => a.left - b.left);
+  const centre = collisionRect.left + collisionRect.width / 2;
+  const target =
+    dir > 0 ? columns.find((r) => r.left > centre) : [...columns].reverse().find((r) => r.left + r.width < centre);
+  if (!target) return undefined;
+  return { x: target.left + (target.width - collisionRect.width) / 2, y: target.top + 48 };
+};
+
+/** Stages "Next stage" can step through: the main deal journey, never Lost or the agent-only stages. */
+const SKIPPED_BY_NEXT = new Set<string>([LOST_STATUS_KEY, REFERRED_CLIENT_ACTIVE_STATUS_KEY, REFERRED_DEAL_DONE_STATUS_KEY]);
+
 export function LeadsKanban({
   leads,
   isAdmin,
@@ -59,8 +93,35 @@ export function LeadsKanban({
   const [search, setSearch] = useState("");
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: columnCoordinates })
   );
+
+  const leadName = (id: string | number) => {
+    const lead = leads.find((l) => l.id === String(id));
+    return lead ? fullName(lead) : "Lead";
+  };
+  const stageName = (id: string | number | undefined) => (id === undefined ? "" : statusLabels[String(id)] ?? String(id));
+
+  // What a screen reader hears while a card is moved.
+  const announcements: Announcements = {
+    onDragStart: ({ active }) => `Picked up ${leadName(active.id)}. Use the left and right arrow keys to choose a stage, then press space to drop it, or escape to cancel.`,
+    onDragOver: ({ active, over }) => (over ? `${leadName(active.id)} is over ${stageName(over.id)}.` : `${leadName(active.id)} is not over a stage.`),
+    onDragEnd: ({ active, over }) => (over ? `${leadName(active.id)} dropped in ${stageName(over.id)}.` : `${leadName(active.id)} dropped. Nothing changed.`),
+    onDragCancel: ({ active }) => `Moving ${leadName(active.id)} was cancelled. Nothing changed.`,
+  };
+
+  /** The stage "Next stage →" moves a card to, or null where there is no sensible next step. */
+  function nextStageFor(lead: LeadWithRelations): LeadStatus | null {
+    const status = overrides[lead.id] ?? lead.status;
+    if (status === WON_STATUS_KEY || SKIPPED_BY_NEXT.has(status)) return null;
+    const journey = stages.filter((s) => !SKIPPED_BY_NEXT.has(s.key));
+    const i = journey.findIndex((s) => s.key === status);
+    const next = i >= 0 ? journey[i + 1]?.key : undefined;
+    if (!next) return null;
+    if (next === WON_STATUS_KEY && lead.lead_type === "Real Estate Agent") return null;
+    return next;
+  }
 
   const normalizedSearch = search.trim().toLowerCase();
   const visibleLeads = useMemo(() => {
@@ -123,7 +184,8 @@ export function LeadsKanban({
     lostReason?: { reason: string; note: string }
   ) {
     const leadId = lead.id;
-    const previousStatus = lead.status;
+    // A card already moved with "Next stage" may not have refreshed yet.
+    const previousStatus = overrides[leadId] ?? lead.status;
     setOverrides((prev) => ({ ...prev, [leadId]: newStatus }));
 
     const supabase = createClient();
@@ -166,10 +228,13 @@ export function LeadsKanban({
     const { active, over } = event;
     if (!over || !isAdmin) return;
 
-    const leadId = String(active.id);
-    const newStatus = over.id as LeadStatus;
-    const lead = leads.find((l) => l.id === leadId);
-    if (!lead || lead.status === newStatus) return;
+    const lead = leads.find((l) => l.id === String(active.id));
+    if (lead) await moveLead(lead, over.id as LeadStatus);
+  }
+
+  /** Shared by drag-and-drop and the "Next stage" button, so both follow the same rules. */
+  async function moveLead(lead: LeadWithRelations, newStatus: LeadStatus) {
+    if ((overrides[lead.id] ?? lead.status) === newStatus) return;
 
     if (newStatus === WON_STATUS_KEY && lead.lead_type === "Real Estate Agent") {
       toast.error("Agents can't be marked Won", {
@@ -216,7 +281,24 @@ export function LeadsKanban({
         </p>
       )}
 
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      {isAdmin && (
+        <p className="text-xs text-muted-foreground">
+          Drag a card to another stage, or use <span className="font-medium text-foreground">Next stage →</span>. With a keyboard, focus a card, press Space, then use the arrow keys.
+        </p>
+      )}
+
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={() => setActiveId(null)}
+        accessibility={{
+          announcements,
+          screenReaderInstructions: {
+            draggable: "To move this lead to another stage, press space or enter. Use the left and right arrow keys to choose a stage, then press space or enter again to drop it. Press escape to cancel.",
+          },
+        }}
+      >
         <div className="flex gap-3 overflow-x-auto pb-4" onWheel={handleWheel}>
           {stages.map((stage) => (
             <KanbanColumn
@@ -224,6 +306,8 @@ export function LeadsKanban({
               status={stage.key}
               leads={leadsByStatus.get(stage.key) ?? []}
               isAdmin={isAdmin}
+              nextStageFor={nextStageFor}
+              onNextStage={(lead, next) => moveLead(lead, next)}
             />
           ))}
         </div>

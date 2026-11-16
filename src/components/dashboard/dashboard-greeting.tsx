@@ -38,7 +38,7 @@ function plateLineFor(criticalCount: number, totalCount: number): string {
  * deterministic notifications data as the Needs Attention card (no live AI
  * call here — that stays instant and free on every dashboard load).
  */
-export function DashboardGreeting() {
+export function DashboardGreeting({ reminderTimes = [] }: { reminderTimes?: string[] }) {
   const profile = useProfile();
   const isAdmin = useIsAdmin();
   const [now, setNow] = useState<Date | null>(null);
@@ -78,18 +78,26 @@ export function DashboardGreeting() {
 
   const hour = now.getHours();
   const dateLabel = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  // Site visits and meetings booked for today, by the visitor's own calendar day.
+  const today = now.toDateString();
+  const visitsToday = reminderTimes.filter((t) => new Date(t).toDateString() === today).length;
 
   const showTypewriter = !!plateLine;
   const displayLine = showTypewriter ? typed : "Here's what's on your plate today.";
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
-      <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
         <span className="relative flex size-2">
           <span className="absolute inline-flex size-full animate-ping rounded-full bg-evergreen-soft opacity-60 motion-reduce:animate-none" />
           <span className="relative inline-flex size-2 rounded-full bg-evergreen-soft" />
         </span>
         {dateLabel}
+        {visitsToday > 0 && (
+          <span className="text-foreground/70">
+            · {visitsToday} {visitsToday === 1 ? "visit or meeting" : "visits & meetings"} today
+          </span>
+        )}
       </p>
       <h1 className="mt-1.5 text-3xl tracking-tight sm:text-4xl">
         {greetingForHour(hour)}

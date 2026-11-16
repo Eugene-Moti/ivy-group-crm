@@ -324,6 +324,18 @@ h1 {
   box-shadow: inset 0 1px 0 var(--glass-highlight), 0 26px 50px -32px var(--glass-shadow);
 }
 
+/* Dense data (tables, unit grids) sits on near-solid panels so it stays
+   easy to read; glass is kept to the frame and the headline figures. */
+.orion-app main .orion-bento [data-slot="card"].orion-solid {
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+}
+
+/* Diagonal hatch: the "reserved" texture, so state never relies on colour alone. */
+.orion-hatch {
+  background: repeating-linear-gradient(135deg, var(--gold) 0 2px, transparent 2px 4.5px);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--gold) 70%, transparent);
+}
+
 /* ---- Tilt + spotlight tile (dashboard) ----
    The tile tilts toward the cursor; a soft gold light follows it across
    the surface and along the border. Positions come from --mx/--my, set by

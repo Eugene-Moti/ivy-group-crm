@@ -30,6 +30,8 @@ export type Workspace = {
   tagline: string | null;
   logoUrl: string | null;
   accent: AccentKey;
+  /** Signed-in team members (profiles). Only filled inside the app, never on the public sign-in page. */
+  seats?: number;
 };
 
 /** Used until the branding migration runs, and whenever it can't be read. */

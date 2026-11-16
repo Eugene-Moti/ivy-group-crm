@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { getPipelineStages } from "@/lib/queries/settings";
-import { getWorkspace } from "@/lib/queries/workspace";
+import { getSeatCount, getWorkspace } from "@/lib/queries/workspace";
 import { accentCss } from "@/lib/workspace";
 import { WorkspaceProvider } from "@/components/providers/workspace-provider";
 import { SaleReceiptHost } from "@/components/shared/sale-receipt";
@@ -26,10 +26,12 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const [pipelineStages, workspace] = await Promise.all([
+  const [pipelineStages, baseWorkspace, seats] = await Promise.all([
     getPipelineStages(),
     getWorkspace(),
+    getSeatCount(),
   ]);
+  const workspace = seats ? { ...baseWorkspace, seats } : baseWorkspace;
   const accentStyles = accentCss(workspace.accent);
 
   return (

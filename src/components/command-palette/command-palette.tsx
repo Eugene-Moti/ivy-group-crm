@@ -62,7 +62,7 @@ export function CommandPalette({
     router.push(href);
   }
 
-  const navItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+  const navItems = NAV_ITEMS.filter((item) => !item.soon && (!item.adminOnly || isAdmin));
   const visibleLeadHits = canSearchLeads ? leadHits : [];
 
   return (
