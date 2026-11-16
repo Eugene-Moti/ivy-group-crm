@@ -33,6 +33,7 @@ export interface Database {
           full_name: string | null;
           email: string | null;
           notification_email: string | null;
+          email_updates: boolean;
           avatar_url: string | null;
           role: UserRole;
           display_name: string | null;
@@ -45,6 +46,7 @@ export interface Database {
           full_name?: string | null;
           email?: string | null;
           notification_email?: string | null;
+          email_updates?: boolean;
           avatar_url?: string | null;
           role?: UserRole;
           display_name?: string | null;
@@ -57,6 +59,7 @@ export interface Database {
           full_name?: string | null;
           email?: string | null;
           notification_email?: string | null;
+          email_updates?: boolean;
           avatar_url?: string | null;
           role?: UserRole;
           display_name?: string | null;

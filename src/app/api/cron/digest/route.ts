@@ -17,6 +17,7 @@ import { renderDigestEmail } from "@/lib/digest-email";
 import { generateOrionBriefingPdfBuffer } from "@/lib/orion-briefing-pdf-server";
 import { sendMail } from "@/lib/mailer";
 import { ASK_ORION_ENABLED } from "@/lib/features";
+import { runReminderDigest } from "@/lib/reminder-digest";
 
 // Opus 5 at effort "high" with adaptive thinking and a 16k-token structured
 // output, plus PDF generation and sending to every admin, can genuinely
@@ -31,17 +32,26 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // The digest is written by Ask Orion — while that's paused, skip cleanly
-  // instead of failing every morning on the expired API key.
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return NextResponse.json({ error: "SMTP_HOST, SMTP_USER, and SMTP_PASS are not configured." }, { status: 503 });
+  }
+
+  // While Ask Orion is paused, send the plain morning email instead (no AI)
+  // to everyone who opted in — it no longer depends on the Anthropic key.
   if (!ASK_ORION_ENABLED) {
-    return NextResponse.json({ skipped: "Ask Orion is paused, so the daily briefing is off." });
+    try {
+      return NextResponse.json(await runReminderDigest(new URL(request.url).origin));
+    } catch (err) {
+      console.error("Morning email cron failed:", err);
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "The morning email job hit an unexpected error." },
+        { status: 500 }
+      );
+    }
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ error: "ANTHROPIC_API_KEY is not configured." }, { status: 503 });
-  }
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    return NextResponse.json({ error: "SMTP_HOST, SMTP_USER, and SMTP_PASS are not configured." }, { status: 503 });
   }
 
   try {

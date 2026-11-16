@@ -12,6 +12,7 @@ import { ChangeLoginPinDialog } from "@/components/auth/change-login-pin-dialog"
 import { AvatarUpload } from "@/components/team/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -68,6 +69,7 @@ export function TeamMemberDialog({
   const [displayName, setDisplayName] = useState(profile.display_name ?? "");
   const [jobTitle, setJobTitle] = useState(profile.job_title ?? "");
   const [notificationEmail, setNotificationEmail] = useState(profile.notification_email ?? "");
+  const [emailUpdates, setEmailUpdates] = useState(profile.email_updates ?? false);
   const [role, setRole] = useState<UserRole>(profile.role);
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingActive, setIsTogglingActive] = useState(false);
@@ -85,6 +87,7 @@ export function TeamMemberDialog({
     setDisplayName(profile.display_name ?? "");
     setJobTitle(profile.job_title ?? "");
     setNotificationEmail(profile.notification_email ?? "");
+    setEmailUpdates(profile.email_updates ?? false);
     setRole(profile.role);
     setGeneratedPassword(null);
     setCopied(false);
@@ -112,12 +115,28 @@ export function TeamMemberDialog({
       payload.role = role;
     }
     const { error } = await supabase.from("profiles").update(payload).eq("id", profile.id);
-    setIsSaving(false);
 
     if (error) {
+      setIsSaving(false);
       toast.error("Failed to save", { description: error.message });
       return;
     }
+
+    // Saved separately and only when changed, so the rest of the profile
+    // still saves even if the email_updates migration hasn't run yet.
+    if (isSelf && emailUpdates !== (profile.email_updates ?? false)) {
+      const { error: prefError } = await supabase
+        .from("profiles")
+        .update({ email_updates: emailUpdates })
+        .eq("id", profile.id);
+      if (prefError) {
+        setIsSaving(false);
+        toast.error("Profile saved, but the morning email setting didn't", { description: prefError.message });
+        router.refresh();
+        return;
+      }
+    }
+    setIsSaving(false);
     toast.success("Profile updated");
     router.refresh();
     handleOpenChange(false);
@@ -233,9 +252,21 @@ export function TeamMemberDialog({
               </FieldContent>
             </Field>
 
-            {profile.role === "admin" && (
+            {isSelf && (
+              <Field orientation="horizontal">
+                <FieldContent>
+                  <FieldLabel htmlFor="email-updates">Morning email</FieldLabel>
+                  <FieldDescription>
+                    A short email at 9am with today&apos;s reminders, overdue follow-ups and what&apos;s coming up.
+                  </FieldDescription>
+                </FieldContent>
+                <Switch id="email-updates" checked={emailUpdates} onCheckedChange={setEmailUpdates} />
+              </Field>
+            )}
+
+            {(emailUpdates || profile.role === "admin") && (
               <Field>
-                <FieldLabel htmlFor="notification-email">Orion&apos;s daily briefing goes to</FieldLabel>
+                <FieldLabel htmlFor="notification-email">Send emails to</FieldLabel>
                 <FieldContent>
                   <Input
                     id="notification-email"
@@ -245,8 +276,7 @@ export function TeamMemberDialog({
                     placeholder={profile.email ?? "e.g. name@example.com"}
                   />
                   <FieldDescription>
-                    Where Orion&apos;s 9am daily briefing email is sent. Leave blank to use{" "}
-                    {profile.email ?? "the login email"}.
+                    Where the 9am morning email goes. Leave blank to use {profile.email ?? "the login email"}.
                   </FieldDescription>
                 </FieldContent>
               </Field>
